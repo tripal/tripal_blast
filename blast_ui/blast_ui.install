@@ -1,0 +1,8 @@
+<?php
+
+/**
+ * @file
+ * Contains hooks to handle installation of this module
+ */
+
+tripal_create_files_dir('tripal_blast');
