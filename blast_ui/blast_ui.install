@@ -5,4 +5,42 @@
  * Contains hooks to handle installation of this module
  */
 
-tripal_create_files_dir('tripal_blast');
+function blast_ui_install() {
+   tripal_create_files_dir('tripal_blast');
+}
+
+function blast_ui_schema(){
+    $schema['blastdb'] = array(
+    'description' => t('The base table for blastdb node'),
+    'fields' => array(
+     'nid' => array(
+      'description' => t('The primary identifier for a node.'),
+      'type' => 'serial',
+      'unsigned' => true,
+      'not null' => true,
+      ), 
+     'name' => array(
+       'description' => t('The name of the blast database'),
+       'type' => 'varchar',
+       'length' => 255,
+       'not null' => true,
+      ),
+      'path' => array(
+        'description' => t('The address of the blast database'),
+        'type' => 'varchar',
+         'length' => 1023,
+        'not null' => true,
+      ),
+    ),
+    'indexes' => array(
+      'name' => array('name'),
+    ),
+    'primary key' => array('nid'),
+    'unique keys' => array(
+       'nid' => array('nid'),
+    ),
+    );
+
+    return $schema;
+    
+}

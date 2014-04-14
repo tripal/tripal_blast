@@ -50,28 +50,54 @@ function blastdb_node_access($node, $op, $account) {
 
 function blastdb_form($node, &$form_state) {
   $form = array();
-
+  
   $form['db_name']= array(
     '#type' => 'textfield',
     '#title' => t('File Name'),
-    // Add a #description for each field
     '#required' => TRUE,
-    '#default_value' => NULL,
+    '#default_value' => isset($node->db_name) ? $node->db_name : '',
   );
   $form['db_path']= array(
     '#type' => 'textfield',
     '#title' => t('File Address'),
     '#required' => TRUE,
-    '#default_value' => NULL,
+    '#default_value' => isset($node->db_path) ? $node->db_path : '',
   );
 
-  $form['db_common_name']= array(
-    '#type' => 'textfield',
-    // this is a description; you want something more succint for a title such as File Name
-    '#title' => t('Pick a friendly name for your file'),
-    '#required' => TRUE,
-    '#default_value' => NULL,
-  );
+  dpm($node, $name = NULL);
 
   return $form;
 }
+
+function blastdb_insert($node) {
+ 
+  db_insert('blastdb')->fields(array(
+    'nid' => $node->nid,
+    'name' => $node->db_name,
+    'path' => $node->db_path,
+  ))->execute();
+
+}
+
+function blastdb_update($node) {
+    db_update('blastdb')->fields(array(
+    'name' => $node->db_name,
+    'path' => $node->db_path,
+  ))->condition('nid', $node->nid)->execute();
+}
+
+function blastdb_delete($node) {
+   db_delete('blastdb')->condition('nid',$node->nid)->execute();
+}
+
+function blastdb_load($nodes) {
+    
+  $result = db_query('SELECT nid, name, path FROM {blastdb} WHERE nid IN (:nids)', array(':nids' => array_keys($nodes)));
+  
+  foreach ($result as $record) {
+    $nodes[$record->nid]->db_name = $record->name;
+    $nodes[$record->nid]->db_path = $record->path;
+  }
+   
+}
+
