@@ -63,8 +63,14 @@ function blastdb_form($node, &$form_state) {
     '#required' => TRUE,
     '#default_value' => isset($node->db_path) ? $node->db_path : '',
   );
+//  $form['#attributes']['enctype'] = 'multipart/form-data';
+//  $form['db_path'] = array(
+//  	'#prefix' => 'Upload the file you wish to convert to a Blast db file',
+//  	'#type' => 'file',
+//  	'#description' => t('Please give a text or a FASTA file, not a MS-Word or other document, you can upload up to 10 Mb.'),
+//  );
 
-  dpm($node, $name = NULL);
+  
 
   return $form;
 }
@@ -76,7 +82,9 @@ function blastdb_insert($node) {
     'name' => $node->db_name,
     'path' => $node->db_path,
   ))->execute();
-
+  
+//  exec("makeblastdb -in $node->db_path -dbtype nucl -out $node->db_name");
+  
 }
 
 function blastdb_update($node) {

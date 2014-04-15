@@ -34,12 +34,12 @@ $form['DB'] = array(
   '#collapsed' => FALSE,  
 );
   
-//$options =  _DB_options(); 
+$options = _DB_options();
 $form['DB']['SELECT_DB'] = array(
  '#type' => 'select',
  '#title' => t('KnowPulse Databases:'),
- '#options' => 'TEST',
- '#default_value' => NULL,
+ '#options' => $options,
+ '#default_value' => t('Select a database'),
 );
   
 // Upload a file as an alternative to enter a query sequence 
@@ -207,12 +207,14 @@ function blast_nucleotide_form_validate($form, &$form_state) {
       } else {
          $form_state['dbFlag'] = 'upQuery';
       }
+   } else {
+      $form_state['dbFlag'] = 'blastdb';
    }
-   
+      
 }
 
-function blast_nucleotide_form_submit($form, &$form_state) {
-   
+function blast_nucleotide_form_submit($form, &$form_state) {  
+  exec("export BLASTDB=<>"); 
   $eVal = $form_state['values']['eVal'];
   
   $trgtKey = $form_state['values']['maxTarget'];
@@ -289,23 +291,19 @@ function blast_nucleotide_form_submit($form, &$form_state) {
      }
   }
   
-  if ( isset($form_state['dbFlag']) ) {
-     if ( $form_state['dbFlag'] == 'upQuery') {
-        $subjectSeq = $form_state['upDB_path'];
-        $subSeqOut = drupal_basename($form_state['upDB_path']);
-        //shell_exec("blastn -query $query -subject $subjectSeq -out /tmp/$subSeqOut.blastn -evalue $eVal -word_size $wordSize -gapopen $gapOpen -gapextend $gapExtend -penalty $penalty -reward $reward -num_alignments $numAlign -outfmt 7 ");
-        shell_exec("blastn -query $query -subject $subjectSeq -out /home/amm072/kp-amir/sites/default/files/tripal/tripal_blast/$subSeqOut.blastn.html -evalue $eVal -word_size $wordSize -gapopen $gapOpen -gapextend $gapExtend -penalty $penalty -reward $reward -num_alignments 100 -html");
-     } else {
-        $db = $form['values']['SELECT_DB'];
-        //$output = shell_exec("blastn -query $query -db $db -out <> -evalue $eVal -word_size <> -gapopen <> -gapextend <> -penalty <> -reward <>");
-     }
+  if ( $form_state['dbFlag'] == 'upQuery') {
+     $subjectSeq = $form_state['upDB_path'];
+     $subSeqOut = drupal_basename($form_state['upDB_path']) . rand(0, 10000);
+     $blast_query_cmd = "blastn -query $query -subject $subjectSeq -out /tmp/$subSeqOut.blastn.html -evalue $eVal -word_size $wordSize -gapopen $gapOpen -gapextend $gapExtend -penalty $penalty -reward $reward -num_alignments 100 -html";
+     system($blast_query_cmd);
+  } elseif ($form_state['dbFlag'] == 'blastdb') {
+     $selected_db = $form_state['values']['SELECT_DB'];
+     $blastdb = $form['DB']['SELECT_DB']['#options'][$selected_db];
+     $subSeqOut = drupal_basename($form_state['upQuery_path']). rand(0, 10000);
+     $blast_db_cmd = "blastn -task blastn -query $query -db /$blastdb -out /tmp/$subSeqOut.blastn.html -evalue $eVal -word_size $wordSize -gapopen $gapOpen -gapextend $gapExtend -penalty $penalty -reward $reward -num_alignments 100 -html";
+     system($blast_cmd); 
   }
-
-
 }
-
-// 
-// output file name 
 
 function _validateFasta($sequence) {
 	$fastaIdRegEx = '/^>.*(\\n|\\r)/';
@@ -320,8 +318,15 @@ function _validateFasta($sequence) {
 }
 
 function _DB_options() {
-  $type = 'BLASTDB';
-  $nodes  = node_load_multiple(array(), array('type' => $type));
-  return $nodes;
 
+   $type = 'blastdb';
+   $nodes  = node_load_multiple(array(), array('type'=> $type));
+
+   foreach ($nodes as $node) {
+      if ( isset($node) ) {
+         $options[$node->nid] = $node->db_name;
+      }     
+   }
+   
+   return $options;
 }
