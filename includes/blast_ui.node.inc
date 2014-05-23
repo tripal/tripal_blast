@@ -1,4 +1,4 @@
-x<?php
+<?php
 
 /**
  * @file
@@ -74,7 +74,8 @@ function blastdb_form($node, &$form_state) {
   );
   $form['db_path']= array(
     '#type' => 'textfield',
-    '#title' => t('File Name'),
+    '#title' => t('File Prefix including Full Path'),
+    '#description' => t('The full path to your blast database including the file name but not the file type suffix. For example, /var/www/website/sites/default/files/myblastdb'),
     '#required' => TRUE,
     '#default_value' => isset($node->db_path) ? $node->db_path : '',
   );
@@ -101,8 +102,9 @@ function blastdb_insert($node) {
  * Implements hook_node_insert().
  * This function acts on ALL NODES
  */
-function blastdb_node_insert($node) {
+function blast_ui_node_insert($node) {
   if ($node->type == 'blastdb') {
+    $node->title = $node->db_name;
   }
 }
 
@@ -112,7 +114,6 @@ function blastdb_node_insert($node) {
 *                                                                                                            
 */
 function blastdb_update($node) {
-dpm($node, 'node in module-specific insert');
     db_update('blastdb')->fields(array(
     'name' => $node->db_name,
     'path' => $node->db_path,
@@ -123,9 +124,9 @@ dpm($node, 'node in module-specific insert');
  * Implements hook_node_update().
  * This	function acts on ALL NODES
  */
-function blastdb_node_update($node) {
-  if ($node->type == 'blastdb')	    {
-
+function blast_ui_node_update($node) {
+  if ($node->type == 'blastdb')	{
+    $node->title = $node->db_name;
   }
 }
 

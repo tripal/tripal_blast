@@ -66,10 +66,11 @@ function blast_ui_menu() {
 function show_blast_output($args = 'all') { 
 
   if (preg_match('/^[^\/]*/',$args)) {
-    $full_path_filename = '/var/www/kp-amir/sites/default/files/' . $args;
+    // Since the blast results are in the files directory we can use public:// to get around hard-coding the full path
+    $full_path_filename = 'public://'.$args;
 
     if (file_exists($full_path_filename)) {
-      $result = t('<a href="@url" target="_blank">Download your BLAST result</a>', array('@url' => url('sites/default/files/' . $args)));
+      $result = t('<br /><h3>BLAST Results: <a href="@url" target="_blank">HTML</a></h3>', array('@url' => url('sites/default/files/' . $args)));
       $result .= check_markup(file_get_contents($full_path_filename), 'full_html');
 
       $result = str_replace('<script src="blastResult.js"></script>','',$result);
