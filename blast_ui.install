@@ -5,6 +5,12 @@
  * Contains hooks to handle installation of this module
  */
 
+
+/**
+*
+* Implement hook_install()
+*
+*/
 function blast_ui_install() {
    tripal_create_files_dir('tripal_blast');
 }

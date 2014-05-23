@@ -1,12 +1,26 @@
 <?php
 
+/**
+ * @file
+ * Contains all functions for the nucleotide blast module 
+ */
+
+
+/**
+ * Form constructor for the nucleotide blast form.
+ *
+ * @see blast_nucleotide_form_validate()
+ * @see blast_nucleotide_form_submit()
+ *
+ */
 function blast_nucleotide_form($form, &$form_state) {
   
 //Nucleotide BLAST
 
 $form['nBLAST'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Standard Nucleotide BLAST'),
+    '#title' => t('Enter Query Sequence'),
+    '#description' => t('Enter one or more queries in the top text box or use the browse button to upload a file from your local disk. The file may contain a single sequence or a list of sequences. In both cases, the data must be in FASTA format. <a href="http://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml" target="_blank">More information..</a> '),
     '#collapsible' => TRUE, 
     '#collapsed' => FALSE,  
   );
@@ -21,7 +35,7 @@ $form['#attributes']['enctype'] = 'multipart/form-data';
 $form['nBLAST']['UPLOAD'] = array(
   	'#prefix' => 'Or upload your query files:	',
   	'#type' => 'file',
-  	'#description' => t('Please give a text a FASTA file, not a MS-Word or other document, you can upload up to 10 Mb.'),
+  	'#description' => t('The file should be a plain-text FASTA file and not a .doc, .docx, etc. It cannot be greater than 10 Mb in size.'),
   );
 
 
@@ -29,7 +43,8 @@ $form['nBLAST']['UPLOAD'] = array(
 
 $form['DB'] = array(
   '#type' => 'fieldset',
-  '#title' => t('BLAST Assembled KnowPulse Genomes'),
+  '#title' => t('Choose Search Set'),
+  '#description' => t('Choose from one of the nucleotide BLAST databases listed below. You can also use the browse button to upload a file from your local disk. The file may contain a single sequence or a list of sequences. '),
   '#collapsible' => TRUE, 
   '#collapsed' => FALSE,  
 );
@@ -37,7 +52,7 @@ $form['DB'] = array(
 $options = _DB_options();
 $form['DB']['SELECT_DB'] = array(
  '#type' => 'select',
- '#title' => t('KnowPulse Databases:'),
+ '#title' => t('Nucleotide BLAST Databases:'),
  '#options' => $options,
  '#default_value' => t('Select a database'),
 );
@@ -47,7 +62,7 @@ $form['#attributes']['enctype'] = 'multipart/form-data';
 $form['DB']['DBUPLOAD'] = array(
    '#prefix' => 'Or upload your own dataset:	',
   	'#type' => 'file',
-  	'#description' => t('Please give a text or a FASTA file, not a MS-Word or other document, you can upload up to 10 Mb.'),
+  	'#description' => t('The file should be a plain-text FASTA file and not a .doc, .docx, etc. It cannot be greater than 10 Mb in size.'),
   );
   
 //Algorithm parameters
@@ -93,11 +108,11 @@ $form['ALG']['GParam']['shortQueries'] = array(
 	
 $form['ALG']['GParam']['eVal'] = array(
   '#type' => 'textfield', 
-  '#title' => t('Expect threshold'), 
+  '#title' => t('e-Value (Expected Threshold)'), 
   '#default_value' => 10, 
   '#size' => 12, 
   '#maxlength' => 20, 
-  '#description' => t('Expected number of chance matches in a random model.'),
+  '#description' => t('Expected number of chance matches in a random model. This number should be give in a decimal format. <a href="http://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml#expect" target="_blank">More Information</a> | <a href="https://www.youtube.com/watch?v=nO0wJgZRZJs" target="_blank">Expect value vedio tutorial</a>'),
 );
 	
 $form['ALG']['GParam']['wordSize'] = array(
@@ -176,13 +191,20 @@ $form['ALG']['SParam']['M&MScores'] = array(
   return $form;
 }
 
+/**
+ * Form validation handler for blast_nucleotide_form().
+ *
+ * @see blast_nucleotide_form_validate()
+ */
 function blast_nucleotide_form_validate($form, &$form_state) {
    $fastaSeq = $form_state['input']['FASTA'];
    if (isset($fastaSeq)) {
       if(_validateFasta($fastaSeq)){
           form_set_error('nBLAST', t('Error: Failed to read the Blast query: Wrong format provided for FASTA nucleotide sequence'));
       } else {
-         $form_state['flag'] = 'seqQuery';
+	//$seq_filename = "/tmp/user__query_file.fasta";
+	//file_put_contents ( $seq_filename , $fastaSeq);
+        $form_state['qFlag'] = 'seqQuery';
       }  
    }
    $upQuery = file_save_upload('UPLOAD', array('file_validate_extensions' => array('txt fasta fa fna')), FILE_EXISTS_RENAME);
@@ -213,8 +235,13 @@ function blast_nucleotide_form_validate($form, &$form_state) {
       
 }
 
+/**
+ * Form submition handler for blast_nucleotide_form().
+ *
+ * @see blast_nucleotide_form_submit()
+ */
 function blast_nucleotide_form_submit($form, &$form_state) {  
-  exec("export BLASTDB=<>"); 
+  exec("export BLASTDB=/home/Sequences/blast_dbs/"); 
   $eVal = $form_state['values']['eVal'];
   
   $trgtKey = $form_state['values']['maxTarget'];
@@ -285,7 +312,9 @@ function blast_nucleotide_form_submit($form, &$form_state) {
   
   if ( isset($form_state['qFlag']) ) {
      if ( $form_state['qFlag'] == 'seqQuery' ) {
-        $query = $form_state['values']['FASTA'];
+        $seq_content = $form_state['values']['FASTA'];
+	$query = "/tmp/user__query_file.fasta";
+        file_put_contents ( $query , $seq_content);
      } elseif ( $form_state['qFlag'] == 'upQuery' ) {
         $query = $form_state['upQuery_path'];
      }
@@ -294,17 +323,37 @@ function blast_nucleotide_form_submit($form, &$form_state) {
   if ( $form_state['dbFlag'] == 'upQuery') {
      $subjectSeq = $form_state['upDB_path'];
      $subSeqOut = drupal_basename($form_state['upDB_path']) . rand(0, 10000);
-     $blast_query_cmd = "blastn -query $query -subject $subjectSeq -out /tmp/$subSeqOut.blastn.html -evalue $eVal -word_size $wordSize -gapopen $gapOpen -gapextend $gapExtend -penalty $penalty -reward $reward -num_alignments 100 -html";
-     system($blast_query_cmd);
+     $blast_subj_cmd = "blastn -query $query -subject $subjectSeq -out sites/default/files/$subSeqOut.blastn.html -evalue $eVal -word_size $wordSize -gapopen $gapOpen -gapextend $gapExtend -penalty $penalty -reward $reward -num_alignments 100 -html";
+     system($blast_subj_cmd);
   } elseif ($form_state['dbFlag'] == 'blastdb') {
      $selected_db = $form_state['values']['SELECT_DB'];
-     $blastdb = $form['DB']['SELECT_DB']['#options'][$selected_db];
-     $subSeqOut = drupal_basename($form_state['upQuery_path']). rand(0, 10000);
-     $blast_db_cmd = "blastn -task blastn -query $query -db /$blastdb -out /tmp/$subSeqOut.blastn.html -evalue $eVal -word_size $wordSize -gapopen $gapOpen -gapextend $gapExtend -penalty $penalty -reward $reward -num_alignments 100 -html";
-     system($blast_cmd); 
+     $blastdb_node = node_load($selected_db);
+     $blastdb_path = $blastdb_node->db_path;     
+     $blastdb_human_name = $form['DB']['SELECT_DB']['#options'][$selected_db];
+     $subSeqOut = $blastdb_human_name . rand(0, 10000);
+     $blast_db_cmd = "blastn -task blastn -query $query -db sites/default/files/$blastdb_path -out sites/default/files/$subSeqOut.blastn.html -evalue $eVal -word_size $wordSize -gapopen $gapOpen -gapextend $gapExtend -penalty $penalty -reward $reward -num_alignments 100 -html";
+     system($blast_db_cmd,$input);
   }
+
+  $path = "$subSeqOut.blastn.html";
+  drupal_goto("blast/report/$path");
 }
 
+
+/**
+ * FASTA validating parser
+ *
+ * @param $sequence 
+ *  A string of characters to be validated. A sequence in FASTA format begins with a single-line description, followed by lines of sequence data. 
+ *  The description line is distinguished from the sequence data by a greater-than (">") symbol in the first column. 
+ *  The word following the ">" symbol is the identifier of the sequence, and the rest of the line is the description (both are optional). 
+ *  There should be no space between the ">" and the first letter of the identifier. The sequence ends if another line starting with a ">" appears; 
+ *  this indicates the start of another sequence.
+ *
+ * @return
+ *  Return a boolean. 1 if the sequence does not pass the format valifation stage and 0 otherwise.   
+ *
+ */
 function _validateFasta($sequence) {
 	$fastaIdRegEx = '/^>.*(\\n|\\r)/';
 	$fastaSeqRegEx = '/[^acgntuACGNTU\n\r]/';
@@ -317,8 +366,15 @@ function _validateFasta($sequence) {
   return $flag;
 }
 
-function _DB_options() {
 
+/**
+ * Load the preexisting blast databases 
+ *
+ * @return
+ *  Return human readble names of the preexisting blast databases   
+ *
+ */
+function _DB_options() {
    $type = 'blastdb';
    $nodes  = node_load_multiple(array(), array('type'=> $type));
 
@@ -327,6 +383,5 @@ function _DB_options() {
          $options[$node->nid] = $node->db_name;
       }     
    }
-   
    return $options;
 }

@@ -1,10 +1,16 @@
-<?php
+x<?php
 
 /**
  * @file
  * Contains all functions for creating the blastdb node type
  */
 
+
+/**
+ *
+ * Implements hook_node_info()
+ * 
+ */
 function blast_ui_node_info() {
   return array(
     'blastdb' => array(
@@ -48,33 +54,39 @@ function blastdb_node_access($node, $op, $account) {
   }
 }
 
+/**
+ * Form constructor for the blastdb node
+ *
+ * @see blastdb_insert()
+ * @see blastdb_update()
+ * @see blastdb_delete()
+ * @see blastdb_load()
+ *
+ */
 function blastdb_form($node, &$form_state) {
   $form = array();
   
   $form['db_name']= array(
     '#type' => 'textfield',
-    '#title' => t('File Name'),
+    '#title' => t('Human-readable Name for Blast database'),
     '#required' => TRUE,
     '#default_value' => isset($node->db_name) ? $node->db_name : '',
   );
   $form['db_path']= array(
     '#type' => 'textfield',
-    '#title' => t('File Address'),
+    '#title' => t('File Name'),
     '#required' => TRUE,
     '#default_value' => isset($node->db_path) ? $node->db_path : '',
   );
-//  $form['#attributes']['enctype'] = 'multipart/form-data';
-//  $form['db_path'] = array(
-//  	'#prefix' => 'Upload the file you wish to convert to a Blast db file',
-//  	'#type' => 'file',
-//  	'#description' => t('Please give a text or a FASTA file, not a MS-Word or other document, you can upload up to 10 Mb.'),
-//  );
-
-  
 
   return $form;
 }
 
+/**
+*
+* Implements hook_insert()
+*                                                                                                            
+*/
 function blastdb_insert($node) {
  
   db_insert('blastdb')->fields(array(
@@ -82,22 +94,55 @@ function blastdb_insert($node) {
     'name' => $node->db_name,
     'path' => $node->db_path,
   ))->execute();
-  
-//  exec("makeblastdb -in $node->db_path -dbtype nucl -out $node->db_name");
-  
+
 }
 
+/**
+ * Implements hook_node_insert().
+ * This function acts on ALL NODES
+ */
+function blastdb_node_insert($node) {
+  if ($node->type == 'blastdb') {
+  }
+}
+
+/**
+*
+* Implements hook_update()
+*                                                                                                            
+*/
 function blastdb_update($node) {
+dpm($node, 'node in module-specific insert');
     db_update('blastdb')->fields(array(
     'name' => $node->db_name,
     'path' => $node->db_path,
   ))->condition('nid', $node->nid)->execute();
 }
 
+/**
+ * Implements hook_node_update().
+ * This	function acts on ALL NODES
+ */
+function blastdb_node_update($node) {
+  if ($node->type == 'blastdb')	    {
+
+  }
+}
+
+/**
+*
+* Implements hook_delete()
+*                                                                                                            
+*/
 function blastdb_delete($node) {
    db_delete('blastdb')->condition('nid',$node->nid)->execute();
 }
 
+/**
+*
+* Implements hook_load()
+*                                                                                                            
+*/
 function blastdb_load($nodes) {
     
   $result = db_query('SELECT nid, name, path FROM {blastdb} WHERE nid IN (:nids)', array(':nids' => array_keys($nodes)));
@@ -105,7 +150,8 @@ function blastdb_load($nodes) {
   foreach ($result as $record) {
     $nodes[$record->nid]->db_name = $record->name;
     $nodes[$record->nid]->db_path = $record->path;
+    $nodes[$record->nid]->title = $record->name;
   }
-   
+
 }
 

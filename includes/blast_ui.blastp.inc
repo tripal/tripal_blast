@@ -26,14 +26,6 @@ $form['pBLAST']['FASTA'] = array(
   	'#description' => t('Please give a text file, not a MS-Word or other document, you can upload up to 10 Mb.'),
   );
 
-//// Job title 
-//  $form ['pBLAST']['JOB_ID'] = array(
-//    '#type' => 'textfield',
-//    '#title' => t('Job title'),
-//    '#suffix' => t('Enter a descriptive title for your pairwise alignment'),
-//  );
-
-
 //DATABASE//
 
 	$form['DB'] = array(
@@ -57,7 +49,7 @@ $form['pBLAST']['FASTA'] = array(
   
 // Upload a file as an alternative to enter a query sequence 
   $form['#attributes']['enctype'] = 'multipart/form-data';
-  $form['DB']['UPLOAD'] = array(
+  $form['DB']['DBUPLOAD'] = array(
   	'#prefix' => 'Or upload your own dataset:	',
   	'#type' => 'file',
   	'#description' => t('Please give a text file, not a MS-Word or other document, you can upload up to 10 Mb.'),
@@ -104,16 +96,16 @@ $form['pBLAST']['FASTA'] = array(
    '#default_value' => TRUE,
 );
 	
-	$form['ALG']['GParam']['eVal'] = array(
-  '#type' => 'textfield', 
-  '#title' => t('Expect threshold'), 
-  '#default_value' => 10, 
-  '#size' => 12, 
-  '#maxlength' => 20, 
-  '#description' => t('Expected number of chance matches in a random model.'),
+   $form['ALG']['GParam']['eVal'] = array(
+  	'#type' => 'textfield', 
+  	'#title' => t('Expect threshold'), 
+  	'#default_value' => 10, 
+  	'#size' => 12, 
+  	'#maxlength' => 20, 
+  	'#description' => t('Expected number of chance matches in a random model.'),
 );
 	
-	 $form['ALG']['GParam']['wordSize'] = array(
+   $form['ALG']['GParam']['wordSize'] = array(
        '#type' => 'select',
        '#title' => t('Word size:'),
        '#options' => array(
@@ -204,63 +196,98 @@ function _ajax_example_get_first_dropdown_options() {
 function _ajax_example_get_second_dropdown_options($key = '') {
   $options = array(
     t('PAM30') => drupal_map_assoc(array(
-      t('Extension: 15 Extension: 3'),
-      t('Extension: 14 Extension: 3'),
-      t('Extension: 13 Extension: 3'),
-      t('Extension: 12 Extension: 3'),
-      t('Extension: 11 Extension: 3'),
-      t('Extension: 17 Extension: 2'),
-      t('Extension: 16 Extension: 2'), 
-      t('Extension: 15 Extension: 2'),
-      t('Extension: 14 Extension: 2'),
-      t('Extension: 13 Extension: 2'),
-      t('Extension: 21 Extension: 1'),
-      t('Extension: 20 Extension: 1'),
-      t('Extension: 19 Extension: 1'),
-      t('Extension: 18 Extension: 1'),
-      t('Extension: 17 Extension: 1'),
-    )),
+      t('Existence: 7 Extension: 2'),
+      t('Existence: 6 Extension: 2'),
+      t('Existence: 5 Extension: 2'),
+      t('Existence: 10 Extension: 1'),
+      t('Existence: 9 Extension: 1'),
+      t('Existence: 8 Extension: 1'),
+     )),
     t('PAM70') => drupal_map_assoc(array(
-      t('Flute'),
-      t('Clarinet'),
-      t('Oboe'),
-      t('Bassoon'),
+      t('Existence: 8 Extension: 2'),
+      t('Existence: 7 Extension: 2'),
+      t('Existence: 6 Extension: 2'),
+      t('Existence: 11 Extension: 1'),
+      t('Existence: 10 Extension: 1'),
+      t('Existence: 9 Extension: 1'),
     )),
     t('PAM250') => drupal_map_assoc(array(
-      t('Trumpet'),
-      t('Trombone'),
-      t('French Horn'),
-      t('Euphonium'),
+      t('Existence: 15 Extension: 3'),
+      t('Existence: 14 Extension: 3'),
+      t('Existence: 13 Extension: 3'),
+      t('Existence: 12 Extension: 3'),
+      t('Existence: 11 Extension: 3'),
+      t('Existence: 17 Extension: 2'),
+      t('Existence: 16 Extension: 2'),
+      t('Existence: 15 Extension: 2'),
+      t('Existence: 14 Extension: 2'),
+      t('Existence: 13 Extension: 2'),
+      t('Existence: 21 Extension: 1'),
+      t('Existence: 20 Extension: 1'),
+      t('Existence: 19 Extension: 1'),
+      t('Existence: 18 Extension: 1'),
+      t('Existence: 17 Extension: 1'),
     )),
     t('BLOSUM80') => drupal_map_assoc(array(
-      t('Bass Drum'),
-      t('Timpani'),
-      t('Snare Drum'),
-      t('Tambourine'),
+      t('Existence: 8 Extension: 2'),
+      t('Existence: 7 Extension: 2'),
+      t('Existence: 6 Extension: 2'),
+      t('Existence: 11 Extension: 1'),
+      t('Existence: 10 Extension: 1'),
+      t('Existence: 9 Extension: 1'),
     )),
     t('BLOSUM62') => drupal_map_assoc(array(
-      t('Bass Drum'),
-      t('Timpani'),
-      t('Snare Drum'),
-      t('Tambourine'),
+      t('Existence: 11 Extension: 2'),
+      t('Existence: 10 Extension: 2'),
+      t('Existence: 9 Extension: 2'),
+      t('Existence: 8 Extension: 2'),
+      t('Existence: 7 Extension: 2'),
+      t('Existence: 6 Extension: 2'),
+      t('Existence: 13 Extension: 1'),
+      t('Existence: 12 Extension: 1'),
+      t('Existence: 11 Extension: 1'),
+      t('Existence: 10 Extension: 1'),
+      t('Existence: 9 Extension: 1'),
     )),
     t('BLOSUM45') => drupal_map_assoc(array(
-      t('Bass Drum'),
-      t('Timpani'),
-      t('Snare Drum'),
-      t('Tambourine'),
+      t('Existence: 13 Extension: 3'),
+      t('Existence: 12 Extension: 3'),
+      t('Existence: 11 Extension: 3'),
+      t('Existence: 10 Extension: 3'),
+      t('Existence: 15 Extension: 2'),
+      t('Existence: 14 Extension: 2'),
+      t('Existence: 13 Extension: 2'),
+      t('Existence: 12 Extension: 2'),
+      t('Existence: 19 Extension: 1'),
+      t('Existence: 18 Extension: 1'),
+      t('Existence: 17 Extension: 1'),
+      t('Existence: 16 Extension: 1'),
     )),
     t('BLOSUM50') => drupal_map_assoc(array(
-      t('Bass Drum'),
-      t('Timpani'),
-      t('Snare Drum'),
-      t('Tambourine'),
+      t('Existence: 13 Extension: 3'),
+      t('Existence: 12 Extension: 3'),
+      t('Existence: 11 Extension: 3'),
+      t('Existence: 10 Extension: 3'),
+      t('Existence: 9 Extension: 3'),
+      t('Existence: 16 Extension: 2'),
+      t('Existence: 15 Extension: 2'),
+      t('Existence: 14 Extension: 2'),
+      t('Existence: 13 Extension: 2'),
+      t('Existence: 12 Extension: 2'),
+      t('Existence: 19 Extension: 1'),
+      t('Existence: 18 Extension: 1'),
+      t('Existence: 17 Extension: 1'),
+      t('Existence: 16 Extension: 1'),
+      t('Existence: 15 Extension: 1'),
     )),
     t('BLOSUM90') => drupal_map_assoc(array(
-      t('Bass Drum'),
-      t('Timpani'),
-      t('Snare Drum'),
-      t('Tambourine'),
+      t('Existence: 9 Extension: 2'),
+      t('Existence: 8 Extension: 2'),
+      t('Existence: 7 Extension: 2'),
+      t('Existence: 6 Extension: 2'),
+      t('Existence: 11 Extension: 1'),
+      t('Existence: 10 Extension: 1'),
+      t('Existence: 9 Extension: 1'),
     )),
     );
     if (isset($options[$key])) {
@@ -273,3 +300,6 @@ function _ajax_example_get_second_dropdown_options($key = '') {
 function ajax_example_dependent_dropdown_callback($form, $form_state) {
   return $form['ALG']['SParam']['gapCost'];
 }
+
+
+
