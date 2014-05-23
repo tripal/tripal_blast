@@ -54,7 +54,7 @@ $form['DB']['SELECT_DB'] = array(
  '#type' => 'select',
  '#title' => t('Nucleotide BLAST Databases:'),
  '#options' => $options,
- '#default_value' => t('Select a database'),
+ '#default_value' => 0,
 );
   
 // Upload a file as an alternative to enter a query sequence 
@@ -377,6 +377,7 @@ function _validateFasta($sequence) {
 function _DB_options() {
    $type = 'blastdb';
    $nodes  = node_load_multiple(array(), array('type'=> $type));
+   $options = array();
 
    foreach ($nodes as $node) {
       if ( isset($node) ) {
@@ -385,5 +386,7 @@ function _DB_options() {
    }
 
    asort($options);
+   $options[0] = 'Select a Dataset';
+
    return $options;
 }
