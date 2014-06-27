@@ -53,7 +53,7 @@ foreach($xml->{'BlastOutput_iterations'}->children() as $iteration) {
         'data' => array(
           'number' => array('data' => $count, 'class' => array('number')),
           'query' => array('data' => $query_name, 'class' => array('query')),
-          'hit' => array('data' => l($hit_name,''), 'class' => array('hit')),
+          'hit' => array('data' => $hit_name, 'class' => array('hit')),
           'evalue' => array('data' => $evalue, 'class' => array('evalue')),
           'arrow-col' => array('data' => '<div class="arrow"></div>', 'class' => array('arrow-col'))
         ),

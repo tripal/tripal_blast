@@ -2,7 +2,6 @@
 /**
  * This Template generates the HTML for a single Alignment row in a BLAST report
  */
-dpm($HSPs, 'HPSPs');
 ?>
 
 <div class="title">Alignment</div>
