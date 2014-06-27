@@ -331,11 +331,11 @@ function blast_nucleotide_form_submit($form, &$form_state) {
      $blastdb_path = $blastdb_node->db_path;     
      $blastdb_human_name = $form['DB']['SELECT_DB']['#options'][$selected_db];
      $subSeqOut = str_replace(' ','_', $blastdb_human_name) . rand(0, 10000);
-     $blast_db_cmd = "blastn -task blastn -query $query -db $blastdb_path -out sites/default/files/$subSeqOut.blastn.html -evalue $eVal -word_size $wordSize -gapopen $gapOpen -gapextend $gapExtend -penalty $penalty -reward $reward -num_alignments 100 -html";
+     $blast_db_cmd = "blastn -task blastn -query $query -db $blastdb_path -out sites/default/files/$subSeqOut.blastn.xml -evalue $eVal -word_size $wordSize -gapopen $gapOpen -gapextend $gapExtend -penalty $penalty -reward $reward -num_alignments 100 -outfmt=5";
      system($blast_db_cmd,$input);
   }
 
-  $path = "$subSeqOut.blastn.html";
+  $path = "$subSeqOut.blastn.xml";
   drupal_goto("blast/report/$path");
 }
 
@@ -380,8 +380,10 @@ function _DB_options() {
    $options = array();
 
    foreach ($nodes as $node) {
-      if ( isset($node) ) {
+      if ( isset($node) && isset($node->db_dbtype) ) {
+	if ( ($node->db_dbtype=='n') ) {
          $options[$node->nid] = $node->db_name;
+	}
       }     
    }
 

@@ -79,7 +79,16 @@ function blastdb_form($node, &$form_state) {
     '#required' => TRUE,
     '#default_value' => isset($node->db_path) ? $node->db_path : '',
   );
-
+  $form['db_dbtype'] = array(
+	'#type' => 'radios',
+	'#title' => t('Type of the blast database'),
+	'#options' => array(
+		'n' => t('Nucleotide'),
+		'p' => t('Protein'),
+	),
+	'#required' => TRUE,
+	'#default_value' => isset($node->db_dbtype) ? $node->db_dbtype : 'n',
+  );
   return $form;
 }
 
@@ -94,6 +103,7 @@ function blastdb_insert($node) {
     'nid' => $node->nid,
     'name' => $node->db_name,
     'path' => $node->db_path,
+    'dbtype' => $node->db_dbtype,
   ))->execute();
 
 }
@@ -117,6 +127,7 @@ function blastdb_update($node) {
     db_update('blastdb')->fields(array(
     'name' => $node->db_name,
     'path' => $node->db_path,
+    'dbtype' => $node->db_dbtype,
   ))->condition('nid', $node->nid)->execute();
 }
 
@@ -146,12 +157,13 @@ function blastdb_delete($node) {
 */
 function blastdb_load($nodes) {
     
-  $result = db_query('SELECT nid, name, path FROM {blastdb} WHERE nid IN (:nids)', array(':nids' => array_keys($nodes)));
+  $result = db_query('SELECT nid, name, path, dbtype FROM {blastdb} WHERE nid IN (:nids)', array(':nids' => array_keys($nodes)));
   
   foreach ($result as $record) {
     $nodes[$record->nid]->db_name = $record->name;
     $nodes[$record->nid]->db_path = $record->path;
     $nodes[$record->nid]->title = $record->name;
+    $nodes[$record->nid]->db_dbtype = $record->dbtype;
   }
 
 }

@@ -8,12 +8,37 @@
 require_once 'includes/blast_ui.blastn.inc';
 require_once 'includes/blast_ui.blastp.inc';
 require_once 'includes/blast_ui.node.inc';
+require_once 'theme/blast_ui.theme.inc';
 
+/**
+ *
+ * Implements hook_theme()
+ *
+ */
+
+function blast_ui_theme() {
+  $items = array();
+
+  $path = drupal_get_path('module', 'blast_ui');
+
+  $items['show_blast_report'] = array(
+    'template' => 'blast_report',
+    'path' => "$path/theme",
+  );
+
+  $items['blast_report_alignment_row'] = array(
+    'template' => 'blast_report_alignment_row',
+    'variables' => array('hsps' => NULL),
+    'path' => "$path/theme",
+  );
+
+  return $items;
+}
 
 /**
  *
  * Implements hook_menu()
- * 
+ *
  */
 function blast_ui_menu() {
 
@@ -27,7 +52,7 @@ function blast_ui_menu() {
 );
 
   $items['blast/report/%'] = array(
-    'title' => 'Nucleotide BLAST result:',
+    'title' => 'BLAST result:',
     'page callback' => 'show_blast_output',
     'page arguments' => array(2),
     'access arguments' => array('access content'),
@@ -42,13 +67,13 @@ function blast_ui_menu() {
     'type' => MENU_NORMAL_ITEM
   );
 
-//  $items['blast/blastp'] = array(
-//    'title' => 'Protein BLAST',
-//    'page callback' => 'drupal_get_form',
-//    'page arguments' => array('blast_protein_form'), 
-//    'access arguments' => array('access content'),
-//    'type' => MENU_NORMAL_ITEM
-//  );
+$items['blast/blastp'] = array(
+   'title' => 'Protein BLAST',
+   'page callback' => 'drupal_get_form',
+   'page arguments' => array('blast_protein_form'),
+   'access arguments' => array('access content'),
+   'type' => MENU_NORMAL_ITEM
+);
 
   return $items;
 }
@@ -57,23 +82,24 @@ function blast_ui_menu() {
  * Facilitate presenting the result of the blast search
  *
  * @param $args
- *  A string containing name of the blast output file. 
+ *  A string containing name of the blast output file.
  *
  * @return $result
- *  Return a string containing the blast search output. A link is also provided to let users download the output file.    
+ *  Return a string containing the blast search output. A link is also provided to let users download the output file.
  *
  */
-function show_blast_output($args = 'all') { 
+function show_blast_output($args = 'all') {
 
   if (preg_match('/^[^\/]*/',$args)) {
     // Since the blast results are in the files directory we can use public:// to get around hard-coding the full path
     $full_path_filename = 'public://'.$args;
 
     if (file_exists($full_path_filename)) {
-      $result = t('<br /><h3>BLAST Results: <a href="@url" target="_blank">HTML</a></h3>', array('@url' => url('sites/default/files/' . $args)));
-      $result .= check_markup(file_get_contents($full_path_filename), 'full_html');
+    //  $result = t('<br /><h3>BLAST Results: <a href="@url" target="_blank">HTML</a></h3>', array('@url' => url('sites/default/files/' . $args)));
+    //  $result .= check_markup(file_get_contents($full_path_filename), 'full_html');
+    //  $result = str_replace('<script src="blastResult.js"></script>','',$result);
 
-      $result = str_replace('<script src="blastResult.js"></script>','',$result);
+	$result = theme('show_blast_report');
     }
     else {
       tripal_report_error(
@@ -87,7 +113,7 @@ function show_blast_output($args = 'all') {
   }
   else {
     $result = '<p>An error was encountered while trying to process your blast results</p>';
-  } 
+  }
 
   return $result;
 }

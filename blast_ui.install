@@ -37,6 +37,12 @@ function blast_ui_schema(){
          'length' => 1023,
         'not null' => true,
       ),
+      'dbtype' => array(
+        'description' => t('Type of the blast database'),
+        'type' => 'varchar',
+        'length' => 8,
+        'not null' => true,
+       ),
     ),
     'indexes' => array(
       'name' => array('name'),
