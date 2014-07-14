@@ -15,6 +15,9 @@ require_once 'includes/blast_ui.node.inc';
 // Functions specific to themeing (ie: preprocess)
 require_once 'theme/blast_ui.theme.inc';
 
+// Application Programmers Interface
+require_once 'api/blast_ui.api.inc';
+
 /**
  * Implements hook_menu().
  */

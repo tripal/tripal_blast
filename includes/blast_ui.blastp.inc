@@ -51,7 +51,7 @@ function blast_protein_form($form, &$form_state) {
     '#collapsed' => FALSE,
   );
 
-  $options = DB_options();
+  $options = get_blast_database_options('p');
   $form['DB']['SELECT_DB'] = array(
   '#type' => 'select',
    '#title' => t('Protein BLAST Databases:'),
@@ -690,34 +690,6 @@ function validateFasta($sequence) {
   }
 
   return $flag;
-}
-
-
-/**
- * Generate an array of BLAST database options based on existing nodes of type BlastDB
- *
- * @return
- *  Return human readble names of the pre-existing blast databases
- *
- */
-function DB_options() {
-   $type = 'blastdb';
-   $nodes  = node_load_multiple(array(), array('type'=> $type));
-
-   $options = array();
-
-   foreach ($nodes as $node) {
-      if ( isset($node) && isset($node->db_dbtype) ) {
-        if ( ($node->db_dbtype=='p') ) {
-         $options[$node->nid] = $node->db_name;
-        }
-      }
-   }
-
-   asort($options);
-   $options[0] = 'Select a Dataset';
-
-   return $options;
 }
 
 /**
