@@ -2,21 +2,31 @@
 
 /**
  * @file
- * Contains hooks to handle installation of this module
+ * Contains hooks to handle installation of this module.
+ *
+ * Specifically, a database table (blastdb) is created to store additional information
+ * related to blast database nodes such as the name/path to the NCBI BLAST database files
+ * and the type (protein or nucleotide) of the database.
  */
 
 
 /**
-*
-* Implement hook_install()
-*
-*/
+ * Implements hook_install().
+ */
 function blast_ui_install() {
    tripal_create_files_dir('tripal_blast');
 }
 
+/**
+ * Implements hook_schema().
+ * Create the blastdb database table for storing addditional info related to blastdb nodes.
+ *
+ * NOTE: This hook is called via Drupal magic during the installation process and no longer
+ * needs to be called explicitly in hook_install().
+ */
 function blast_ui_schema(){
-    $schema['blastdb'] = array(
+
+  $schema['blastdb'] = array(
     'description' => t('The base table for blastdb node'),
     'fields' => array(
      'nid' => array(
@@ -24,21 +34,21 @@ function blast_ui_schema(){
       'type' => 'serial',
       'unsigned' => true,
       'not null' => true,
-      ), 
+      ),
      'name' => array(
-       'description' => t('The name of the blast database'),
+       'description' => t('The human-readable name of the blast database.'),
        'type' => 'varchar',
        'length' => 255,
        'not null' => true,
       ),
       'path' => array(
-        'description' => t('The address of the blast database'),
+        'description' => t('The full path and filename prefix of the blast database.'),
         'type' => 'varchar',
          'length' => 1023,
         'not null' => true,
       ),
       'dbtype' => array(
-        'description' => t('Type of the blast database'),
+        'description' => t('Type of the blast database. Should be either n for nucleotide or p for protein.'),
         'type' => 'varchar',
         'length' => 8,
         'not null' => true,
@@ -51,8 +61,8 @@ function blast_ui_schema(){
     'unique keys' => array(
        'nid' => array('nid'),
     ),
-    );
+  );
 
-    return $schema;
-    
+  return $schema;
+
 }

@@ -1,12 +1,25 @@
 <?php
 
+/**
+ * Display the results of a BLAST job execution
+ *
+ * Variables Available in this template:
+ *   $xml_filename: The full path & filename of XML file containing the BLAST results
+ */
 ?>
 
+<!-- JQuery controlling display of the alignment information (hidden by default) -->
 <script type="text/javascript">
   $(document).ready(function(){
+
+    // Hide the alignment rows in the table
+    // (ie: all rows not labelled with the class "result-summary" which contains the tabular
+    // summary of the hit)
     $("#blast_report tr:not(.result-summary)").hide();
     $("#blast_report tr:first-child").show();
 
+    // When a results summary row is clicked then show the next row in the table
+    // which should be corresponding the alignment information
     $("#blast_report tr.result-summary").click(function(){
       $(this).next("tr").toggle();
       $(this).find(".arrow").toggleClass("up");
@@ -15,13 +28,16 @@
 </script>
 
 <?php
-//Load the XML file
-$path = current_path();
-if (preg_match('%blast/report/([\w\.]+)%',$path,$matches)) {
-  $filename = 'sites/default/files/' . $matches[1];
-  $xml=simplexml_load_file($filename);
-}
 
+// Load the XML file
+$xml = simplexml_load_file($xml_filename);
+
+/**
+ * We are using the drupal table theme functionality to create this listing
+ * @see theme_table() for additional documentation
+ */
+
+// Specify the header of the table
 $header = array(
   'number' =>  array('data' => '#', 'class' => array('number')),
   'query' =>  array('data' => 'Query Name', 'class' => array('query')),
@@ -33,6 +49,9 @@ $header = array(
 $rows = array();
 $count = 0;
 
+// Parse the BLAST XML to generate the rows of the table
+// where each hit results in two rows in the table: 1) A summary of the query/hit and
+// significance and 2) additional information including the alignment
 foreach($xml->{'BlastOutput_iterations'}->children() as $iteration) {
   foreach($iteration->{'Iteration_hits'}->children() as $hit) {
     if (is_object($hit)) {
@@ -40,13 +59,13 @@ foreach($xml->{'BlastOutput_iterations'}->children() as $iteration) {
 
       $zebra_class = ($count % 2 == 0) ? 'even' : 'odd';
 
-      // SIMPLY SUMMARY ROW
+      // SUMMARY ROW
       $hit_name = $hit->Hit_def;
       if (preg_match('/(\w+)/', $hit_name, $matches)) {
         $hit_name = $matches[1];
       }
-      $score = $hit->Hit_hsps->Hsp->Hsp_score;
-      $evalue = $hit->Hit_hsps->Hsp->Hsp_evalue;
+      $score = $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_score'};
+      $evalue = $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_evalue'};
       $query_name = $iteration->{'Iteration_query-def'};
 
       $row = array(

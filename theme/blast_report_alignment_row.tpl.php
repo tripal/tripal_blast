@@ -1,6 +1,11 @@
 <?php
 /**
  * This Template generates the HTML for a single Alignment row in a BLAST report
+ *
+ * Variables Available in this template:
+ *   $HSPs: an array of HSPs for the current BLAST result. This follows the structure
+ *     layed out in the XML file but has been made an array instead of a SimpleXML object
+ *     for ease of processing and abstration.
  */
 ?>
 

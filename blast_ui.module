@@ -2,46 +2,25 @@
 
 /**
  * @file
- * Contains all functions for the blast module
+ * The main file for the blast UI module.
  */
 
+// Type-specific BLAST functionality
 require_once 'includes/blast_ui.blastn.inc';
 require_once 'includes/blast_ui.blastp.inc';
+
+// BLAST DB Node functionality
 require_once 'includes/blast_ui.node.inc';
+
+// Functions specific to themeing (ie: preprocess)
 require_once 'theme/blast_ui.theme.inc';
 
 /**
- *
- * Implements hook_theme()
- *
- */
-
-function blast_ui_theme() {
-  $items = array();
-
-  $path = drupal_get_path('module', 'blast_ui');
-
-  $items['show_blast_report'] = array(
-    'template' => 'blast_report',
-    'path' => "$path/theme",
-  );
-
-  $items['blast_report_alignment_row'] = array(
-    'template' => 'blast_report_alignment_row',
-    'variables' => array('hsps' => NULL),
-    'path' => "$path/theme",
-  );
-
-  return $items;
-}
-
-/**
- *
- * Implements hook_menu()
- *
+ * Implements hook_menu().
  */
 function blast_ui_menu() {
 
+  // Parent menu-item for BLAST submission
   $items['blast'] = array(
     'title' => 'BLAST',
     'page callback' => 'drupal_get_form',
@@ -49,16 +28,9 @@ function blast_ui_menu() {
     'access arguments' => array('access content'),
     'type' => MENU_NORMAL_ITEM,
     'expanded' => TRUE,
-);
+  );
 
-  $items['blast/report/%'] = array(
-    'title' => 'BLAST result:',
-    'page callback' => 'show_blast_output',
-    'page arguments' => array(2),
-    'access arguments' => array('access content'),
-    'type' => MENU_CALLBACK,
-);
-
+  // Nucleotide BLAST submission form
   $items['blast/blastn'] = array(
     'title' => 'Nucleotide BLAST',
     'page callback' => 'drupal_get_form',
@@ -67,13 +39,47 @@ function blast_ui_menu() {
     'type' => MENU_NORMAL_ITEM
   );
 
-$items['blast/blastp'] = array(
-   'title' => 'Protein BLAST',
-   'page callback' => 'drupal_get_form',
-   'page arguments' => array('blast_protein_form'),
-   'access arguments' => array('access content'),
-   'type' => MENU_NORMAL_ITEM
-);
+  // Protein  BLAST submission form
+  $items['blast/blastp'] = array(
+    'title' => 'Protein BLAST',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('blast_protein_form'),
+    'access arguments' => array('access content'),
+    'type' => MENU_NORMAL_ITEM
+  );
+
+  // BLAST Results page
+  $items['blast/report/%'] = array(
+    'title' => 'BLAST result:',
+    'page callback' => 'show_blast_output',
+    'page arguments' => array(2),
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function blast_ui_theme() {
+
+  $items = array();
+  $path = drupal_get_path('module', 'blast_ui');
+
+  // Displays the BLAST results for each job
+  $items['show_blast_report'] = array(
+    'template' => 'blast_report',
+    'path' => "$path/theme",
+  );
+
+  // Themes the alignments in a BLAST result display
+  $items['blast_report_alignment_row'] = array(
+    'template' => 'blast_report_alignment_row',
+    'variables' => array('hsps' => NULL),
+    'path' => "$path/theme",
+  );
 
   return $items;
 }
@@ -85,23 +91,28 @@ $items['blast/blastp'] = array(
  *  A string containing name of the blast output file.
  *
  * @return $result
- *  Return a string containing the blast search output. A link is also provided to let users download the output file.
+ *  Return HTML output of the BLAST results to be displayed to the user
  *
  */
 function show_blast_output($args = 'all') {
 
-  if (preg_match('/^[^\/]*/',$args)) {
-    // Since the blast results are in the files directory we can use public:// to get around hard-coding the full path
+  // Double-check that there are no directory slashes in the path since this could be used
+  // present a security risk (ie: if the path contained ../../../etc/someconfig.file this
+  // we don't want to process or display anything.
+  if (preg_match('/^[^\/]*$/',$args)) {
+
+    // Since the blast results are in the files directory
+    // we can use public:// to get around hard-coding the full path
     $full_path_filename = 'public://'.$args;
 
+    // check that the XML file exists before trying to display results
     if (file_exists($full_path_filename)) {
-    //  $result = t('<br /><h3>BLAST Results: <a href="@url" target="_blank">HTML</a></h3>', array('@url' => url('sites/default/files/' . $args)));
-    //  $result .= check_markup(file_get_contents($full_path_filename), 'full_html');
-    //  $result = str_replace('<script src="blastResult.js"></script>','',$result);
-
-	$result = theme('show_blast_report');
+      // Use the show_blast_output.tpl.php to generate the HTML
+	    $result = theme('show_blast_report');
     }
     else {
+      // If the file doesn't exist then throw a tripal error
+      // as well as displaying an error to the user
       tripal_report_error(
         'blast_ui',
         TRIPAL_ERROR,
@@ -112,6 +123,8 @@ function show_blast_output($args = 'all') {
     }
   }
   else {
+    // If there are directory slashes in the path then just display an error to the user
+    // rather than risk the security of the server
     $result = '<p>An error was encountered while trying to process your blast results</p>';
   }
 

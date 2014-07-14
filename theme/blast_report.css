@@ -1,3 +1,9 @@
+
+/**
+ * @file
+ * Handles CSS Themeing of the BLAST Results
+ */
+
 #blast_report h4 {
   margin: 0px;
   padding: 0px;
@@ -10,22 +16,9 @@
   padding: 0px;
 }
 #blast_report th {
-/**
-  background: #7CB8E2 url(header_bkg.png) repeat-x scroll center left;
-  color: #fff;
-  padding: 7px 50px; */
   text-align: left;
 }
-#blast_report td {
-/**
-  background:#C7DDEE none repeat-x scroll center left;
-  color:#000;
-  padding:7px 50px;
-*/
-}
 #blast_report tr.odd td {
-/**
-  background:#fff url(row_bkg.png) repeat-x scroll center left; */
   cursor:pointer;
 }
 #blast_report .arrow {
