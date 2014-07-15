@@ -253,10 +253,6 @@ function blast_nucleotide_form_validate($form, &$form_state) {
  */
 function blast_nucleotide_form_submit($form, &$form_state) {
 
-  // SHOULDN'T BE HARDCODED!!
-  exec("export BLASTDB=/home/Sequences/blast_dbs/");
-
-
   $eVal = $form_state['values']['eVal'];
 
   $trgtKey = $form_state['values']['maxTarget'];
@@ -343,30 +339,62 @@ function blast_nucleotide_form_submit($form, &$form_state) {
   // If the BLAST database was uploaded then use it to run the BLAST
   if ( $form_state['dbFlag'] == 'upQuery') {
 
-     $subjectSeq = $form_state['upDB_path'];
-     $subSeqOut = drupal_basename($form_state['upDB_path']) . rand(0, 10000);
+    // Since we only support using the -db flag (not -subject) we need to create a
+    // blast database for the FASTA uploaded.
+    // NOTE: We can't support subject because we need to generate the ASN.1+ format
+    // to provide multiple download type options from the same BLAST
+    $blastdb_with_path = $form_state['upDB_path'];
+    system("makeblastdb -in $blastdb_with_path -dbtype nucl -parse_seqids");
 
-     $blast_subj_cmd = "blastn -query $query -subject $subjectSeq -out sites/default/files/$subSeqOut.blastn.html -evalue $eVal -word_size $wordSize -gapopen $gapOpen -gapextend $gapExtend -penalty $penalty -reward $reward -num_alignments 100 -html";
-     system($blast_subj_cmd);
+    //$blast_subj_cmd = "blastn -query $query -subject $subjectSeq -out sites/default/files/$subSeqOut.blastn.html -evalue $eVal -word_size $wordSize -gapopen $gapOpen -gapextend $gapExtend -penalty $penalty -reward $reward -num_alignments 100 -html";
+    //system($blast_subj_cmd);
 
   }
   // Otherwise, we are using one of the website provided BLAST databases so form the
   // BLAST command accordingly
   elseif ($form_state['dbFlag'] == 'blastdb') {
 
-     $selected_db = $form_state['values']['SELECT_DB'];
-     $blastdb_node = node_load($selected_db);
-     $blastdb_path = $blastdb_node->db_path;
-     $blastdb_human_name = $form['DB']['SELECT_DB']['#options'][$selected_db];
-     $subSeqOut = str_replace(' ','_', $blastdb_human_name) . rand(0, 10000);
+    $selected_db = $form_state['values']['SELECT_DB'];
+    $blastdb_node = node_load($selected_db);
+    $blastdb_with_path = $blastdb_node->db_path;
 
-     $blast_db_cmd = "blastn -task blastn -query $query -db $blastdb_path -out sites/default/files/$subSeqOut.blastn.xml -evalue $eVal -word_size $wordSize -gapopen $gapOpen -gapextend $gapExtend -penalty $penalty -reward $reward -num_alignments 100 -outfmt=5";
-     system($blast_db_cmd,$input);
   }
 
-  // Redirect to the BLAST results page
-  $path = "$subSeqOut.blastn.xml";
-  drupal_goto("blast/report/$path");
+  // Actually submit the BLAST Tripal Job
+  // NOTE: Tripal jobs needs to be executed from the command-line before it will be run!!
+  $blastdb_with_suffix = $blastdb_with_path . '.nsq';
+  if (is_readable($blastdb_with_suffix)) {
+    global $user;
+    $output_filestub = date('YMd_His');
+    $job_args = array(
+      'program' => 'blastn',
+      'query' => $query,
+      'database' => $blastdb_with_path,
+      'output_filename' => $output_filestub . ".blast.xml",
+      'options' => array(
+        'evalue' => $eVal,
+        'word_size' => $wordSize,
+        'gapopen' => $gapOpen,
+        'gapextend' => $gapExtend,
+        'penalty' =>  $penalty,
+        'reward' => $reward
+      )
+    );
+    $job_id = tripal_add_job("BLAST (blastn): $query",'blast_job','run_BLAST_tripal_job', $job_args, $user->uid);
+
+    // Redirect to the BLAST results page
+    drupal_goto("blast/report/$job_id");
+  }
+  else {
+    $dbfile_uploaded_msg = ($form_state['dbFlag'] == 'upQuery') ? 'The BLAST database was submitted via user upload.' : 'Existing BLAST Database was chosen';
+    tripal_report_error(
+      'blast_ui',
+      TRIPAL_ERROR,
+      "BLAST database %db unaccessible. $dbfile_uploaded_msg",
+      array('%db' => $blastdb_with_path)
+    );
+    drupal_set_message('BLAST database unaccessible. Please contact the site administrator.','error');
+  }
 }
 
 

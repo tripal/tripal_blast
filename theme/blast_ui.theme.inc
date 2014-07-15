@@ -16,15 +16,14 @@
  */
 function blast_ui_preprocess_show_blast_report(&$vars) {
 
-   $path = drupal_get_path('module', 'blast_ui');
+  // Add CSS and Javascript files
+  $path = drupal_get_path('module', 'blast_ui');
+  drupal_add_css($path . '/theme/blast_report.css');
+  drupal_add_js('http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js');
 
-   drupal_add_css($path . '/theme/blast_report.css');
-   drupal_add_js('http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js');
-
-
-  $path = current_path();
-  if (preg_match('%blast/report/([\w\.]+)%',$path,$matches)) {
-    $vars['xml_filename'] = 'sites/default/files/' . $matches[1];
-  }
+  // Get the filename of the BLAST results
+  $job = tripal_get_job($vars['job_id']);
+  $job_args = unserialize($job->arguments);
+  $vars['xml_filename'] = 'public://' . $job_args['output_filename'];
 
 }

@@ -53,7 +53,7 @@ function blast_ui_menu() {
 
   // BLAST Results page
   $items['blast/report/%'] = array(
-    'title' => 'BLAST result:',
+    'title' => 'BLAST Results',
     'page callback' => 'show_blast_output',
     'page arguments' => array(2),
     'access arguments' => array('access content'),
@@ -77,6 +77,12 @@ function blast_ui_theme() {
     'path' => "$path/theme",
   );
 
+  // Displays the BLAST results for each job
+  $items['blast_report_pending'] = array(
+    'template' => 'blast_report_pending',
+    'path' => "$path/theme",
+  );
+
   // Themes the alignments in a BLAST result display
   $items['blast_report_alignment_row'] = array(
     'template' => 'blast_report_alignment_row',
@@ -90,46 +96,42 @@ function blast_ui_theme() {
 /**
  * Facilitate presenting the result of the blast search
  *
- * @param $args
- *  A string containing name of the blast output file.
+ * @param $job_id
+ *  The tripal job_id of the BLAST job previously submitted
  *
  * @return $result
  *  Return HTML output of the BLAST results to be displayed to the user
  *
  */
-function show_blast_output($args = 'all') {
+function show_blast_output($job_id) {
 
-  // Double-check that there are no directory slashes in the path since this could be used
-  // present a security risk (ie: if the path contained ../../../etc/someconfig.file this
-  // we don't want to process or display anything.
-  if (preg_match('/^[^\/]*$/',$args)) {
+  // BLASTs are run as a Tripal job. As such we need to determine whether the current
+  // BLAST is in the queue, running or complete in order to determine what to show the user
+  $job = tripal_get_job($job_id);
 
-    // Since the blast results are in the files directory
-    // we can use public:// to get around hard-coding the full path
-    $full_path_filename = 'public://'.$args;
+  // 1) Job is in the Queue
+  if ($job->start_time === NULL AND $job->end_time == NULL) {
 
-    // check that the XML file exists before trying to display results
-    if (file_exists($full_path_filename)) {
-      // Use the show_blast_output.tpl.php to generate the HTML
-	    $result = theme('show_blast_report');
-    }
-    else {
-      // If the file doesn't exist then throw a tripal error
-      // as well as displaying an error to the user
-      tripal_report_error(
-        'blast_ui',
-        TRIPAL_ERROR,
-        'Unable to open blast results file (%file)',
-        array('%file' => $full_path_filename)
-      );
-      $result = '<p>An error was encountered while trying to process your blast results</p>';
-    }
+    return theme('blast_report_pending', array('status_code' => 0, 'status' => 'Pending'));
   }
+  // 2) Job has been Cancelled
+  elseif ($job->status == 'Cancelled') {
+
+    return theme('blast_report_pending', array('status_code' => 999, 'status' => 'Cancelled'));
+  }
+  // 3) Job is Complete
+  elseif ($job->end_time !== NULL) {
+
+    // Return the Results :)
+    return theme('show_blast_report', array('job_id' => $job_id));
+
+  }
+  // 4) Job is in Progress
   else {
-    // If there are directory slashes in the path then just display an error to the user
-    // rather than risk the security of the server
-    $result = '<p>An error was encountered while trying to process your blast results</p>';
+
+    return theme('blast_report_pending', array('status_code' => 1, 'status' => 'Running'));
   }
 
-  return $result;
+
+  return '';
 }
