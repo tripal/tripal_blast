@@ -44,16 +44,19 @@ function get_blast_database_options($type) {
  *   The full path and filename of the query FASTA file
  * @param $database
  *   The full path and filename prefix (excluding .nhr, .nin, .nsq, etc.)
- * @param $output_filename
- *   The filename (not including path) to give the results
+ * @param $output_filestub
+ *   The filename (not including path) to give the results. Should not include file type suffix
  * @param $options
  *   An array of additional option where the key is the name of the option used by
  *   BLAST (ie: 'num_alignments') and the value is relates to this particular
  *   BLAST job (ie: 250)
  */
-function run_BLAST_tripal_job($program, $query, $database, $output_file, $options, $job_id = NULL) {
+function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $options, $job_id = NULL) {
 
-  $output_file = 'sites/default/files/' . $output_file;
+  $output_file = 'sites/default/files/' . $output_filestub . '.blast.asn';
+  $output_file_xml = 'sites/default/files/' . $output_filestub . '.blast.xml';
+  $output_file_tsv = 'sites/default/files/' . $output_filestub . '.blast.tsv';
+  $output_file_html = 'sites/default/files/' . $output_filestub . '.blast.html';
 
   print "\nExecuting $program\n\n";
   print "Query: $query\n";
@@ -62,7 +65,7 @@ function run_BLAST_tripal_job($program, $query, $database, $output_file, $option
 
   print "Options:\n";
 
-  $blast_cmd = "$program -query $query -db $database -out $output_file -outfmt=5";
+  $blast_cmd = "$program -query $query -db $database -out $output_file -outfmt=11";
   if (!empty($options)) {
     foreach ($options as $opt => $val) {
       print "\t$opt: $val\n";
@@ -73,6 +76,18 @@ function run_BLAST_tripal_job($program, $query, $database, $output_file, $option
   print "\nExecuting the following BLAST command:\n" . $blast_cmd . "\n";
 
   system($blast_cmd);
+
+  print "\nGenerating additional download formats...\n";
+
+  print "\tXML\n";
+  system("blast_formatter -archive $output_file -outfmt 5 -out $output_file_xml");
+
+  print "\tTab-delimited\n";
+  system("blast_formatter -archive $output_file -outfmt 7 -out $output_file_tsv");
+
+  print "\tHTML (includes alignments)\n";
+  system("blast_formatter -archive $output_file -outfmt 0 -out $output_file_html -html");
+
 
   print "\nDone!\n";
 }

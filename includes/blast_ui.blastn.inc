@@ -370,7 +370,7 @@ function blast_nucleotide_form_submit($form, &$form_state) {
       'program' => 'blastn',
       'query' => $query,
       'database' => $blastdb_with_path,
-      'output_filename' => $output_filestub . ".blast.xml",
+      'output_filename' => $output_filestub,
       'options' => array(
         'evalue' => $eVal,
         'word_size' => $wordSize,

@@ -24,6 +24,8 @@ function blast_ui_preprocess_show_blast_report(&$vars) {
   // Get the filename of the BLAST results
   $job = tripal_get_job($vars['job_id']);
   $job_args = unserialize($job->arguments);
-  $vars['xml_filename'] = 'public://' . $job_args['output_filename'];
+  $vars['xml_filename'] = variable_get('file_public_path', conf_path() . '/files') . '/' . $job_args['output_filename'] . '.blast.xml';
+  $vars['tsv_filename'] = variable_get('file_public_path', conf_path() . '/files') . '/' . $job_args['output_filename'] . '.blast.tsv';
+  $vars['html_filename'] = variable_get('file_public_path', conf_path() . '/files') . '/' . $job_args['output_filename'] . '.blast.html';
 
 }

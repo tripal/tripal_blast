@@ -27,6 +27,12 @@
   });
 </script>
 
+<p><strong>Download</strong>:
+  <a href="<?php print '../../' . $html_filename; ?>">HTML</a>,
+  <a href="<?php print '../../' . $tsv_filename; ?>">Tab-Delimited</a>,
+  <a href="<?php print '../../' . $xml_filename; ?>">XML</a>
+</p>
+
 <p>The following table summarizes the results of your BLAST. To see additional information
 about each hit including the alignment, click on that row in the table to expand it.</p>
 
