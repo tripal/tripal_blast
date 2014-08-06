@@ -14,6 +14,11 @@
  */
 function blast_protein_form($form, &$form_state) {
 
+	//  CSS support to the form
+	$form['#attached']['css'] = array(
+		drupal_get_path('module', 'blast_ui') . '/css/form.css',
+		);
+
   // PROTEIN QUERY
   //.........................
 
@@ -23,12 +28,33 @@ function blast_protein_form($form, &$form_state) {
     '#description' => t('Enter one or more queries in the top text box or use the browse button to upload a file from your local disk. The file may contain a single sequence or a list of sequences. In both cases, the data must be in FASTA format. <a href="http://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml" target="_blank">More information..</a> '),
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
+   	'#prefix' => '<div class="two-col">',
+    '#suffix' => '</div>', 
   );
+  $form['query']['example_sequence'] = array(
+    '#type' => 'button', 
+    '#button_type'=> 'button',
+    '#limit_validation_errors' => array(),
+    '#value' => t('Example Sequence'), 
+    '#prefix' => '<div class="center">',
+    '#suffix' => '</div>',
+    '#validate' => array(),
+    '#ajax' => array(
+    	'callback' => 'ajax_nucleotide_text_area_callback',
+    	'wrapper'  => 'fasta_seq',
+        'method'   => 'replace',
+        'effect'   => 'fade',
+        ),
+	  '#attributes' => array('onclick' => 'return false;'),
+  );
+
 
   $form['query']['FASTA'] = array(
     '#type' => 'textarea',
     '#title' => t('Enter FASTA sequence(s)'),
     '#description'=>t('Enter query sequence(s) in the text area.'),
+    '#prefix' => '<div id="fasta_seq">',
+    '#suffix' => '</div>',
   );
 
   // Upload a file as an alternative to enter a query sequence
@@ -38,6 +64,24 @@ function blast_protein_form($form, &$form_state) {
   	'#type' => 'file',
   	'#description' => t('The file should be a plain-text FASTA file and not a .doc, .docx, etc. It cannot be greater than 10 Mb in size.'),
   );
+ 
+    
+	$form['query']['example_sequence'] = array(
+			'#type' => 'button', 
+			'#button_type'=> 'button',
+			'#limit_validation_errors' => array(),
+			'#value' => t('Example Sequence'), 
+			'#prefix' => '<div class="center">',
+			'#suffix' => '</div>',
+			'#validate' => array(),
+			'#ajax' => array(
+				'callback' => 'ajax_protein_text_area_callback',
+				'wrapper'  => 'fasta_seq',
+					'method'   => 'replace',
+					'effect'   => 'fade',
+					),
+		'#attributes' => array('onclick' => 'return false;'),
+		);
 
 
   // BLAST DATABASE
@@ -856,5 +900,21 @@ function ajax_example_dependent_dropdown_callback($form, $form_state) {
   return $form['ALG']['SParam']['gapCost'];
 }
 
+
+// call back function for example sequence
+function ajax_protein_text_area_callback($form, $form_state) {
+ $element = $form['query']['FASTA']; // Get example Protein sequence
+ 
+$element['#value'] =  
+	'>gi|166477|gb|AAA96434.1| resveratrol synthase [Arachis hypogaea]
+MVSVSGIRKVQRAEGPATVLAIGTANPPNCIDQSTYADYYFRVTNSEHMTDLKKKFQRICERTQIKNRHM
+YLTEEILKENPNMCAYKAPSLDAREDMMIREVPRVGKEAATKAIKEWGQPMSKITHLIFCTTSGVALPGV
+DYELIVLLGLDPCVKRYMMYHQGCFAGGTVLRLAKDLAENNKDARVLIVCSENTAVTFRGPSETDMDSLV
+GQALFADGAAAIIIGSDPVPEVEKPIFELVSTDQKLVPGSHGAIGGLLREVGLTFYLNKSVPDIISQNIN
+DALNKAFDPLGISDYNSIFWIAHPGGRAILDQVEQKVNLKPEKMKATRDVLSNYGNMSSACVFFIMDLMR
+KRSLEEGLKTTGEGLDWGVLFGFGPGLTIETVVLRSVAI';
+
+return $element;
+}
 
 
