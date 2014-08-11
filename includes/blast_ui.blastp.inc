@@ -243,12 +243,30 @@ function blast_protein_form($form, &$form_state) {
  * @see blast_protein_form_validate()
  */
 function blast_protein_form_validate($form, &$form_state) {
+  // Get the sequence 
+  $fastaSeq = $form_state['values']['FASTA'];
+  $upQuery = file_save_upload('UPLOAD', array('file_validate_extensions' => array('txt fasta fa fna'),
+  																						), FILE_EXISTS_RENAME);
+  // Check if the sequence is empty																					
+  if(empty($fastaSeq) && empty($upQuery)) {
+  	form_set_error('query', t('No query sequence given. Only raw sequence or sequence of type FASTA can be read. 
+  								Enter sequence in the box provided or upload a plain text file.'));
+  }
+   
+  // Get the DB
+  $db_selected = $form_state['values']['SELECT_DB']; 
+  $upDB = file_save_upload('DB', array('file_validate_extensions' => array('txt fasta fa fna'),
+  																						), FILE_EXISTS_RENAME);
+  // Check if the database is selected or not																						
+  if(empty($upDB) && $db_selected == 0) {
+  	form_set_error('DB', t('Select the database from the list or upload the FASTA file'));
+  }
+  
 
   // Validate query sequence
-  $fastaSeq = $form_state['input']['FASTA'];
   if (isset($fastaSeq)) {
     if (validateFasta($fastaSeq)){
-      form_set_error('pBLAST', t('Error: Failed to read the Blast query: Wrong format provided for FASTA protein sequence'));
+      form_set_error('FASTA', t('Error: Failed to read the Blast query: Wrong format provided for FASTA protein sequence'));
     }
     else {
       $form_state['qFlag'] = 'seqQuery';
@@ -256,13 +274,12 @@ function blast_protein_form_validate($form, &$form_state) {
   }
 
   // Validate Query Upload
-  $upQuery = file_save_upload('UPLOAD', array('file_validate_extensions' => array('txt fasta fa fna')), FILE_EXISTS_RENAME);
   if ($upQuery) {
     $upQuery_uri = $upQuery->uri;
     $form_state['upQuery_path'] = drupal_realpath($upQuery_uri);
     $upQuery_content = file_get_contents($form_state['upQuery_path']);
     if(validateFasta($upQuery_content)){
-      form_set_error('pBLAST', t('Error: Failed to upload the Blast query: Wrong format provided for FASTA protein sequence'));
+      form_set_error('UPLOAD', t('Error: Failed to upload the Blast query: Wrong format provided for FASTA protein sequence'));
     }
     else {
       $form_state['qFlag'] = 'upQuery';
@@ -270,13 +287,12 @@ function blast_protein_form_validate($form, &$form_state) {
   }
 
   // Validate uploaded database
-  $upDB = file_save_upload('DBUPLOAD', array('file_validate_extensions' => array('txt fasta fa fna')), FILE_EXISTS_RENAME);
   if ($upDB) {
     $upDB_uri = $upDB->uri;
     $form_state['upDB_path'] = drupal_realpath($upDB_uri);
     $upDB_content = file_get_contents($form_state['upDB_path']);
     if(validateFasta($upDB_content)){
-      form_set_error('DB', t('Error: Failed to upload the Blast subject sequence file: Wrong format provided for FASTA protein sequence'));
+      form_set_error('SELECT_DB', t('Error: Failed to upload the Blast subject sequence file: Wrong format provided for FASTA protein sequence'));
     }
     else {
       $form_state['dbFlag'] = 'upQuery';
@@ -285,7 +301,6 @@ function blast_protein_form_validate($form, &$form_state) {
   else {
     $form_state['dbFlag'] = 'blastdb';
   }
-
 }
 
 /**

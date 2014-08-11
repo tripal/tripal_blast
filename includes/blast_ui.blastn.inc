@@ -222,12 +222,29 @@ function blast_nucleotide_form($form, &$form_state) {
  * @see blast_nucleotide_form().
  */
 function blast_nucleotide_form_validate($form, &$form_state) {
-
+  // Get the sequence 
+  $fastaSeq = $form_state['values']['FASTA'];
+  $upQuery = file_save_upload('UPLOAD', array('file_validate_extensions' => array('txt fasta fa fna'),
+  																						'file_validate_size' => array(2*1024*1024),
+  																						), FILE_EXISTS_RENAME);
+  // Check if the sequence is empty		
+  if (empty($fastaSeq) && empty($upQuery)) {
+  	form_set_error('query', t('No query sequence given. Only raw sequence or sequence of type FASTA can be read. Enter sequence in the box provided or upload a plain text file.'));
+  }
+  // Get the DB
+  $db_selected = $form_state['values']['SELECT_DB']; 
+  $upDB = file_save_upload('DBUPLOAD', array('file_validate_extensions' => array('txt fasta fa fna'),
+  																					 'file_validate_size' => array(2*1024*1024),
+  																						), FILE_EXISTS_RENAME);
+  // Check if the database is selected or not	
+  if (empty($upDB) && $db_selected == 0) {
+  	form_set_error('DB', t('Select the database from the list or upload the FASTA file'));
+  }
+  
   // Validate FASTA seq in textfield
-  $fastaSeq = $form_state['input']['FASTA'];
   if (isset($fastaSeq)) {
     if (_validateFasta($fastaSeq)){
-      form_set_error('nBLAST', t('Error: Failed to read the Blast query: Wrong format provided for FASTA nucleotide sequence'));
+      form_set_error('FASTA', t(' Enter a valid FASTA nucleotide sequence'));
     }
     else {
       $form_state['qFlag'] = 'seqQuery';
@@ -235,13 +252,13 @@ function blast_nucleotide_form_validate($form, &$form_state) {
   }
 
   // Validate query upload
-  $upQuery = file_save_upload('UPLOAD', array('file_validate_extensions' => array('txt fasta fa fna')), FILE_EXISTS_RENAME);
+
   if ($upQuery) {
     $upQuery_uri = $upQuery->uri;
     $form_state['upQuery_path'] = drupal_realpath($upQuery_uri);
     $upQuery_content = file_get_contents($form_state['upQuery_path']);
     if (_validateFasta($upQuery_content)){
-      form_set_error('nBLAST', t('Error: Failed to upload the Blast query: Wrong format provided for FASTA nucleotide sequence'));
+      form_set_error('UPLOAD', t('Failed to upload the Blast query: Wrong format provided for FASTA nucleotide sequence'));
     }
     else {
       $form_state['qFlag'] = 'upQuery';
@@ -249,13 +266,13 @@ function blast_nucleotide_form_validate($form, &$form_state) {
   }
 
   // Validate blast database upload
-  $upDB = file_save_upload('DBUPLOAD', array('file_validate_extensions' => array('txt fasta fa fna')), FILE_EXISTS_RENAME);
+  
   if ($upDB) {
     $upDB_uri = $upDB->uri;
     $form_state['upDB_path'] = drupal_realpath($upDB_uri);
     $upDB_content = file_get_contents($form_state['upDB_path']);
     if (_validateFasta($upDB_content)){
-      form_set_error('DB', t('Error: Failed to upload the Blast subject sequence file: Wrong format provided for FASTA nucleotide sequence'));
+      form_set_error('SELECT_DB', t('Failed to upload the Blast subject sequence file. Only a plain text file of raw sequence or sequence of type FASTA can be used for target sequence.'));
     }
     else {
       $form_state['dbFlag'] = 'upQuery';
