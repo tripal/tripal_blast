@@ -57,9 +57,21 @@ function blast_nucleotide_form($form, &$form_state) {
   // Upload a file as an alternative to enter a query sequence
   $form['#attributes']['enctype'] = 'multipart/form-data';
   $form['query']['UPLOAD'] = array(
-    '#prefix' => 'Or upload your query files:	',
-    '#type' => 'file',
-    '#description' => t('The file should be a plain-text FASTA file and not a .doc, .docx, etc. It cannot be greater than 10 Mb in size.'),
+    '#title' => 'Or upload your own query FASTA:	',
+    '#type' => 'managed_file',
+    '#description' => t('The file should be a plain-text FASTA
+(.fasta, .fna, .fa) file. In other words, it cannot have formatting as is the
+case with MS Word (.doc, .docx) or Rich Text Format (.rtf). It cannot be greater
+than %max_size in size. <strong>Don\'t forget to press the Upload button before
+attempting to submit your BLAST.</strong>',
+      array(
+        '%max_size' => round(file_upload_max_size() / 1024 / 1024,1) . 'MB'
+      )
+    ),
+    '#upload_validators' => array(
+      'file_validate_extensions' => array('fasta fna fa'),
+      'file_validate_size' => array(file_upload_max_size()),
+    ),
   );
 
 
@@ -82,12 +94,24 @@ function blast_nucleotide_form($form, &$form_state) {
     '#default_value' => 0,
   );
 
-  // Upload a file as an alternative to enter a query sequence
+  // Upload a file as an alternative to selecting an existing BLAST database
   $form['#attributes']['enctype'] = 'multipart/form-data';
   $form['DB']['DBUPLOAD'] = array(
-   '#prefix' => 'Or upload your own dataset:	',
-    '#type' => 'file',
-    '#description' => t('The file should be a plain-text FASTA file and not a .doc, .docx, etc. It cannot be greater than 10 Mb in size.'),
+    '#title' => 'Or upload your own dataset:	',
+    '#type' => 'managed_file',
+    '#description' => t('The file should be a plain-text FASTA
+(.fasta, .fna, .fa) file. In other words, it cannot have formatting as is the
+case with MS Word (.doc, .docx) or Rich Text Format (.rtf). It cannot be greater
+than %max_size in size. <strong>Don\'t forget to press the Upload button before
+attempting to submit your BLAST.</strong>',
+      array(
+        '%max_size' => round(file_upload_max_size() / 1024 / 1024,1) . 'MB'
+      )
+    ),
+    '#upload_validators' => array(
+      'file_validate_extensions' => array('fasta fna fa'),
+      'file_validate_size' => array(file_upload_max_size()),
+    ),
   );
 
   // ALGORITHM PARAMETERS
@@ -223,46 +247,52 @@ function blast_nucleotide_form($form, &$form_state) {
  */
 function blast_nucleotide_form_validate($form, &$form_state) {
 
-  // Validate FASTA seq in textfield
-  $fastaSeq = $form_state['input']['FASTA'];
-  if (isset($fastaSeq)) {
-    if (_validateFasta($fastaSeq)){
-      form_set_error('nBLAST', t('Error: Failed to read the Blast query: Wrong format provided for FASTA nucleotide sequence'));
+  // Validate Query
+  //----------------
+  // @todo: We are currently not validating uploaded files are valid FASTA.
+  // First check to see if we have an upload & if so then validate it.
+  $file = file_load($form_state['values']['UPLOAD']);
+  // If the $file is populated then this is a newly uploaded, temporary file.
+  if (is_object($file)) {
+    $form_state['qFlag'] = 'upQuery';
+    $form_state['upQuery_path'] = drupal_realpath($file->uri);
+  }
+  // Otherwise there was no file uploaded.
+  // Check if there was a query sequence entered in the texfield.
+  elseif (!empty($form_state['input']['FASTA'])) {
+    // Check to ensure that the query sequence entered is valid FASTA.
+    if (_validateFasta($form_state['input']['FASTA'])){
+      form_set_error('nBLAST', t('You need to provide a valid FASTA sequence
+for the query.'));
     }
     else {
       $form_state['qFlag'] = 'seqQuery';
     }
   }
-
-  // Validate query upload
-  $upQuery = file_save_upload('UPLOAD', array('file_validate_extensions' => array('txt fasta fa fna')), FILE_EXISTS_RENAME);
-  if ($upQuery) {
-    $upQuery_uri = $upQuery->uri;
-    $form_state['upQuery_path'] = drupal_realpath($upQuery_uri);
-    $upQuery_content = file_get_contents($form_state['upQuery_path']);
-    if (_validateFasta($upQuery_content)){
-      form_set_error('nBLAST', t('Error: Failed to upload the Blast query: Wrong format provided for FASTA nucleotide sequence'));
-    }
-    else {
-      $form_state['qFlag'] = 'upQuery';
-    }
-  }
-
-  // Validate blast database upload
-  $upDB = file_save_upload('DBUPLOAD', array('file_validate_extensions' => array('txt fasta fa fna')), FILE_EXISTS_RENAME);
-  if ($upDB) {
-    $upDB_uri = $upDB->uri;
-    $form_state['upDB_path'] = drupal_realpath($upDB_uri);
-    $upDB_content = file_get_contents($form_state['upDB_path']);
-    if (_validateFasta($upDB_content)){
-      form_set_error('DB', t('Error: Failed to upload the Blast subject sequence file: Wrong format provided for FASTA nucleotide sequence'));
-    }
-    else {
-      $form_state['dbFlag'] = 'upQuery';
-    }
-  }
+  // Otherwise they didn't enter a query!!
   else {
+    form_set_error('nBLAST', t('You must either enter a FASTA sequence in the
+text field or upload one of your own.'));
+  }
+
+  // Validate Database
+  //-------------------
+  // @todo: We are currently not validating uploaded files are valid FASTA.
+  // First check to see if we have an upload & if so then validate it.
+  $file = file_load($form_state['values']['DBUPLOAD']);
+  // If the $file is populated then this is a newly uploaded, temporary file.
+  if (is_object($file)) {
+    $form_state['dbFlag'] = 'upDB';
+    $form_state['upDB_path'] = drupal_realpath($file->uri);
+  }
+  // Otherwise there was no file uploaded
+  // Check if there was a database choosen from the list instead
+  elseif (!empty($form_state['values']['SELECT_DB'])) {
     $form_state['dbFlag'] = 'blastdb';
+  }
+  // Otherwise they didn't select a database!!
+  else {
+    form_set_error('DB', t('You must either choose a database from the list or upload one of your own.'));
   }
 
 }
@@ -273,6 +303,8 @@ function blast_nucleotide_form_validate($form, &$form_state) {
  * @see blast_nucleotide_form().
  */
 function blast_nucleotide_form_submit($form, &$form_state) {
+
+  $error = FALSE;
 
   $eVal = $form_state['values']['eVal'];
 
@@ -358,17 +390,28 @@ function blast_nucleotide_form_submit($form, &$form_state) {
   }
 
   // If the BLAST database was uploaded then use it to run the BLAST
-  if ( $form_state['dbFlag'] == 'upQuery') {
+  if ( $form_state['dbFlag'] == 'upDB') {
 
     // Since we only support using the -db flag (not -subject) we need to create a
     // blast database for the FASTA uploaded.
     // NOTE: We can't support subject because we need to generate the ASN.1+ format
     // to provide multiple download type options from the same BLAST
     $blastdb_with_path = $form_state['upDB_path'];
-    system("makeblastdb -in $blastdb_with_path -dbtype nucl -parse_seqids");
+    $result = NULL;
+    exec("makeblastdb -in $blastdb_with_path -dbtype nucl -parse_seqids 2>&1", $result);
 
-    //$blast_subj_cmd = "blastn -query $query -subject $subjectSeq -out sites/default/files/$subSeqOut.blastn.html -evalue $eVal -word_size $wordSize -gapopen $gapOpen -gapextend $gapExtend -penalty $penalty -reward $reward -num_alignments 100 -html";
-    //system($blast_subj_cmd);
+    // Check that the BLAST database was made correctly.
+    $result = implode('<br />', $result);
+    if (preg_match('/Error/', $result)) {
+      drupal_set_message('Unable to generate a BLAST database from your uploaded
+FASTA sequence. Please check that your file is a valid FASTA file and that if
+your sequence headers include pipes (i.e.: | ) they adhere to '
+. l('NCBI standards.', 'http://www.ncbi.nlm.nih.gov/books/NBK21097/table/A632/?report=objectonly', array('attributes' => array('target' => '_blank'))),
+        'error'
+      );
+
+      $error = TRUE;
+    }
 
   }
   // Otherwise, we are using one of the website provided BLAST databases so form the
@@ -406,8 +449,10 @@ function blast_nucleotide_form_submit($form, &$form_state) {
     // Redirect to the BLAST results page
     drupal_goto("blast/report/$job_id");
   }
-  else {
-    $dbfile_uploaded_msg = ($form_state['dbFlag'] == 'upQuery') ? 'The BLAST database was submitted via user upload.' : 'Existing BLAST Database was chosen';
+  // We check if $error is set to TRUE because if so then the error has already
+  // been reported.
+  elseif (!$error) {
+    $dbfile_uploaded_msg = ($form_state['dbFlag'] == 'upDB') ? 'The BLAST database was submitted via user upload.' : 'Existing BLAST Database was chosen';
     tripal_report_error(
       'blast_ui',
       TRIPAL_ERROR,
