@@ -29,13 +29,13 @@ function blast_protein_form($form, &$form_state) {
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
    	'#prefix' => '<div class="two-col">',
-    '#suffix' => '</div>', 
+    '#suffix' => '</div>',
   );
   $form['query']['example_sequence'] = array(
-    '#type' => 'button', 
+    '#type' => 'button',
     '#button_type'=> 'button',
     '#limit_validation_errors' => array(),
-    '#value' => t('Example Sequence'), 
+    '#value' => t('Example Sequence'),
     '#prefix' => '<div class="center">',
     '#suffix' => '</div>',
     '#validate' => array(),
@@ -64,13 +64,13 @@ function blast_protein_form($form, &$form_state) {
   	'#type' => 'file',
   	'#description' => t('The file should be a plain-text FASTA file and not a .doc, .docx, etc. It cannot be greater than 10 Mb in size.'),
   );
- 
-    
+
+
 	$form['query']['example_sequence'] = array(
-			'#type' => 'button', 
+			'#type' => 'button',
 			'#button_type'=> 'button',
 			'#limit_validation_errors' => array(),
-			'#value' => t('Example Sequence'), 
+			'#value' => t('Example Sequence'),
 			'#prefix' => '<div class="center">',
 			'#suffix' => '</div>',
 			'#validate' => array(),
@@ -672,7 +672,7 @@ function blast_protein_form_submit($form, &$form_state) {
   if ( isset($form_state['qFlag']) ) {
     if ( $form_state['qFlag'] == 'seqQuery' ) {
       $seq_content = $form_state['values']['FASTA'];
-	    $query = "/tmp/user__query_file.fasta";
+	    $query = '/tmp/' . date('YMd_His') . '_query.fasta';
       file_put_contents ( $query , $seq_content);
     }
     elseif ( $form_state['qFlag'] == 'upQuery' ) {
@@ -904,8 +904,8 @@ function ajax_example_dependent_dropdown_callback($form, $form_state) {
 // call back function for example sequence
 function ajax_protein_text_area_callback($form, $form_state) {
  $element = $form['query']['FASTA']; // Get example Protein sequence
- 
-$element['#value'] =  
+
+$element['#value'] =
 	'>gi|166477|gb|AAA96434.1| resveratrol synthase [Arachis hypogaea]
 MVSVSGIRKVQRAEGPATVLAIGTANPPNCIDQSTYADYYFRVTNSEHMTDLKKKFQRICERTQIKNRHM
 YLTEEILKENPNMCAYKAPSLDAREDMMIREVPRVGKEAATKAIKEWGQPMSKITHLIFCTTSGVALPGV
