@@ -283,8 +283,9 @@ function blast_protein_form_validate($form, &$form_state) {
   elseif (!empty($form_state['input']['FASTA'])) {
     // Check to ensure that the query sequence entered is valid FASTA.
     if (validateFasta($form_state['input']['FASTA'])){
-      form_set_error('pBLAST', t('You need to provide a valid FASTA sequence
-for the query.'));
+      form_set_error('query', t('No query sequence given. Only raw sequence or
+sequence of type FASTA can be read. Enter sequence in the box provided or
+upload a plain text file.'));
     }
     else {
       $form_state['qFlag'] = 'seqQuery';
@@ -313,7 +314,8 @@ text field or upload one of your own.'));
   }
   // Otherwise they didn't select a database!!
   else {
-    form_set_error('DB', t('You must either choose a database from the list or upload one of your own.'));
+    form_set_error('DB', t('No database selected. Either choose a database from
+the list or upload one of your own.'));
   }
 }
 

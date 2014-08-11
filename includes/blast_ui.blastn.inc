@@ -271,8 +271,9 @@ for the query.'));
   }
   // Otherwise they didn't enter a query!!
   else {
-    form_set_error('nBLAST', t('You must either enter a FASTA sequence in the
-text field or upload one of your own.'));
+    form_set_error('query', t('No query sequence given. Only raw sequence or
+sequence of type FASTA can be read. Enter sequence in the box provided or
+upload a plain text file.'));
   }
 
   // Validate Database
@@ -292,7 +293,7 @@ text field or upload one of your own.'));
   }
   // Otherwise they didn't select a database!!
   else {
-    form_set_error('DB', t('You must either choose a database from the list or upload one of your own.'));
+    form_set_error('DB', t('No database selected. Either choose a database from the list or upload one of your own.'));
   }
 
 }
