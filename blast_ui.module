@@ -18,6 +18,9 @@ require_once 'theme/blast_ui.theme.inc';
 // Application Programmers Interface
 require_once 'api/blast_ui.api.inc';
 
+// Administration
+require_once 'includes/blast_ui.admin.inc';
+
 /**
  * Implements hook_menu().
  */
@@ -51,16 +54,6 @@ function blast_ui_menu() {
     'type' => MENU_NORMAL_ITEM
   );
 
-  // Ajax path for the BLAST example sequence.
-  // Arguement is expected to be either 'nucleotide' or 'protein'.
-  $items['blast/example_sequence/%'] = array(
-    'title' => 'Example Sequence',
-    'page callback' => 'ajax_blast_ui_example_sequence_callback',
-    'page arguments' => array(2),
-    'access arguments' => array('access content'),
-    'type' => MENU_CALLBACK,
-  );
-
   // BLAST Results page
   $items['blast/report/%'] = array(
     'title' => 'BLAST Results',
@@ -68,6 +61,16 @@ function blast_ui_menu() {
     'page arguments' => array(2),
     'access arguments' => array('access content'),
     'type' => MENU_CALLBACK,
+  );
+
+  // BLAST Admin
+  $items['admin/tripal/extension/blast_ui'] = array(
+    'title' => 'BLAST User Interface',
+    'description' => 'Provides an interface allowing users to execute their own BLASTs.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('blast_ui_admin_form'),
+    'access arguments' => array('administer tripal'),
+    'type' => MENU_NORMAL_ITEM,
   );
 
   return $items;
