@@ -51,6 +51,16 @@ function blast_ui_menu() {
     'type' => MENU_NORMAL_ITEM
   );
 
+  // Ajax path for the BLAST example sequence.
+  // Arguement is expected to be either 'nucleotide' or 'protein'.
+  $items['blast/example_sequence/%'] = array(
+    'title' => 'Example Sequence',
+    'page callback' => 'ajax_blast_ui_example_sequence_callback',
+    'page arguments' => array(2),
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+
   // BLAST Results page
   $items['blast/report/%'] = array(
     'title' => 'BLAST Results',
@@ -134,4 +144,72 @@ function show_blast_output($job_id) {
 
 
   return '';
+}
+
+/**
+ *
+ */
+function ajax_blast_ui_example_sequence_callback($form, $form_state) {
+
+  // First, set a default example sequence in case administrators have not yet
+  // bothered to set their own.
+  $sequence_type = $form_state['values']['sequence_type'];
+  if ($sequence_type == 'nucleotide') {
+    $default_example_sequence = '>partial lipoxygenase Glyma15g03040
+TTTCGTATGA GATTAAAATG TGTGAAATTT TGTTTGATAG GACATGGGAA
+AGGAAAAGTT GGAAAGGCTA CAAATTTAAG AGGACAAGTG TCGTTACCAA
+CCTTGGGAGC TGGCGAAGAT GCATACGATG TTCATTTTGA ATGGGACAGT
+GACTTCGGAA TTCCCGGTGC ATTTTACATT AAGAACTTCA TGCAAGTTGA
+GTTCTATCTC AAGTCTCTAA CTCTCGAAGA CATTCCAAAC CACGGAACCA
+TTCACTTCGT ATGCAACTCC TGGGTTTACA ACTCAAAATC CTACCATTCT
+GATCGCATTT TCTTTGCCAA CAATGTAAGC TACTTAAATA CTGTTATACA
+TTGTCTAACA TCTTGTTAGA GTCTTGCATG ATGTGTACCG TTTATTGTTG
+TTGTTGAACT TTACCACATG GCATGGATGC AAAAGTTGTT ATACACATAA
+ATTATAATGC AGACATATCT TCCAAGCGAG ACACCGGCTC CACTTGTCAA
+GTACAGAGAA GAAGAATTGA AGAATGTAAG AGGGGATGGA ACTGGTGAGC
+GCAAGGAATG GGATAGGATC TATGATTATG ATGTCTACAA TGACTTGGGC
+GATCCAGATA AGGGTGAAAA GTATGCACGC CCCGTTCTTG GAGGTTCTGC
+CTTACCTTAC CCTCGCAGAG GAAGAACCGG AAGAGGAAAA ACTAGAAAAG
+GTTTCTCACT AGTCACTAAT TTATTACTTT TTAATGTTTG TTTTTAGGCA
+TCTTTTCTGA TGAAATGTAT ACTTTTGATG TTTTTTTGTT TTAGCATAAC
+TGAATTAGTA AAGTGTGTTG TGTTCCTTAG AAGTTAGAAA AGTACTAAGT
+ATAAGGTCTT TGAGTTGTCG TCTTTATCTT AACAGATCCC AACAGTGAGA
+AGCCCAGTGA TTTTGTTTAC CTTCCGAGAG ATGAAGCATT TGGTCACTTG
+AAGTCATCAG ATTTTCTCGT TTATGGAATC AAATCAGTGG CTCAAGACGT
+CTTGCCCGTG TTGACTGATG CGTTTGATGG CAATCTTTTG AGCCTTGAGT
+TTGATAACTT TGCTGAAGTG CGCAAACTCT ATGAAGGTGG AGTTACACTA
+CCTACAAACT TTCTTAGCAA GATCGCCCCT ATACCAGTGG TCAAGGAAAT
+TTTTCGAACT GATGGCGAAC AGTTCCTCAA GTATCCACCA CCTAAAGTGA
+TGCAGGGTAT GCTACATATT TTGAATATGT AGAATATTAT CAATATACTC
+CTGTTTTTAT TCAACATATT TAATCACATG GATGAATTTT TGAACTGTTA';
+  }
+  elseif ($sequence_type == 'protein') {
+    $default_example_sequence = '>gi|166477|gb|AAA96434.1| resveratrol synthase [Arachis hypogaea]
+MVSVSGIRKVQRAEGPATVLAIGTANPPNCIDQSTYADYYFRVTNSEHMTDLKKKFQRICERTQIKNRHM
+YLTEEILKENPNMCAYKAPSLDAREDMMIREVPRVGKEAATKAIKEWGQPMSKITHLIFCTTSGVALPGV
+DYELIVLLGLDPCVKRYMMYHQGCFAGGTVLRLAKDLAENNKDARVLIVCSENTAVTFRGPSETDMDSLV
+GQALFADGAAAIIIGSDPVPEVEKPIFELVSTDQKLVPGSHGAIGGLLREVGLTFYLNKSVPDIISQNIN
+DALNKAFDPLGISDYNSIFWIAHPGGRAILDQVEQKVNLKPEKMKATRDVLSNYGNMSSACVFFIMDLMR
+KRSLEEGLKTTGEGLDWGVLFGFGPGLTIETVVLRSVAI';
+  }
+  else {
+    $default_example_sequence = '';
+  }
+
+  // If the Show Example checkbox is true then put the example in the textfield
+  if ($form_state['values']['example_sequence']) {
+    // Set the value to be the example sequence (either set by the administrator
+    // or the default set above).
+    $form['query']['FASTA']['#value'] = variable_get(
+      'blast_ui_' . $sequence_type . '_example_sequence',
+      $default_example_sequence
+    );
+  }
+  // Otherwise we want to remove the already displayed example.
+  else {
+    $form['query']['FASTA']['#value'] = '';
+  }
+
+  return $form['query']['FASTA'];
+
 }

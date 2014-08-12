@@ -17,7 +17,13 @@ function blast_protein_form($form, &$form_state) {
 	//  CSS support to the form
 	$form['#attached']['css'] = array(
 		drupal_get_path('module', 'blast_ui') . '/css/form.css',
-		);
+	);
+
+  // Add the sequence type to the form
+  $form['sequence_type'] = array(
+    '#type' => 'hidden',
+    '#value' => 'protein'
+  );
 
   // PROTEIN QUERY
   //.........................
@@ -25,27 +31,30 @@ function blast_protein_form($form, &$form_state) {
   $form['query'] = array(
     '#type' => 'fieldset',
     '#title' => t('Enter Query Sequence'),
-    '#description' => t('Enter one or more queries in the top text box or use the browse button to upload a file from your local disk. The file may contain a single sequence or a list of sequences. In both cases, the data must be in FASTA format. <a href="http://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml" target="_blank">More information..</a> '),
+    '#description' => t('Enter one or more queries in the top text box or use '
+      . 'the browse button to upload a file from your local disk. The file may '
+      . 'contain a single sequence or a list of sequences. In both cases, the '
+      . 'data must be in <a href="@fasta-format-url" target="_blank">FASTA format</a>. ',
+        array(
+          '@fasta-format-url' => 'http://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml'
+        )
+      ),
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
-   	'#prefix' => '<div class="two-col">',
-    '#suffix' => '</div>',
   );
+
+  // Checkbox to show an example.
   $form['query']['example_sequence'] = array(
-    '#type' => 'button',
-    '#button_type'=> 'button',
-    '#limit_validation_errors' => array(),
-    '#value' => t('Example Sequence'),
-    '#prefix' => '<div class="center">',
-    '#suffix' => '</div>',
-    '#validate' => array(),
+    '#type' => 'checkbox',
+    '#title' => t('Show an Example Sequence'),
+    '#prefix' => '<span style="float: right;">',
+    '#suffix' => '</span>',
     '#ajax' => array(
-    	'callback' => 'ajax_nucleotide_text_area_callback',
-    	'wrapper'  => 'fasta_seq',
-        'method'   => 'replace',
-        'effect'   => 'fade',
-        ),
-	  '#attributes' => array('onclick' => 'return false;'),
+    	'callback' => 'ajax_blast_ui_example_sequence_callback',
+    	'wrapper'  => 'fasta-textarea',
+      'method'   => 'replace',
+      'effect'   => 'fade',
+    ),
   );
 
 
@@ -53,7 +62,7 @@ function blast_protein_form($form, &$form_state) {
     '#type' => 'textarea',
     '#title' => t('Enter FASTA sequence(s)'),
     '#description'=>t('Enter query sequence(s) in the text area.'),
-    '#prefix' => '<div id="fasta_seq">',
+    '#prefix' => '<div id="fasta-textarea">',
     '#suffix' => '</div>',
   );
 
@@ -76,25 +85,6 @@ attempting to submit your BLAST.</strong>',
       'file_validate_size' => array(file_upload_max_size()),
     ),
   );
-
-
-	$form['query']['example_sequence'] = array(
-			'#type' => 'button',
-			'#button_type'=> 'button',
-			'#limit_validation_errors' => array(),
-			'#value' => t('Example Sequence'),
-			'#prefix' => '<div class="center">',
-			'#suffix' => '</div>',
-			'#validate' => array(),
-			'#ajax' => array(
-				'callback' => 'ajax_protein_text_area_callback',
-				'wrapper'  => 'fasta_seq',
-					'method'   => 'replace',
-					'effect'   => 'fade',
-					),
-		'#attributes' => array('onclick' => 'return false;'),
-		);
-
 
   // BLAST DATABASE
   //.........................
@@ -948,22 +938,3 @@ function _ajax_example_get_second_dropdown_options($key = '') {
 function ajax_example_dependent_dropdown_callback($form, $form_state) {
   return $form['ALG']['SParam']['gapCost'];
 }
-
-
-// call back function for example sequence
-function ajax_protein_text_area_callback($form, $form_state) {
- $element = $form['query']['FASTA']; // Get example Protein sequence
-
-$element['#value'] =
-	'>gi|166477|gb|AAA96434.1| resveratrol synthase [Arachis hypogaea]
-MVSVSGIRKVQRAEGPATVLAIGTANPPNCIDQSTYADYYFRVTNSEHMTDLKKKFQRICERTQIKNRHM
-YLTEEILKENPNMCAYKAPSLDAREDMMIREVPRVGKEAATKAIKEWGQPMSKITHLIFCTTSGVALPGV
-DYELIVLLGLDPCVKRYMMYHQGCFAGGTVLRLAKDLAENNKDARVLIVCSENTAVTFRGPSETDMDSLV
-GQALFADGAAAIIIGSDPVPEVEKPIFELVSTDQKLVPGSHGAIGGLLREVGLTFYLNKSVPDIISQNIN
-DALNKAFDPLGISDYNSIFWIAHPGGRAILDQVEQKVNLKPEKMKATRDVLSNYGNMSSACVFFIMDLMR
-KRSLEEGLKTTGEGLDWGVLFGFGPGLTIETVVLRSVAI';
-
-return $element;
-}
-
-
