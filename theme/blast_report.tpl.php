@@ -70,7 +70,12 @@ if ($xml) {
         $zebra_class = ($count % 2 == 0) ? 'even' : 'odd';
 
         // SUMMARY ROW
-        $hit_name = $hit->Hit_id;
+
+        // If the id is of the form gnl|BL_ORD_ID|### then the parseids flag
+        // to makeblastdb did a really poor job. In thhis case we want to use
+        // the def to provide the original FASTA header.
+        $hit_name = (preg_match('/BL_ORD_ID/', $hit->{'Hit_id'})) ? $hit->{'Hit_def'} : $hit->{'Hit_id'};
+
         $score = $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_score'};
         $evalue = $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_evalue'};
         $query_name = $iteration->{'Iteration_query-def'};
