@@ -28,6 +28,14 @@ require_once 'includes/blast_ui.admin.inc';
  */
 function blast_ui_menu() {
 
+  // BLAST DB Node
+  $items['node__blastdb'] = array(
+    'template' => 'node--blastdb',
+    'render element' => 'node',
+    'base hook' => 'node',
+    'path' => 'theme',
+  );
+
   // Single All-in-One BLAST submission form
   $items['blast'] = array(
     'title' => 'BLAST',
@@ -35,7 +43,8 @@ function blast_ui_menu() {
     'page arguments' => array('blast_ui_all_in_one_form'),
     'access arguments' => array('access content'),
     'file' => 'includes/blast_ui.form_single.inc',
-    'type' => MENU_SUGGESTED_ITEM
+    'type' => MENU_NORMAL_ITEM,
+    'expanded' => TRUE,
   );
 
   // Per Query Type BLAST submission forms

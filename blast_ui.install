@@ -50,7 +50,7 @@ function blast_ui_schema(){
       'dbtype' => array(
         'description' => t('Type of the blast database. Should be either n for nucleotide or p for protein.'),
         'type' => 'varchar',
-        'length' => 8,
+        'length' => 15,
         'not null' => true,
        ),
     ),
@@ -64,5 +64,22 @@ function blast_ui_schema(){
   );
 
   return $schema;
+
+}
+
+/**
+ * Changing the length of the type field to allow it to be more readable.
+ */
+function blast_ui_update_7101() {
+
+  // Changing the length of the type field to allow it to be more readable.
+  db_change_field('blastdb', 'dbtype', 'dbtype',
+    array(
+        'description' => t('Type of the blast database. Should be either n for nucleotide or p for protein.'),
+        'type' => 'varchar',
+        'length' => 15,
+        'not null' => true,
+    )
+  );
 
 }

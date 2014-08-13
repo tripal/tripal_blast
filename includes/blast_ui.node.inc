@@ -85,8 +85,8 @@ function blastdb_form($node, &$form_state) {
     '#type' => 'radios',
     '#title' => t('Type of the blast database'),
     '#options' => array(
-      'n' => t('Nucleotide'),
-      'p' => t('Protein'),
+      'nucleotide' => t('Nucleotide'),
+      'protein' => t('Protein'),
     ),
     '#required' => TRUE,
     '#default_value' => isset($node->db_dbtype) ? $node->db_dbtype : 'n',
