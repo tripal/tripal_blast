@@ -20,10 +20,19 @@ function get_blast_database_options($type) {
   // Get all BlastDB nodes
   $nodes  = node_load_multiple(array(), array('type'=> 'blastdb'));
 
+  // Support obsolete database type n/p
+  $obs_type = '';
+  if ($type == 'protein') {
+    $obs_type = 'p';
+  }
+  else {
+    $obs_type = 'n';
+  }
+
   $options = array();
   foreach ($nodes as $node) {
     if ( isset($node) && isset($node->db_dbtype) ) {
-	    if ( ($node->db_dbtype == $type) ) {
+	    if ( ($node->db_dbtype == $type) OR ($node->db_dbtype == $obs_type) ) {
         $options[$node->nid] = $node->db_name;
 	    }
     }
@@ -128,4 +137,47 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
 
 
   print "\nDone!\n";
+}
+
+/**
+ * FASTA validating parser
+ *
+ * A sequence in FASTA format begins with a single-line description, followed
+ * by lines of sequence data.The description line is distinguished from the
+ * sequence data by a greater-than (">") symbol in the first column. The word
+ * following the ">" symbol is the identifier of the sequence, and the rest of
+ * the line is the description (both are optional). There should be no space
+ * between the ">" and the first letter of the identifier. The sequence ends
+ * if another line starting with a ">" appears which indicates the start of
+ * another sequence.
+ *
+ * @param $type
+ *   The type of sequence to be validated (ie: either nucleotide or protein).
+ * @param $sequence
+ *  A string of characters to be validated.
+ *
+ * @return
+ *  Return a boolean. 1 if the sequence does not pass the format valifation stage and 0 otherwise.
+ *
+ */
+function validate_fasta_sequence($type, $sequence) {
+
+  if ($type == 'nucleotide') {
+    $fastaIdRegEx = '/^>.*(\\n|\\r)/';
+    $fastaSeqRegEx = '/[^acgntuACGNTU\n\r]/';
+    if ( preg_match($fastaSeqRegEx,$sequence) && !(preg_match($fastaIdRegEx,$sequence)) ) {
+      return TRUE;
+    } else {
+      return FALSE;
+    }
+  } elseif ($type == 'protein') {
+    $fastaIdRegEx = '/^>.*(\\n|\\r)/';
+    $fastaSeqRegEx = '/[^acgturykmswbdhvnxACGTURYKMSWBDHVNX\*\-\n\r]/';
+    if ( preg_match($fastaSeqRegEx,$sequence) && !(preg_match($fastaIdRegEx,$sequence)) ) {
+      return TRUE;
+    } else {
+      return FALSE;
+    }
+  }
+  return FALSE;
 }

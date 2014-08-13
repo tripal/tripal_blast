@@ -5,9 +5,11 @@
  * The main file for the blast UI module.
  */
 
-// Type-specific BLAST functionality
-require_once 'includes/blast_ui.blastn.inc';
-require_once 'includes/blast_ui.blastp.inc';
+// BLAST Submission Forms
+require_once 'includes/blast_ui.form_common.inc';
+require_once 'includes/blast_ui.form_advanced_options.inc';
+// NOTE: The forms themeselves are included using hook_menu to ensure they
+// are only inlcuded when needed.
 
 // BLAST DB Node functionality
 require_once 'includes/blast_ui.node.inc';
@@ -26,31 +28,71 @@ require_once 'includes/blast_ui.admin.inc';
  */
 function blast_ui_menu() {
 
-  // Parent menu-item for BLAST submission
+  // Single All-in-One BLAST submission form
   $items['blast'] = array(
     'title' => 'BLAST',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('blast_nucleotide_form'),
+    'page arguments' => array('blast_ui_all_in_one_form'),
     'access arguments' => array('access content'),
+    'file' => 'includes/blast_ui.form_single.inc',
+    'type' => MENU_SUGGESTED_ITEM
+  );
+
+  // Per Query Type BLAST submission forms
+  $items['blast/nucleotide'] = array(
+    'title' => 'Nucleotide Query',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('blast_ui_per_query_type_form', 1, 2),
+    'access arguments' => array('access content'),
+    'file' => 'includes/blast_ui.form_per_query_type.inc',
     'type' => MENU_NORMAL_ITEM,
     'expanded' => TRUE,
   );
 
-  // Nucleotide BLAST submission form
-  $items['blast/blastn'] = array(
-    'title' => 'Nucleotide BLAST',
+  $items['blast/protein'] = array(
+    'title' => 'Protein Query',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('blast_nucleotide_form'),
+    'page arguments' => array('blast_ui_per_query_type_form', 1),
     'access arguments' => array('access content'),
+    'file' => 'includes/blast_ui.form_per_query_type.inc',
+    'type' => MENU_NORMAL_ITEM,
+    'expanded' => TRUE,
+  );
+
+  // Per BLAST-program submission forms
+  $items['blast/nucleotide/nucleotide'] = array(
+    'title' => 'BLASTn',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('blast_ui_per_blast_program_form', 1, 2),
+    'access arguments' => array('access content'),
+    'file' => 'includes/blast_ui.form_per_program.inc',
     'type' => MENU_NORMAL_ITEM
   );
 
-  // Protein  BLAST submission form
-  $items['blast/blastp'] = array(
-    'title' => 'Protein BLAST',
+  $items['blast/nucleotide/protein'] = array(
+    'title' => 'BLASTx',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('blast_protein_form'),
+    'page arguments' => array('blast_ui_per_blast_program_form', 1, 2),
     'access arguments' => array('access content'),
+    'file' => 'includes/blast_ui.form_per_program.inc',
+    'type' => MENU_NORMAL_ITEM
+  );
+
+  $items['blast/protein/nucleotide'] = array(
+    'title' => 'tBLASTn',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('blast_ui_per_blast_program_form', 1, 2),
+    'access arguments' => array('access content'),
+    'file' => 'includes/blast_ui.form_per_program.inc',
+    'type' => MENU_NORMAL_ITEM
+  );
+
+  $items['blast/protein/protein'] = array(
+    'title' => 'BLASTp',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('blast_ui_per_blast_program_form', 1, 2),
+    'access arguments' => array('access content'),
+    'file' => 'includes/blast_ui.form_per_program.inc',
     'type' => MENU_NORMAL_ITEM
   );
 
@@ -156,7 +198,7 @@ function ajax_blast_ui_example_sequence_callback($form, $form_state) {
 
   // First, set a default example sequence in case administrators have not yet
   // bothered to set their own.
-  $sequence_type = $form_state['values']['sequence_type'];
+  $sequence_type = $form_state['values']['query_type'];
   if ($sequence_type == 'nucleotide') {
     $default_example_sequence = '>partial lipoxygenase Glyma15g03040
 TTTCGTATGA GATTAAAATG TGTGAAATTT TGTTTGATAG GACATGGGAA

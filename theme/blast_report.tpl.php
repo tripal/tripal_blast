@@ -75,17 +75,17 @@ if ($xml) {
 	  // to makeblastdb did a really poor job. In thhis case we want to use
 	  // the def to provide the original FASTA header.
 	  $hit_name = (preg_match('/BL_ORD_ID/', $hit->{'Hit_id'})) ? $hit->{'Hit_def'} : $hit->{'Hit_id'};
-       
+
           $score = $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_score'};
 	  $evalue = $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_evalue'};
 	  $query_name = $iteration->{'Iteration_query-def'};
-          
+
 	  $row = array(
 	  		'data' => array(
 			'number' => array('data' => $count, 'class' => array('number')),
 			'query' => array('data' => $query_name, 'class' => array('query')),
 			'hit' => array('data' => $hit_name, 'class' => array('hit')),
-			‘evalue' => array('data' => $evalue, 'class' => array('evalue')),
+			'evalue' => array('data' => $evalue, 'class' => array('evalue')),
 			'arrow-col' => array('data' => '<div class="arrow"></div>', 'class' => array('arrow-col'))
 		      ),
 		     'class' => array('result-summary')
@@ -127,7 +127,7 @@ if ($xml) {
                 'class' => array('result-summary')
             );
         $rows[] = $row;
-		} // end of else		
+		} // end of else
   }
   print theme('table', array(
       'header' => $header,
