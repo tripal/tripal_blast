@@ -247,7 +247,42 @@ function blast_ui_blastn_advanced_options_form_submit($form, $form_state) {
  * @param $formstate
  *   The current state fo the form passed in as $form.
  */
-function blast_ui_blastx_advanced_options_form(&$form, $form_state) { }
+function blast_ui_blastx_advanced_options_form(&$form, $form_state) {
+
+  $form['ALG']['GParam'] = array(
+   '#type' => 'fieldset',
+   '#title' => t('General parameters'),
+   '#collapsible' => FALSE,
+  );
+
+  $form['ALG']['GParam']['maxTarget'] = array(
+    '#type' => 'select',
+    '#title' => t('Max target sequences:'),
+    '#options' => array(
+      0 => t('10'),
+      1 => t('50'),
+      2 => t('100'),
+      3 => t('250'),
+      4 => t('500'),
+      5 => t('1000'),
+      6 => t('5000'),
+      7 => t('10000'),
+      8 => t('20000'),
+    ),
+    '#default_value' => 2,
+    '#description' => t('Select the maximum number of aligned sequences to display'),
+  );
+
+  $form['ALG']['GParam']['eVal'] = array(
+    '#type' => 'textfield',
+    '#title' => t('e-Value (Expected Threshold)'),
+    '#default_value' => 10,
+    '#size' => 12,
+    '#maxlength' => 20,
+    '#description' => t('Expected number of chance matches in a random model. This number should be give in a decimal format. <a href="http://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml#expect" target="_blank">More Information</a> | <a href="https://www.youtube.com/watch?v=nO0wJgZRZJs" target="_blank">Expect value vedio tutorial</a>'),
+  );
+
+}
 
 /**
  * Validate the advanced options provided by the BLASTn form above.
@@ -261,7 +296,18 @@ function blast_ui_blastx_advanced_options_form_validate($form, $form_state) { }
  *
  * @see blast_ui_blastx_advanced_options_form().
  */
-function blast_ui_blastx_advanced_options_form_submit($form, $form_state) { }
+function blast_ui_blastx_advanced_options_form_submit($form, $form_state) {
+
+  $eVal = $form_state['values']['eVal'];
+
+  $trgtKey = $form_state['values']['maxTarget'];
+  $numAlign = $form['ALG']['GParam']['maxTarget']['#options'][$trgtKey];
+
+  return array(
+    'evalue' => $eVal,
+  );
+
+}
 
 /**
  * @section
@@ -940,7 +986,42 @@ function ajax_example_dependent_dropdown_callback($form, $form_state) {
  * @param $formstate
  *   The current state fo the form passed in as $form.
  */
-function blast_ui_tblastn_advanced_options_form(&$form, $form_state) { }
+function blast_ui_tblastn_advanced_options_form(&$form, $form_state) {
+
+  $form['ALG']['GParam'] = array(
+   '#type' => 'fieldset',
+   '#title' => t('General parameters'),
+   '#collapsible' => FALSE,
+  );
+
+  $form['ALG']['GParam']['maxTarget'] = array(
+    '#type' => 'select',
+    '#title' => t('Max target sequences:'),
+    '#options' => array(
+      0 => t('10'),
+      1 => t('50'),
+      2 => t('100'),
+      3 => t('250'),
+      4 => t('500'),
+      5 => t('1000'),
+      6 => t('5000'),
+      7 => t('10000'),
+      8 => t('20000'),
+    ),
+    '#default_value' => 2,
+    '#description' => t('Select the maximum number of aligned sequences to display'),
+  );
+
+  $form['ALG']['GParam']['eVal'] = array(
+    '#type' => 'textfield',
+    '#title' => t('e-Value (Expected Threshold)'),
+    '#default_value' => 10,
+    '#size' => 12,
+    '#maxlength' => 20,
+    '#description' => t('Expected number of chance matches in a random model. This number should be give in a decimal format. <a href="http://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml#expect" target="_blank">More Information</a> | <a href="https://www.youtube.com/watch?v=nO0wJgZRZJs" target="_blank">Expect value vedio tutorial</a>'),
+  );
+
+}
 
 /**
  * Validate the advanced options provided by the BLASTn form above.
@@ -954,4 +1035,15 @@ function blast_ui_tblastn_advanced_options_form_validate($form, $form_state) { }
  *
  * @see blast_ui_tblastn_advanced_options_form().
  */
-function blast_ui_tblastn_advanced_options_form_submit($form, $form_state) { }
+function blast_ui_tblastn_advanced_options_form_submit($form, $form_state) {
+
+  $eVal = $form_state['values']['eVal'];
+
+  $trgtKey = $form_state['values']['maxTarget'];
+  $numAlign = $form['ALG']['GParam']['maxTarget']['#options'][$trgtKey];
+
+  return array(
+    'evalue' => $eVal,
+  );
+
+}
