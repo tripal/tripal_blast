@@ -14,7 +14,7 @@ function blast_ui_all_in_one_form($form, $form_state) {
   // form that just isn't ready yet.
   $form['msg'] = array(
     '#type' => 'item',
-    '#markup' => 'COMMING SOON!'
+    '#markup' => theme('blast_user_menupage')
   );
 
   return $form;

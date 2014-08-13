@@ -13,12 +13,14 @@ function blast_ui_per_query_type_form($form, $form_state) {
   // Determine the BLAST program.
   $query_type = $form_state['build_info']['args'][0];
   if ($query_type == 'nucleotide') {
+    $template = 'blast_nucleotide_user_menupage';
     $blast_program = array(
       'blastn',
       'blastx'
     );
   }
   elseif ($query_type == 'protein') {
+    $template = 'blast_protein_user_menupage';
     $blast_program = array(
       'blastp',
       'tblastn'
@@ -35,10 +37,9 @@ function blast_ui_per_query_type_form($form, $form_state) {
     '#value' => implode(', ', $blast_program)
   );
 
-  // Give the users a message.
   $form['msg'] = array(
     '#type' => 'item',
-    '#markup' => 'COMMING SOON!'
+    '#markup' => theme($template)
   );
 
   return $form;

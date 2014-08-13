@@ -145,6 +145,22 @@ function blast_ui_theme() {
     'path' => "$path/theme",
   );
 
+  // Menu Information Pages
+  // These are only seen if the user has disabled the all-in-one
+  // or by query type forms.
+  $items['blast_user_menupage'] = array(
+    'template' => 'blast_user_menupage',
+    'path' => "$path/theme",
+  );
+  $items['blast_nucleotide_user_menupage'] = array(
+    'template' => 'blast_nucleotide_user_menupage',
+    'path' => "$path/theme",
+  );
+  $items['blast_protein_user_menupage'] = array(
+    'template' => 'blast_protein_user_menupage',
+    'path' => "$path/theme",
+  );
+
   return $items;
 }
 
