@@ -16,13 +16,24 @@
  */
 ?>
 
+<script>
+Drupal.behaviors.blastuiSetTimeout = {
+  attach: function (context, settings) {
+    setTimeout(function(){
+       window.location.reload(1);
+    }, 5000);
+  }
+};
+
+</script>
+
 <?php
   // JOB IN QUEUE
   if ($status_code === 0) {
     drupal_set_title('BLAST Job in Queue');
 ?>
 
-  <p>Your BLAST has been registered and will be started shortly.</p>
+  <p>Your BLAST has been registered and will be started shortly. This page will automatically refresh.</p>
 
 <?php
   }
@@ -31,7 +42,7 @@
     drupal_set_title('BLAST Job in Progress');
 ?>
 
-  <p>Your BLAST job is currently running. The results will be listed here as soon as it completes.</p>
+  <p>Your BLAST job is currently running. The results will be listed here as soon as it completes. This page will automatically refresh.</p>
 
 <?php
   }
@@ -40,7 +51,7 @@
     drupal_set_title('BLAST Job Cancelled');
 ?>
 
-  <p>Unfortunately your BLAST job has been cancelled by an Administrator.</p>
+  <p>Unfortunately your BLAST job has been cancelled by an Administrator.  This page will automatically refresh.</p>
 
 <?php
  }
