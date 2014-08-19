@@ -16,9 +16,25 @@
  *   An array where the nid is the key and the value is the human-readable name of the option
  */
 function get_blast_database_options($type) {
+  global $user;
+
+  // Use the Entity API to get a list of BLAST Nodes to load
+  // We use this function in order respect node access control so that
+  // administrators can use this module in combination with a node access module
+  // of their choice to limit access to specific BLAST databases.
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'node')
+    // Restrict to BLASTDB nodes.
+    ->entityCondition('bundle', 'blastdb')
+    // Restrict to Published nodes.
+    ->propertyCondition('status', 1)
+    // Restrict to nodes the current user has permission to view.
+    ->addTag('node_access');
+  $entities = $query->execute();
+
 
   // Get all BlastDB nodes
-  $nodes  = node_load_multiple(array(), array('type'=> 'blastdb'));
+  $nodes  = node_load_multiple(array_keys($entities['node']));
 
   // Support obsolete database type n/p
   $obs_type = '';
