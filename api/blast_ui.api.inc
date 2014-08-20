@@ -197,3 +197,41 @@ function validate_fasta_sequence($type, $sequence) {
   }
   return FALSE;
 }
+
+/**
+ * Retrieve the regex to capture the Link-out Accession from the Hit Def.
+ *
+ * @param $nid
+ *   The node ID of the BLAST database the hit is from.
+ * @param $options
+ *   An array of options that can be passed to this function. Supported
+ *   options include:
+ *    -
+ *
+ * @return
+ *   A PHP regex for use with preg_match to cature the Link-out Accession.
+ */
+function get_blastdb_linkout_regex($node, $options = array()) {
+
+  if (empty($node->linkout->regex)) {
+    switch ($node->linkout->regex_type) {
+      case 'default':
+        $regex = '/^(\s+) .*/';
+        break;
+      case 'genbank':
+        $regex = '/^gb\|([^\|])*\|.*/';
+        break;
+      case 'embl':
+        $regex = '/^embl\|([^\|])*\|.*/';
+        break;
+      case 'swissprot':
+        $regex = '/^sp\|([^\|])*\|.*/';
+        break;
+    }
+  }
+  else {
+    $regex = $node->linkout->regex;
+  }
+
+  return $regex;
+}

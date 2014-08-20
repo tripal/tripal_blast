@@ -29,22 +29,22 @@ function blast_ui_schema(){
   $schema['blastdb'] = array(
     'description' => t('The base table for blastdb node'),
     'fields' => array(
-     'nid' => array(
-      'description' => t('The primary identifier for a node.'),
-      'type' => 'serial',
-      'unsigned' => true,
-      'not null' => true,
+      'nid' => array(
+        'description' => t('The primary identifier for a node.'),
+        'type' => 'serial',
+        'unsigned' => true,
+        'not null' => true,
       ),
-     'name' => array(
-       'description' => t('The human-readable name of the blast database.'),
-       'type' => 'varchar',
-       'length' => 255,
-       'not null' => true,
+      'name' => array(
+        'description' => t('The human-readable name of the blast database.'),
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => true,
       ),
       'path' => array(
         'description' => t('The full path and filename prefix of the blast database.'),
         'type' => 'varchar',
-         'length' => 1023,
+        'length' => 1023,
         'not null' => true,
       ),
       'dbtype' => array(
@@ -52,7 +52,15 @@ function blast_ui_schema(){
         'type' => 'varchar',
         'length' => 15,
         'not null' => true,
-       ),
+      ),
+      'dbxref_id_regex' => array(
+        'description' => t('The Regular Expression to use to extract the id from the FASTA header of the BLAST database hit.'),
+        'type' => 'text',
+      ),
+      'dbxref_db' => array(
+        'description' => t('The Database records from this BLAST Database reference.'),
+        'type' => 'int',
+      ),
     ),
     'indexes' => array(
       'name' => array('name'),
@@ -68,7 +76,7 @@ function blast_ui_schema(){
 }
 
 /**
- * Changing the length of the type field to allow it to be more readable.
+ * Make BlastDB type more readable & support Link-outs for BLAST Hits.
  */
 function blast_ui_update_7101() {
 
@@ -79,6 +87,24 @@ function blast_ui_update_7101() {
         'type' => 'varchar',
         'length' => 15,
         'not null' => true,
+    )
+  );
+
+  // Add fields related to Link-outs
+  db_add_field(
+    'blastdb',
+    'dbxref_id_regex',
+    array(
+      'description' => t('The Regular Expression to use to extract the id from the FASTA header of the BLAST database hit.'),
+      'type' => 'text',
+    )
+  );
+  db_add_field(
+    'blastdb',
+    'dbxref_db_id',
+    array(
+      'description' => t('The Database records from this BLAST Database reference.'),
+      'type' => 'int',
     )
   );
 
