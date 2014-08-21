@@ -150,25 +150,27 @@ attempting to submit your BLAST.</strong>',
     '#default_value' => 0,
   );
 
-  // Upload a file as an alternative to selecting an existing BLAST database
-  $form['#attributes']['enctype'] = 'multipart/form-data';
-  $form['DB']['DBUPLOAD'] = array(
-    '#title' => 'Or upload your own dataset:	',
-    '#type' => 'managed_file',
-    '#description' => t('The file should be a plain-text FASTA
-(.fasta, .fna, .fa) file. In other words, it cannot have formatting as is the
-case with MS Word (.doc, .docx) or Rich Text Format (.rtf). It cannot be greater
-than %max_size in size. <strong>Don\'t forget to press the Upload button before
-attempting to submit your BLAST.</strong>',
-      array(
-        '%max_size' => round(file_upload_max_size() / 1024 / 1024,1) . 'MB'
-      )
-    ),
-    '#upload_validators' => array(
-      'file_validate_extensions' => array('fasta fna fa'),
-      'file_validate_size' => array(file_upload_max_size()),
-    ),
-  );
+  if (variable_get('blast_ui_allow_target_upload', FALSE)) {
+    // Upload a file as an alternative to selecting an existing BLAST database
+    $form['#attributes']['enctype'] = 'multipart/form-data';
+    $form['DB']['DBUPLOAD'] = array(
+      '#title' => 'Or upload your own dataset:	',
+      '#type' => 'managed_file',
+      '#description' => t('The file should be a plain-text FASTA
+  (.fasta, .fna, .fa) file. In other words, it cannot have formatting as is the
+  case with MS Word (.doc, .docx) or Rich Text Format (.rtf). It cannot be greater
+  than %max_size in size. <strong>Don\'t forget to press the Upload button before
+  attempting to submit your BLAST.</strong>',
+        array(
+          '%max_size' => round(file_upload_max_size() / 1024 / 1024,1) . 'MB'
+        )
+      ),
+      '#upload_validators' => array(
+        'file_validate_extensions' => array('fasta fna fa'),
+        'file_validate_size' => array(file_upload_max_size()),
+      ),
+    );
+  }
 
   // Advanced Options
   //.........................
@@ -254,11 +256,23 @@ function blast_ui_per_blast_program_form_validate($form, &$form_state) {
   //-------------------
   // @todo: We are currently not validating uploaded files are valid FASTA.
   // First check to see if we have an upload & if so then validate it.
-  $file = file_load($form_state['values']['DBUPLOAD']);
-  // If the $file is populated then this is a newly uploaded, temporary file.
-  if (is_object($file)) {
-    $form_state['dbFlag'] = 'upDB';
-    $form_state['upDB_path'] = drupal_realpath($file->uri);
+  if (isset($form_state['values']['DBUPLOAD'])) {
+    $file = file_load($form_state['values']['DBUPLOAD']);
+    // If the $file is populated then this is a newly uploaded, temporary file.
+    if (is_object($file)) {
+      $form_state['dbFlag'] = 'upDB';
+      $form_state['upDB_path'] = drupal_realpath($file->uri);
+    }
+    // Otherwise there was no file uploaded
+    // Check if there was a database choosen from the list instead
+    elseif (!empty($form_state['values']['SELECT_DB'])) {
+      $form_state['dbFlag'] = 'blastdb';
+    }
+    // Otherwise they didn't select a database!!
+    else {
+      form_set_error('DB', t('No database selected. Either choose a database '
+      . 'from the list or upload one of your own.'));
+    }
   }
   // Otherwise there was no file uploaded
   // Check if there was a database choosen from the list instead

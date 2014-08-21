@@ -10,6 +10,28 @@
  */
 function blast_ui_admin_form($form, $form_state) {
 
+  $form['general'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'General'
+  );
+
+  $form['general']['target_upload'] = array(
+    '#type' => 'checkbox',
+    '#title' => 'Enable Taget Sequence Upload',
+    '#default_value' => FALSE,
+    '#description' => 'When this option is checked, a file upload field will '
+      . 'show up on the various BLAST forms under the Database section. This '
+      . 'will allow users tp upload a FASTA file they want to BLAST against '
+      . '(database) as well as a FASTA file containing their query, providing '
+      . 'the ultimate in flexibility for your users. However, since this does '
+      . 'allow & in fact encourage the upload of large files which are then '
+      . 'processed into BLAST databases, this option is disabled by default.',
+    '#default_value' => variable_get(
+        'blast_ui_allow_target_upload',
+        FALSE
+      )
+  );
+
   $form['example_sequence'] = array(
     '#type' => 'fieldset',
     '#title' => 'Set Example Sequences',
@@ -84,6 +106,8 @@ KRSLEEGLKTTGEGLDWGVLFGFGPGLTIETVVLRSVAI';
  *
  */
 function blast_ui_admin_form_submit($form, $form_state) {
+
+  variable_set('blast_ui_allow_target_upload', $form_state['values']['target_upload']);
 
   variable_set('blast_ui_nucleotide_example_sequence', $form_state['values']['nucleotide_example']);
   variable_set('blast_ui_protein_example_sequence', $form_state['values']['protein_example']);

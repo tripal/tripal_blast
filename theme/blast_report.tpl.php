@@ -12,7 +12,12 @@
 if ($blastdb->linkout->none === FALSE) {
   $linkout = TRUE;
   $linkout_regex = $blastdb->linkout->regex;
-  $linkout_urlprefix = $blastdb->linkout->db_id->urlprefix;
+  if (isset($blastdb->linkout->db_id->urlprefix) AND !empty($blastdb->linkout->db_id->urlprefix)) {
+    $linkout_urlprefix = $blastdb->linkout->db_id->urlprefix;
+  }
+  else {
+    $linkout = FALSE;
+  }
 }
 ?>
 

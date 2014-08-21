@@ -137,7 +137,7 @@ function blastdb_form($node, &$form_state) {
       'swissprot' => '<span title="' . $description['swissprot'] . '">SWISS-PROT</span>',
       'custom' => '<span title="' . $description['custom'] . '">Custom Format</span>',
     ),
-    '#default_value' => ($node->linkout->regex_type) ? $node->linkout->regex_type : 'default',
+    '#default_value' => (isset($node->linkout->regex_type)) ? $node->linkout->regex_type : 'default',
     '#ajax' => array(
       'callback' => 'ajax_blast_ui_node_linkout_custom_callback',
       'wrapper' => 'link-regex',
@@ -163,7 +163,7 @@ function blastdb_form($node, &$form_state) {
     '#disabled' => $hide_regex,
     '#prefix' => '<div id="link-regex">',
     '#suffix' => '</div>',
-    '#default_value' => $node->linkout->regex
+    '#default_value' => (isset($node->linkout->regex)) ? $node->linkout->regex : ''
   );
 
   $db_options = tripal_get_db_select_options();
@@ -176,7 +176,7 @@ function blastdb_form($node, &$form_state) {
       . 'you would like to link-out to is not included you can add it '
       . '<a href="" target="_blank">Here</a>.',
     '#options' => $db_options,
-    '#default_value' => $node->linkout->db_id->db_id
+    '#default_value' => (isset($node->linkout->db_id->db_id)) ? $node->linkout->db_id->db_id : 0
   );
 
   return $form;
@@ -184,15 +184,17 @@ function blastdb_form($node, &$form_state) {
 
 function blastdb_form_validate($form, $form_state) {
 
-  // Check that any supplied regex includes //.
-  if (!preg_match('/\/.*\//', $form_state['values']['regex'])) {
-    form_set_error('regex', 'Regular Expressions require opening and closing slashes to delinate them. For example, <em>/^(\s+) .*/</em>');
-  }
-  // Check that the supplied regex is valid.
-  elseif (@preg_match($form_state['values']['regex'], NULL) === FALSE) {
-    form_set_error('regex', 'Regular Expression not valid. See '
-      . '<a href="http://php.net/manual/en/reference.pcre.pattern.syntax.php" target="_blank">PHP.net Regular '
-      . 'Expression Documentation</a> for more information.');
+  if (!empty($form_state['values']['regex'])) {
+    // Check that any supplied regex includes //.
+    if (!preg_match('/\/.*\//', $form_state['values']['regex'])) {
+      form_set_error('regex', 'Regular Expressions require opening and closing slashes to delinate them. For example, <em>/^(\s+) .*/</em>');
+    }
+    // Check that the supplied regex is valid.
+    elseif (@preg_match($form_state['values']['regex'], NULL) === FALSE) {
+      form_set_error('regex', 'Regular Expression not valid. See '
+        . '<a href="http://php.net/manual/en/reference.pcre.pattern.syntax.php" target="_blank">PHP.net Regular '
+        . 'Expression Documentation</a> for more information.');
+    }
   }
 
   // Check that the supplied db actually contains a URL prefix.
