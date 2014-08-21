@@ -28,6 +28,9 @@ function blast_ui_preprocess_show_blast_report(&$vars) {
   $vars['tsv_filename'] = variable_get('file_public_path', conf_path() . '/files') . '/' . $job_args['output_filename'] . '.blast.tsv';
   $vars['html_filename'] = variable_get('file_public_path', conf_path() . '/files') . '/' . $job_args['output_filename'] . '.blast.html';
 
+  // Add the blast database node.
+  // This is needed for link-out functionality.
+  $vars['blastdb'] = get_blast_database(array('path' => $job_args['database']));
 }
 
 /**

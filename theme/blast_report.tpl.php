@@ -6,6 +6,14 @@
  * Variables Available in this template:
  *   $xml_filename: The full path & filename of XML file containing the BLAST results
  */
+
+ // Set ourselves up to do link-out if our blast database is configured to do so.
+ $linkout = FALSE;
+if ($blastdb->linkout->none === FALSE) {
+  $linkout = TRUE;
+  $linkout_regex = $blastdb->linkout->regex;
+  $linkout_urlprefix = $blastdb->linkout->db_id->urlprefix;
+}
 ?>
 
 <!-- JQuery controlling display of the alignment information (hidden by default) -->
@@ -66,69 +74,88 @@ if ($xml) {
     $children_count = $iteration->{'Iteration_hits'}->children()->count();
     if($children_count != 0) {
       foreach($iteration->{'Iteration_hits'}->children() as $hit) {
-	if (is_object($hit)) {
-	  $count +=1;
-   	  $zebra_class = ($count % 2 == 0) ? 'even' : 'odd';
+        if (is_object($hit)) {
+          $count +=1;
+          $zebra_class = ($count % 2 == 0) ? 'even' : 'odd';
 
-	  // SUMMARY ROW
-	  // If the id is of the form gnl|BL_ORD_ID|### then the parseids flag
-	  // to makeblastdb did a really poor job. In thhis case we want to use
-	  // the def to provide the original FASTA header.
-	  $hit_name = (preg_match('/BL_ORD_ID/', $hit->{'Hit_id'})) ? $hit->{'Hit_def'} : $hit->{'Hit_id'};
+          // SUMMARY ROW
+          // If the id is of the form gnl|BL_ORD_ID|### then the parseids flag
+          // to makeblastdb did a really poor job. In thhis case we want to use
+          // the def to provide the original FASTA header.
+          $hit_name = (preg_match('/BL_ORD_ID/', $hit->{'Hit_id'})) ? $hit->{'Hit_def'} : $hit->{'Hit_id'};
+
+          // If our BLAST DB is configured to handle link-outs then use the
+          // regex & URL prefix provided to create one.
+          if ($linkout) {
+            if (preg_match($linkout_regex, $hit_name, $linkout_match)) {
+              $hit_name = l(
+                $linkout_match[1],
+                $linkout_urlprefix . $linkout_match[1],
+                array('attributes' => array('target' => '_blank'))
+              );
+            }
+          }
 
           $score = $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_score'};
-	  $evalue = $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_evalue'};
-	  $query_name = $iteration->{'Iteration_query-def'};
+          $evalue = $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_evalue'};
+          $query_name = $iteration->{'Iteration_query-def'};
 
-	  $row = array(
-	  		'data' => array(
-			'number' => array('data' => $count, 'class' => array('number')),
-			'query' => array('data' => $query_name, 'class' => array('query')),
-			'hit' => array('data' => $hit_name, 'class' => array('hit')),
-			'evalue' => array('data' => $evalue, 'class' => array('evalue')),
-			'arrow-col' => array('data' => '<div class="arrow"></div>', 'class' => array('arrow-col'))
-		      ),
-		     'class' => array('result-summary')
-	            );
-	  $rows[] = $row;
-	  // ALIGNMENT ROW (collapsed by default)
-	  // Process HSPs
-	  $HSPs = array();
-	  foreach ($hit->{'Hit_hsps'}->children() as $hsp_xml) {
-	    $HSPs[] = (array) $hsp_xml;
-	  }
           $row = array(
-			'data' => array(
-			'number' => '',
-			'query' => array(
-			'data' => theme('blast_report_alignment_row', array('HSPs' => $HSPs)),
-			'colspan' => 4,
-			)
-	              ),
-			'class' => array('alignment-row', $zebra_class),
-			'no_striping' => TRUE
-		    );
+            'data' => array(
+              'number' => array('data' => $count, 'class' => array('number')),
+              'query' => array('data' => $query_name, 'class' => array('query')),
+              'hit' => array('data' => $hit_name, 'class' => array('hit')),
+              'evalue' => array('data' => $evalue, 'class' => array('evalue')),
+              'arrow-col' => array('data' => '<div class="arrow"></div>', 'class' => array('arrow-col'))
+            ),
+            'class' => array('result-summary')
+          );
           $rows[] = $row;
-	 }// end of if - checks $hit
+
+          // ALIGNMENT ROW (collapsed by default)
+          // Process HSPs
+          $HSPs = array();
+          foreach ($hit->{'Hit_hsps'}->children() as $hsp_xml) {
+            $HSPs[] = (array) $hsp_xml;
+          }
+
+          $row = array(
+            'data' => array(
+              'number' => '',
+              'query' => array(
+                'data' => theme('blast_report_alignment_row', array('HSPs' => $HSPs)),
+                'colspan' => 4,
+              )
+            ),
+            'class' => array('alignment-row', $zebra_class),
+            'no_striping' => TRUE
+          );
+          $rows[] = $row;
+
+        }// end of if - checks $hit
       } //end of foreach - iteration_hits
     }	// end of if - check for iteration_hits
     else {
-	$count +=1;
-        $query_id = $iteration->{'Iteration_query-ID'};
-        $query_name = $iteration->{'Iteration_query-def'};
-        $row = array(
-                'data' => array(
-                   'number' => array('data' => $count , 'class' => array('number')),
-                   'query' => array('data' => $query_name, 'class' => array('query')),
-                   'hit' => array('data' =>  $iteration->{'Iteration_message'}, 'class' => array('hit')),
-                   'evalue' => array('data' => "-", 'class' => array('evalue')),
-                   'arrow-col' => array('data' => '', 'class' => array('arrow-col'))
-                ),
-                'class' => array('result-summary')
-            );
-        $rows[] = $row;
+
+      // Currently where the "no results" is added.
+	    $count +=1;
+      $query_id = $iteration->{'Iteration_query-ID'};
+      $query_name = $iteration->{'Iteration_query-def'};
+      $row = array(
+        'data' => array(
+           'number' => array('data' => $count , 'class' => array('number')),
+           'query' => array('data' => $query_name, 'class' => array('query')),
+           'hit' => array('data' =>  $iteration->{'Iteration_message'}, 'class' => array('hit')),
+           'evalue' => array('data' => "-", 'class' => array('evalue')),
+           'arrow-col' => array('data' => '', 'class' => array('arrow-col'))
+        ),
+        'class' => array('result-summary')
+      );
+      $rows[] = $row;
 		} // end of else
   }
+
+  // Actually print the table.
   print theme('table', array(
       'header' => $header,
       'rows' => $rows,

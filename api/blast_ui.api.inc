@@ -7,6 +7,36 @@
  */
 
 /**
+ * Get a specific BlastDB.
+ *
+ * @param $identifiers
+ *   An array of identifiers used to determine which BLAST DB to retrieve.
+ *
+ * @return
+ *   A fully-loaded BLAST DB Node
+ */
+function get_blast_database($identifiers) {
+  $node = FALSE;
+
+  if (isset($identifiers['nid'])) {
+    $node = node_load($identifiers['nid']);
+  }
+  elseif (isset($identifiers['name'])) {
+
+    $nid = db_query('SELECT nid FROM {blastdb} WHERE name=:name', array(':name' => $identifiers['name']))->fetchField();
+    $node = node_load($nid);
+
+  } elseif (isset($identifiers['path'])) {
+
+    $nid = db_query('SELECT nid FROM {blastdb} WHERE path=:path', array(':path' => $identifiers['path']))->fetchField();
+    $node = node_load($nid);
+
+  }
+
+  return $node;
+}
+
+/**
  * Returns a list BLAST DATABASE options
  *
  * @param $type
@@ -216,7 +246,7 @@ function get_blastdb_linkout_regex($node, $options = array()) {
   if (empty($node->linkout->regex)) {
     switch ($node->linkout->regex_type) {
       case 'default':
-        $regex = '/^(\s+) .*/';
+        $regex = '/^(\S+).*/';
         break;
       case 'genbank':
         $regex = '/^gb\|([^\|])*\|.*/';

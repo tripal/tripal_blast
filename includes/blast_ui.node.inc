@@ -176,7 +176,7 @@ function blastdb_form($node, &$form_state) {
       . 'you would like to link-out to is not included you can add it '
       . '<a href="" target="_blank">Here</a>.',
     '#options' => $db_options,
-    '#default_value' => $node->linkout->db_id
+    '#default_value' => $node->linkout->db_id->db_id
   );
 
   return $form;
@@ -193,6 +193,23 @@ function blastdb_form_validate($form, $form_state) {
     form_set_error('regex', 'Regular Expression not valid. See '
       . '<a href="http://php.net/manual/en/reference.pcre.pattern.syntax.php" target="_blank">PHP.net Regular '
       . 'Expression Documentation</a> for more information.');
+  }
+
+  // Check that the supplied db actually contains a URL prefix.
+  if ($form_state['values']['db_id']) {
+    $db = tripal_get_db(array('db_id' => $form_state['values']['db_id']));
+    if (empty($db)) {
+      form_set_error('db_id', 'The database chosen no longer exists.');
+    }
+    if (empty($db->urlprefix)) {
+      form_set_error('db_id', 'The database choosen does not have a URL prefix '
+        . 'listed which means a link-out could not be created for BLAST hits. '
+        . 'Please edit the database '
+        . l('here', 'admin/tripal/chado/tripal_db/edit/' . $db->db_id,
+            array('attributes' => array('target' => '_blank')))
+        . ' to include a URL prefix before continuing'
+      );
+    }
   }
 }
 
@@ -295,7 +312,8 @@ function blastdb_load($nodes) {
         $nodes[$record->nid]->linkout->regex_type = $record->dbxref_id_regex;
         $nodes[$record->nid]->linkout->regex = get_blastdb_linkout_regex($nodes[$record->nid]);
       }
-      $nodes[$record->nid]->linkout->db_id = $record->dbxref_db_id;
+      $nodes[$record->nid]->linkout->db_id = tripal_get_db(array('db_id' => $record->dbxref_db_id));
+      $nodes[$record->nid]->linkout->none = FALSE;
     }
     else {
       $nodes[$record->nid]->linkout = new stdClass();
