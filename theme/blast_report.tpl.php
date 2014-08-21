@@ -7,8 +7,8 @@
  *   $xml_filename: The full path & filename of XML file containing the BLAST results
  */
 
- // Set ourselves up to do link-out if our blast database is configured to do so.
- $linkout = FALSE;
+// Set ourselves up to do link-out if our blast database is configured to do so.
+$linkout = FALSE;
 if ($blastdb->linkout->none === FALSE) {
   $linkout = TRUE;
   $linkout_regex = $blastdb->linkout->regex;
@@ -19,6 +19,15 @@ if ($blastdb->linkout->none === FALSE) {
     $linkout = FALSE;
   }
 }
+
+// Handle no hits. This following array will hold the names of all query
+// sequences which didn't have any hits.
+$query_with_no_hits = array();
+
+// Furthermore, if no query sequences have hits we don't want to bother listing
+// them all but just want to give a single, all-include "No Results" message.
+$no_hits = TRUE;
+
 ?>
 
 <!-- JQuery controlling display of the alignment information (hidden by default) -->
@@ -39,6 +48,13 @@ if ($blastdb->linkout->none === FALSE) {
     });
   });
 </script>
+
+<style>
+.no-hits-message {
+  color: red;
+  font-style: italic;
+}
+</style>
 
 <p><strong>Download</strong>:
   <a href="<?php print '../../' . $html_filename; ?>">HTML</a>,
@@ -82,6 +98,7 @@ if ($xml) {
         if (is_object($hit)) {
           $count +=1;
           $zebra_class = ($count % 2 == 0) ? 'even' : 'odd';
+          $no_hits = FALSE;
 
           // SUMMARY ROW
           // If the id is of the form gnl|BL_ORD_ID|### then the parseids flag
@@ -143,29 +160,32 @@ if ($xml) {
     else {
 
       // Currently where the "no results" is added.
-	    $count +=1;
-      $query_id = $iteration->{'Iteration_query-ID'};
       $query_name = $iteration->{'Iteration_query-def'};
-      $row = array(
-        'data' => array(
-           'number' => array('data' => $count , 'class' => array('number')),
-           'query' => array('data' => $query_name, 'class' => array('query')),
-           'hit' => array('data' =>  $iteration->{'Iteration_message'}, 'class' => array('hit')),
-           'evalue' => array('data' => "-", 'class' => array('evalue')),
-           'arrow-col' => array('data' => '', 'class' => array('arrow-col'))
-        ),
-        'class' => array('result-summary')
-      );
-      $rows[] = $row;
+      $query_with_no_hits[] = $query_name;
+
 		} // end of else
   }
 
-  // Actually print the table.
-  print theme('table', array(
-      'header' => $header,
-      'rows' => $rows,
-      'attributes' => array('id' => 'blast_report'),
-    ));
+  if ($no_hits) {
+    print '<p class="no-hits-message">No results found.</p>';
+  }
+  else {
+    // We want to warn the user if some of their query sequences had no hits.
+    if (!empty($query_with_no_hits)) {
+      print '<p class="no-hits-message">Some of your query sequences did not '
+      . 'match to the database/template. They are: '
+      . implode(', ', $query_with_no_hits) . '.</p>';
+    }
+
+    // Actually print the table.
+    if (!empty($rows)) {
+      print theme('table', array(
+        'header' => $header,
+        'rows' => $rows,
+        'attributes' => array('id' => 'blast_report'),
+      ));
+    }
+  }
 }
 else {
   drupal_set_title('BLAST: Error Encountered');
