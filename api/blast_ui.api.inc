@@ -121,12 +121,11 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
 
   print "Options:\n";
 
-	$blast_formatter_command = 'blast_formatter';
-	$blast_path = variable_get('blast_path');
-	if(!empty($blast_path)){
-		$program = 	$blast_path . $program;
-		$blast_formatter_command = $blast_path .  $blast_formatter_command;
-	}
+  // Allow administrators to use an absolute path for these commands.
+  // Defaults to using $PATH.
+	$blast_path = variable_get('blast_path', '');
+	$program = 	$blast_path . $program;
+	$blast_formatter_command = $blast_path .  'blast_formatter';
 
   $blast_cmd = "$program -query $query -db $database -out $output_file -outfmt=11";
   if (!empty($options)) {

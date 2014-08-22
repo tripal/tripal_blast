@@ -15,6 +15,13 @@ function blast_ui_admin_form($form, $form_state) {
     '#title' => 'General'
   );
 
+  $form['general']['blast_path']= array(
+    '#type' => 'textfield',
+    '#title' => t('Enter the path of the BLAST program'),
+    '#description' => t('You can ignore if your $PATH variable is set. Otherwise, enter the absoulte path to bin folder. For example, /opt/blast/2.2.29+/bin/'),
+    '#default_value' => variable_get('blast_path', ''),
+  );
+
   $form['general']['target_upload'] = array(
     '#type' => 'checkbox',
     '#title' => 'Enable Taget Sequence Upload',
@@ -94,14 +101,6 @@ KRSLEEGLKTTGEGLDWGVLFGFGPGLTIETVVLRSVAI';
       )
   );
 
-$form['blast_path']= array(
-    '#type' => 'textfield',
-    '#title' => t('Enter the path of the BLAST program '),
-    '#required' => TRUE,
-    '#description' => t('You can ignore if your $PATH variable is set. Otherwise, enter the absoulte path to bin folder. For example,  /opt/blast/2.2.29+/bin/'),
-    '#default_value' => variable_get('blast_path', ''),
-  );
-
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => 'Save Configuration'
@@ -121,7 +120,7 @@ function blast_ui_validate($form, &$form_state) {
 			variable_set('blast_path', $form_state['values']['blast_path']);
 		}
 		else {
-			form_set_error('blast_path', t('Please enter a valid path or you can leave it blank'));	
+			form_set_error('blast_path', t('Please enter a valid path or you can leave it blank'));
 		}
 	}
 
