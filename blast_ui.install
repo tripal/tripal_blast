@@ -57,7 +57,7 @@ function blast_ui_schema(){
         'description' => t('The Regular Expression to use to extract the id from the FASTA header of the BLAST database hit.'),
         'type' => 'text',
       ),
-      'dbxref_db' => array(
+      'dbxref_db_id' => array(
         'description' => t('The Database records from this BLAST Database reference.'),
         'type' => 'int',
       ),

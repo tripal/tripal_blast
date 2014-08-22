@@ -28,7 +28,7 @@ function blast_ui_admin_form($form, $form_state) {
     '#default_value' => FALSE,
     '#description' => 'When this option is checked, a file upload field will '
       . 'show up on the various BLAST forms under the Database section. This '
-      . 'will allow users tp upload a FASTA file they want to BLAST against '
+      . 'will allow users to upload a FASTA file they want to BLAST against '
       . '(database) as well as a FASTA file containing their query, providing '
       . 'the ultimate in flexibility for your users. However, since this does '
       . 'allow & in fact encourage the upload of large files which are then '
