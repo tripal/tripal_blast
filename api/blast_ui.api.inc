@@ -108,10 +108,11 @@ function get_blast_database_options($type) {
  */
 function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $options, $job_id = NULL) {
 
-  $output_file = 'sites/default/files/' . $output_filestub . '.blast.asn';
-  $output_file_xml = 'sites/default/files/' . $output_filestub . '.blast.xml';
-  $output_file_tsv = 'sites/default/files/' . $output_filestub . '.blast.tsv';
-  $output_file_html = 'sites/default/files/' . $output_filestub . '.blast.html';
+ $output_file = file_directory_temp() .  DIRECTORY_SEPARATOR . $output_filestub . '.blast.asn';
+ $output_file_xml = variable_get('file_public_path', conf_path() . '/files') . DIRECTORY_SEPARATOR . $output_filestub . '.blast.xml';
+ $output_file_tsv = variable_get('file_public_path', conf_path() . '/files') . DIRECTORY_SEPARATOR . $output_filestub . '.blast.tsv';
+ $output_file_html = variable_get('file_public_path', conf_path() . '/files') . DIRECTORY_SEPARATOR . $output_filestub . '.blast.html';
+
 
   print "\nExecuting $program\n\n";
   print "Query: $query\n";
@@ -119,6 +120,13 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
   print "Results File: $output_file\n";
 
   print "Options:\n";
+
+	$blast_formatter_command = 'blast_formatter';
+	$blast_path = variable_get('blast_path');
+	if(!empty($blast_path)){
+		$program = 	$blast_path . $program;
+		$blast_formatter_command = $blast_path .  $blast_formatter_command;
+	}
 
   $blast_cmd = "$program -query $query -db $database -out $output_file -outfmt=11";
   if (!empty($options)) {
@@ -146,7 +154,7 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
   print "\nGenerating additional download formats...\n";
 
   print "\tXML\n";
-  system("blast_formatter -archive $output_file -outfmt 5 -out $output_file_xml");
+  system("$blast_formatter_command -archive $output_file -outfmt 5 -out $output_file_xml");
   if(!file_exists($output_file_xml)) {
     tripal_report_error(
       'blast_ui',
@@ -158,7 +166,7 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
   }
 
   print "\tTab-delimited\n";
-  system("blast_formatter -archive $output_file -outfmt 7 -out $output_file_tsv");
+  system("$blast_formatter_command -archive $output_file -outfmt 7 -out $output_file_tsv");
   if(!file_exists($output_file_tsv)) {
     tripal_report_error(
       'blast_ui',
@@ -170,7 +178,7 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
   }
 
   print "\tHTML (includes alignments)\n";
-  system("blast_formatter -archive $output_file -outfmt 0 -out $output_file_html -html");
+  system("$blast_formatter_command -archive $output_file -outfmt 0 -out $output_file_html -html");
   if(!file_exists($output_file_tsv)) {
     tripal_report_error(
       'blast_ui',

@@ -94,12 +94,37 @@ KRSLEEGLKTTGEGLDWGVLFGFGPGLTIETVVLRSVAI';
       )
   );
 
+$form['blast_path']= array(
+    '#type' => 'textfield',
+    '#title' => t('Enter the path of the BLAST program '),
+    '#required' => TRUE,
+    '#description' => t('You can ignore if your $PATH variable is set. Otherwise, enter the absoulte path to bin folder. For example,  /opt/blast/2.2.29+/bin/'),
+    '#default_value' => variable_get('blast_path', ''),
+  );
+
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => 'Save Configuration'
   );
 
   return $form;
+}
+
+/**
+ * Form validator for the blastdb node
+ */
+function blast_ui_validate($form, &$form_state) {
+	$blast_path = $form_state['values']['blast_path'];
+	$blast_path .= 'blastn';
+	if(!empty($blast_path)) {
+		if(file_exists($blast_path) ) {
+			variable_set('blast_path', $form_state['values']['blast_path']);
+		}
+		else {
+			form_set_error('blast_path', t('Please enter a valid path or you can leave it blank'));	
+		}
+	}
+
 }
 
 /**
