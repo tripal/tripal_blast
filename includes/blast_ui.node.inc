@@ -173,8 +173,8 @@ function blastdb_form($node, &$form_state) {
     '#title' => 'External Database',
     '#description' => 'The external database you would like to link-out to. '
       . 'Note that this list includes all Tripal Databases and if the database '
-      . 'you would like to link-out to is not included you can add it '
-      . '<a href="" target="_blank">Here</a>.',
+      . 'you would like to link-out to is not included you can add it through '
+      . l('Administration > Tripal > Chado Modules > Databases','admin/tripal/chado/tripal_db/add', array('attributes' => array('target' => '_blank'))) . '.',
     '#options' => $db_options,
     '#default_value' => (isset($node->linkout->db_id->db_id)) ? $node->linkout->db_id->db_id : 0
   );
