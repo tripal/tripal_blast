@@ -1,6 +1,5 @@
 name = BLAST UI
 description = Provides a user interface to allow your users to utilize NCBI's BLAST+ on your server
-version = 0.1-beta
-
+project = tripal_blast
 package = Tripal Extensions
 core = 7.x
