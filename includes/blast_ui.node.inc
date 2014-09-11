@@ -168,6 +168,7 @@ function blastdb_form($node, &$form_state) {
 
   $db_options = tripal_get_db_select_options();
   $db_options[0] = '';
+  asort($db_options);
   $form['dbxref']['db_id'] = array(
     '#type' => 'select',
     '#title' => 'External Database',
