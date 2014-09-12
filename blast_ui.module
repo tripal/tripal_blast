@@ -114,14 +114,26 @@ function blast_ui_menu() {
     'type' => MENU_CALLBACK,
   );
 
-  // BLAST Admin
-  $items['admin/tripal/extension/blast_ui'] = array(
-    'title' => 'BLAST User Interface',
+  // BLAST Admin  
+  $items['admin/tripal/extension/tripal_blast'] = array(
+    'title' => 'Tripal BLAST User Interface',
     'description' => 'Provides an interface allowing users to execute their own BLASTs.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('blast_ui_admin_form'),
     'access arguments' => array('administer tripal'),
     'type' => MENU_NORMAL_ITEM,
+  );
+  $items['admin/tripal/extension/tripal_blast/blast_ui'] = array(
+    'title' => 'BLAST UI',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
+
+  $items['admin/tripal/extension/tripal_blast/help'] = array(
+    'title' => 'Help',
+    'page callback' => 'theme',
+    'page arguments' => array('blast_help'),
+    'access arguments' => array('administer tripal'),
+    'type' => MENU_LOCAL_TASK,
   );
 
   return $items;
@@ -154,6 +166,12 @@ function blast_ui_theme() {
     'path' => "$path/theme",
   );
 
+  // Module Help
+  $items['blast_help'] = array(
+    'template' => 'blast_help',
+    'path' => "$path/theme",
+  );
+
   // Menu Information Pages
   // These are only seen if the user has disabled the all-in-one
   // or by query type forms.
@@ -171,6 +189,15 @@ function blast_ui_theme() {
   );
 
   return $items;
+}
+
+/**
+ * Implements hook_help().
+ */
+function blast_ui_help($path, $arg) {
+  if ($path == 'admin/help#blast_ui') {
+    return theme('blast_help');
+  }
 }
 
 /**
