@@ -25,21 +25,65 @@
       Positive=&nbsp;
       <?php print $hsp['Hsp_positive']; ?>/<?php print $hsp['Hsp_align-len']; ?> (<?php print $hsp['Hsp_positive']/$hsp['Hsp_align-len']*100;?>%)
     </span>
+    <span class="coord-summary">
+      Query Matches <?php print $hsp['Hsp_query-from'] . ' to ' . $hsp['Hsp_query-to']; ?>
+      Hit Matches = <?php print $hsp['Hsp_hit-from'] . ' to ' . $hsp['Hsp_hit-to']; ?>
+    </span>
   </div>
   <div class="alignment">
     <div class="alignment-row">
-      <div class="query">
-        <span class="alignment-title">Query:</span>&nbsp;&nbsp;&nbsp;
-        <span class="alignment-residues"><?php print $hsp['Hsp_qseq']; ?></span>
-      </div>
-      <div class="matches">
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        <span class="alignment-residues"><?php print $hsp['Hsp_midline']; ?></span>
-      </div>
-      <div class="subject">
-        <span class="alignment-title">Subject:</span>&nbsp;
-        <span class="alignment-residues"><?php print $hsp['Hsp_hseq']; ?></span>
-      </div>
+      <?php 
+      // We want to display the alignment with a max 60 residues per line with line numbers indicated.
+      // First break up the strings.
+      $query = str_split($hsp['Hsp_qseq'], 60);
+      $matches = str_split($hsp['Hsp_midline'], 60);
+      $hit = str_split($hsp['Hsp_hseq'], 60);
+      // determine the max length of the coordinate string to use when padding.
+      $coord_length = strlen($hsp['Hsp_hit-from']) + 3;
+      $coord_length = (strlen($hsp['Hsp_query-to']) + 3 > $coord_length) ? strlen($hsp['Hsp_query-to']) + 3 : $coord_length;
+
+      // Now foreach chink determined above...
+      foreach (array_keys($query) as $k) {
+        // Determine the current coordinates.
+        $coord['qstart'] = $hsp['Hsp_query-from'] + ($k * 60);
+        $coord['qstart'] = ($k == 0) ? $coord['qstart'] : $coord['qstart'] + 1;
+
+        $coord['hstart'] = $hsp['Hsp_hit-from'] + ($k * 60);
+        $coord['hstart'] = ($k == 0) ? $coord['hstart'] : $coord['hstart'] + 1;
+
+        $coord['qstop'] = $hsp['Hsp_query-from'] + (($k + 1) * 60);
+        $coord['qstop'] = ($coord['qstop'] > $hsp['Hsp_query-to']) ? $hsp['Hsp_query-to'] : $coord['qstop'];
+
+	$coord['hstop'] = $hsp['Hsp_hit-from'] + (($k + 1) * 60);
+        $coord['hstop'] = ($coord['hstop'] > $hsp['Hsp_hit-to']) ? $hsp['Hsp_hit-to'] : $hsp['Hsp_hit-from'];
+
+        // Pad these coordinates to ensure columned display.
+        foreach ($coord as $ck => $val) {
+          $pad_type = (preg_match('/start/', $ck)) ? STR_PAD_LEFT : STR_PAD_RIGHT;
+          $coord[$ck] = str_pad($val, $coord_length, '#', $pad_type);
+          $coord[$ck] =	str_replace('#', '&nbsp', $coord[$ck]);
+        }
+      ?>
+        <div class="alignment-subrow">
+          <div class="query">
+            <span class="alignment-title">Query:</span>&nbsp;&nbsp;
+            <span class="alignment-start-coord"><?php print $coord['qstart']; ?></span>
+            <span class="alignment-residues"><?php print $query[$k]; ?></span>
+            <span class="alignment-stop-coord"><?php print $coord['qstop']; ?></span>
+          </div>
+          <div class="matches">
+            <?php print	str_repeat('&nbsp;', 8); ?>
+            <?php print str_repeat('&nbsp;', $coord_length); ?>
+            <span class="alignment-residues"><?php print str_replace(' ', '&nbsp', $matches[$k]); ?></span>
+          </div>
+          <div class="hit">
+            <span class="alignment-title">Hit:</span>&nbsp;&nbsp;&nbsp;&nbsp;
+            <span class="alignment-start-coord"><?php print $coord['hstart']; ?></span>
+            <span class="alignment-residues"><?php print $hit[$k]; ?></span>
+            <span class="alignment-stop-coord"><?php print $coord['hstop']; ?></span>
+          </div>
+        </div>
+      <?php } ?>
     </div>
   </div>
 
