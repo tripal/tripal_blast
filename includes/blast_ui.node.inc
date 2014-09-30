@@ -308,7 +308,7 @@ function blastdb_load($nodes) {
       $nodes[$record->nid]->linkout = new stdClass();
 
       if (preg_match('/\/.*\//', $record->dbxref_id_regex)) {
-        $node->linkout->regex_type = 'custom';
+        $nodes[$record->nid]->linkout->regex_type = 'custom';
         $nodes[$record->nid]->linkout->regex = $record->dbxref_id_regex;
       }
       else {
