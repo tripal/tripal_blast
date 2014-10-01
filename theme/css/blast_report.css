@@ -63,9 +63,9 @@
 }
 #blast_report div.alignment-row{
   padding: 10px 30px;
-  height: 60px;
-  border: 1px solid #DDDDDD;
   font-family: monospace;
-  overflow-x: scroll;
   white-space: nowrap;
+}
+#blast_report div.alignment-subrow{
+  padding-bottom: 15px;
 }

@@ -168,13 +168,14 @@ function blastdb_form($node, &$form_state) {
 
   $db_options = tripal_get_db_select_options();
   $db_options[0] = '';
+  asort($db_options);
   $form['dbxref']['db_id'] = array(
     '#type' => 'select',
     '#title' => 'External Database',
     '#description' => 'The external database you would like to link-out to. '
       . 'Note that this list includes all Tripal Databases and if the database '
-      . 'you would like to link-out to is not included you can add it '
-      . '<a href="" target="_blank">Here</a>.',
+      . 'you would like to link-out to is not included you can add it through '
+      . l('Administration > Tripal > Chado Modules > Databases','admin/tripal/chado/tripal_db/add', array('attributes' => array('target' => '_blank'))) . '.',
     '#options' => $db_options,
     '#default_value' => (isset($node->linkout->db_id->db_id)) ? $node->linkout->db_id->db_id : 0
   );
