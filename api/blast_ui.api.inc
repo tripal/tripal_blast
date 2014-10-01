@@ -127,7 +127,7 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
 	$program = 	$blast_path . $program;
 	$blast_formatter_command = $blast_path .  'blast_formatter';
 
-  $blast_cmd = "$program -query $query -db $database -out $output_file -outfmt=11";
+  $blast_cmd = "$program -query '$query' -db '$database' -out '$output_file' -outfmt=11";
   if (!empty($options)) {
     foreach ($options as $opt => $val) {
       print "\t$opt: $val\n";
