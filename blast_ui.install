@@ -61,6 +61,13 @@ function blast_ui_schema(){
         'description' => t('The Database records from this BLAST Database reference.'),
         'type' => 'int',
       ),
+      'dbxref_linkout_type' => array(
+        'description' => t('Type of linkout to be used for this database reference.'),
+        'type' => 'varchar',
+        'length' => 50,
+        'not null' => true,
+        'default' => 'link'
+      ),
     ),
     'indexes' => array(
       'name' => array('name'),
@@ -105,6 +112,25 @@ function blast_ui_update_7101() {
     array(
       'description' => t('The Database records from this BLAST Database reference.'),
       'type' => 'int',
+    )
+  );
+
+}
+
+/**
+ * Support complex types of link-outs such as GBrowse & JBrowse coordinate links.
+ */
+function blast_ui_update_7102() {
+
+  db_add_field(
+    'blastdb',
+    'dbxref_linkout_type',
+    array(
+      'description' => t('Type of linkout to be used for this database reference.'),
+      'type' => 'varchar',
+      'length' => 50,
+      'not null' => true,
+      'default' => 'link'
     )
   );
 

@@ -180,6 +180,19 @@ function blastdb_form($node, &$form_state) {
     '#default_value' => (isset($node->linkout->db_id->db_id)) ? $node->linkout->db_id->db_id : 0
   );
 
+  $types = module_invoke_all('blast_linkout_info');
+  $options = array();
+  foreach ($types as $machine_name => $details) {
+    $options[$machine_name] = (isset($details['name'])) ? $details['name'] : $machine_name;
+  }
+  $form['dbxref']['dbxref_linkout_type'] = array(
+    '#type' => 'select',
+    '#title' => 'Link-out Type',
+    '#description' => 'This determines how the URL to be linked to is formed. NOTE: this is very dependant on the External Database chosen above since it needs to be able to support the type of linking choosen. For example, only External Databases which reference a GBrowse instance can use the GBrowse link type.',
+    '#options' => $options,
+    '#default_value' => (isset($node->linkout->type)) ? $node->linkout->type : 'link'
+  );
+
   return $form;
 }
 
@@ -237,6 +250,7 @@ function blastdb_insert($node) {
     'dbtype' => $node->db_dbtype,
     'dbxref_id_regex' => $regex,
     'dbxref_db_id' => $node->db_id,
+    'dbxref_linkout_type' => $node->dbxref_linkout_type
   ))->execute();
 
 }
@@ -271,6 +285,7 @@ function blastdb_update($node) {
     'dbtype' => $node->db_dbtype,
     'dbxref_id_regex' => $regex,
     'dbxref_db_id' => $node->db_id,
+    'dbxref_linkout_type' => $node->dbxref_linkout_type
   ))->condition('nid', $node->nid)->execute();
 }
 
@@ -296,7 +311,7 @@ function blastdb_delete($node) {
  */
 function blastdb_load($nodes) {
 
-  $result = db_query('SELECT nid, name, path, dbtype, dbxref_id_regex, dbxref_db_id FROM {blastdb} WHERE nid IN (:nids)', array(':nids' => array_keys($nodes)));
+  $result = db_query('SELECT nid, name, path, dbtype, dbxref_id_regex, dbxref_db_id, dbxref_linkout_type FROM {blastdb} WHERE nid IN (:nids)', array(':nids' => array_keys($nodes)));
 
   foreach ($result as $record) {
     $nodes[$record->nid]->db_name = $record->name;
@@ -317,6 +332,22 @@ function blastdb_load($nodes) {
       }
       $nodes[$record->nid]->linkout->db_id = tripal_get_db(array('db_id' => $record->dbxref_db_id));
       $nodes[$record->nid]->linkout->none = FALSE;
+
+      // Support complex link-outs.
+      $nodes[$record->nid]->linkout->type = $record->dbxref_linkout_type;
+      $types = module_invoke_all('blast_linkout_info');
+      if (isset($types[$record->dbxref_linkout_type])) {
+        $nodes[$record->nid]->linkout->url_function = $types[$record->dbxref_linkout_type]['process function'];
+      }
+      else {
+        $nodes[$record->nid]->linkout->url_function = '';
+        tripal_report_error(
+          'blast_ui',
+          TRIPAL_ERROR,
+          'Unable to find details on the type of link-out choosen (%type). Have you defined hook_blast_linkout_info()? Make sure to clear the cache once you do so.',
+          array('%type' => $record->dbxref_linkout_type)
+        );
+      }
     }
     else {
       $nodes[$record->nid]->linkout = new stdClass();

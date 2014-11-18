@@ -14,6 +14,9 @@ require_once 'includes/blast_ui.form_advanced_options.inc';
 // BLAST DB Node functionality
 require_once 'includes/blast_ui.node.inc';
 
+// BLAST Link-out functionality.
+require_once 'includes/blast_ui.linkouts.inc';
+
 // Functions specific to themeing (ie: preprocess)
 require_once 'theme/blast_ui.theme.inc';
 
@@ -114,7 +117,7 @@ function blast_ui_menu() {
     'type' => MENU_CALLBACK,
   );
 
-  // BLAST Admin  
+  // BLAST Admin
   $items['admin/tripal/extension/tripal_blast'] = array(
     'title' => 'Tripal BLAST User Interface',
     'description' => 'Provides an interface allowing users to execute their own BLASTs.',

@@ -14,6 +14,15 @@ if ($blastdb->linkout->none === FALSE) {
   $linkout_regex = $blastdb->linkout->regex;
   if (isset($blastdb->linkout->db_id->urlprefix) AND !empty($blastdb->linkout->db_id->urlprefix)) {
     $linkout_urlprefix = $blastdb->linkout->db_id->urlprefix;
+
+    // Furthermore, check that we can determine the URL.
+    // (ie: that the function specified to do so, exists).
+    if (function_exists($blastdb->linkout->url_function)) {
+      $url_function = $blastdb->linkout->url_function;
+    }
+    else {
+      $linkout = FALSE;
+    }
   }
   else {
     $linkout = FALSE;
@@ -100,27 +109,53 @@ if ($xml) {
           $zebra_class = ($count % 2 == 0) ? 'even' : 'odd';
           $no_hits = FALSE;
 
+          // RETRIEVE INFO
+          $hit_name = (preg_match('/BL_ORD_ID/', $hit->{'Hit_id'})) ? $hit->{'Hit_def'} : $hit->{'Hit_id'};
+          $score = $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_score'};
+          $evalue = $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_evalue'};
+          $query_name = $iteration->{'Iteration_query-def'};
+
+          $HSPs = array();
+          foreach ($hit->{'Hit_hsps'}->children() as $hsp_xml) {
+            $HSPs[] = (array) $hsp_xml;
+          }
+
           // SUMMARY ROW
           // If the id is of the form gnl|BL_ORD_ID|### then the parseids flag
           // to makeblastdb did a really poor job. In thhis case we want to use
           // the def to provide the original FASTA header.
-          $hit_name = (preg_match('/BL_ORD_ID/', $hit->{'Hit_id'})) ? $hit->{'Hit_def'} : $hit->{'Hit_id'};
+
 
           // If our BLAST DB is configured to handle link-outs then use the
           // regex & URL prefix provided to create one.
           if ($linkout) {
             if (preg_match($linkout_regex, $hit_name, $linkout_match)) {
-              $hit_name = l(
-                $linkout_match[1],
-                $linkout_urlprefix . $linkout_match[1],
-                array('attributes' => array('target' => '_blank'))
+
+              $linkout_id = $linkout_match[1];
+              $hit->{'linkout_id'} = $linkout_id;
+              $hit->{'hit_name'} = $hit_name;
+
+              $hit_url = call_user_func(
+                $url_function,
+                $linkout_urlprefix,
+                $hit,
+                array(
+                  'query_name' => $query_name,
+                  'score' => $score,
+                  'e-value' => $evalue,
+                  'HSPs' => $HSPs
+                )
               );
+
+              if ($hit_url) {
+                $hit_name = l(
+                  $linkout_id,
+                  $hit_url,
+                  array('attributes' => array('target' => '_blank'))
+                );
+              }
             }
           }
-
-          $score = $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_score'};
-          $evalue = $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_evalue'};
-          $query_name = $iteration->{'Iteration_query-def'};
 
           $row = array(
             'data' => array(
@@ -136,10 +171,6 @@ if ($xml) {
 
           // ALIGNMENT ROW (collapsed by default)
           // Process HSPs
-          $HSPs = array();
-          foreach ($hit->{'Hit_hsps'}->children() as $hsp_xml) {
-            $HSPs[] = (array) $hsp_xml;
-          }
 
           $row = array(
             'data' => array(
