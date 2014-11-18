@@ -4,13 +4,53 @@
  * @file
  * Provides Link-out functionality for BLAST hits.
  *
- * Specifically,
+ * Specifically, this is how the URL portion of the hit links in your users
+ * Blast results is formed.
+ *
+ * To implement your own link-out type:
+ *  1) Register your link-out type by implementing hook_blast_linkout_info().
+ *      Hook blast_linkout_info must return an array of types where each type
+ *      has a name and process function. For exmaple,
+ * @code
+  function blast_ui_blast_linkout_info() {
+    $types = array();
+
+    $types['my-link-type'] = array(
+      'name' => 'My Amazing Link Type',
+      'process function' => 'mymodule_generate_linkout_mylinktype',
+    );
+
+    return $types;
+  }
+ * @endcode
+ *
+ *  2) Implement the process function you specified to determine the URL
+ *     to be linked to depending on the blast hit. For a full description of
+ *     parameters available to your function, see tripal_blast_generate_linkout_link().
+ * @code
+  function mymodule_generate_linkout_mylinktype($url_prefix, $hit, $info, $options = array()) {
+
+    // Do some simple steps to generate the suffix based on the $hit.
+
+    return $url_prefix . $url_postfix;
+  }
+ * @endcode
+ *
+ * This module will automatically,
+ *  - Add your custom type to the "Link-out Type" select list on Blast Database
+ *    node add/edit forms.
+ *  - If your type is chosen by the user when the Blast Database is created,
+ *    then your process function will be used by blast_report.tpl.php to
+ *    determine the URL that should be used for each hit link.
  */
 
 /**
  * Implements hook_blast_linkout_info().
- *
  * Provide information on basic link-out types: link, GBrowse, JBrowse.
+ *
+ * NOTE: Each item must have a 'name' and 'process function' to indicate the
+ * human-readable name to be used in the Blast Database add/edit form and the
+ * function to be used to determine the URL for each hit in BLAST results.
  */
 function blast_ui_blast_linkout_info() {
   $types = array();
