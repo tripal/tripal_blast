@@ -393,9 +393,10 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
       $job_args,
       $user->uid
     );
-
+		// Encode job ID
+		$job_encode_id = base64_encode($job_id);
     // Redirect to the BLAST results page
-    drupal_goto("blast/report/$job_id");
+    drupal_goto("blast/report/$job_encode_id");
   }
   // We check if $error is set to TRUE because if so then the error has already
   // been reported.

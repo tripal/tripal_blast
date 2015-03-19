@@ -75,7 +75,7 @@ $no_hits = TRUE;
 about each hit including the alignment, click on that row in the table to expand it.</p>
 
 <?php
-
+include_once("blast_align_image.php");
 // Load the XML file
 $xml = simplexml_load_file($xml_filename);
 
@@ -88,7 +88,7 @@ if ($xml) {
   // Specify the header of the table
   $header = array(
     'number' =>  array('data' => '#', 'class' => array('number')),
-    'query' =>  array('data' => 'Query Name', 'class' => array('query')),
+    'query' =>  array('data' => 'Query Name  (Click for alignment & visualization)', 'class' => array('query')),
     'hit' =>  array('data' => 'Hit Name', 'class' => array('hit')),
     'evalue' =>  array('data' => 'E-Value', 'class' => array('evalue')),
     'arrow-col' =>  array('data' => '', 'class' => array('arrow-col'))
@@ -102,6 +102,13 @@ if ($xml) {
   // significance and 2) additional information including the alignment
   foreach($xml->{'BlastOutput_iterations'}->children() as $iteration) {
     $children_count = $iteration->{'Iteration_hits'}->children()->count();
+		//@deepaksomanadh: Code added for BLAST visualization
+		// parameters that need to be passed for BLAST image generation
+		$target_name = '';
+		$q_name = $xml->{'BlastOutput_query-def'};
+		$query_size = $xml->{'BlastOutput_query-len'};
+		$target_size = $iteration->{'Iteration_stat'}->{'Statistics'}->{'Statistics_db-len'};
+		
     if($children_count != 0) {
       foreach($iteration->{'Iteration_hits'}->children() as $hit) {
         if (is_object($hit)) {
@@ -109,23 +116,45 @@ if ($xml) {
           $zebra_class = ($count % 2 == 0) ? 'even' : 'odd';
           $no_hits = FALSE;
 
-          // RETRIEVE INFO
-          $hit_name = (preg_match('/BL_ORD_ID/', $hit->{'Hit_id'})) ? $hit->{'Hit_def'} : $hit->{'Hit_id'};
-          $score = $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_score'};
-          $evalue = $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_evalue'};
-          $query_name = $iteration->{'Iteration_query-def'};
+					// RETRIEVE INFO
+          $hit_name = (preg_match('/BL_ORD_ID/', $hit->{'Hit_id'})) ? $hit->{'Hit_def'} : $hit->{'Hit_id'};	
+					$score = $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_score'};
+					$evalue = $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_evalue'};
+				  $query_name = $iteration->{'Iteration_query-def'};
 
-          $HSPs = array();
-          foreach ($hit->{'Hit_hsps'}->children() as $hsp_xml) {
-            $HSPs[] = (array) $hsp_xml;
-          }
+					// Round e-val to two decimal values
+					$rounded_evalue = '';
+					if (strpos($evalue,'e') != false) {
+					 $evalue_split = explode('e', $evalue);
+					 $rounded_evalue = round($evalue_split[0], 2, PHP_ROUND_HALF_EVEN);				    
+						 $rounded_evalue .= 'e' . $evalue_split[1];
+					}
+					else { 
+							$rounded_evalue = $evalue;
+					}				
+				
+				  // ALIGNMENT ROW (collapsed by default)
+					// Process HSPs
+					// @deepaksomanadh: Code added for BLAST visualization
+					// hit array and corresponding bit scores 
+					// hits=4263001_4262263_1_742;4260037_4259524_895_1411;&scores=722;473;
+					$HSPs = array();
+					$hit_hsps = '';
+					$hit_hsp_score = '';		
+					foreach ($hit->{'Hit_hsps'}->children() as $hsp_xml) {
+						$HSPs[] = (array) $hsp_xml;
+		
+						$hit_hsps .=  $hsp_xml->{'Hsp_hit-from'} . '_' . $hsp_xml->{'Hsp_hit-to'}  
+														. '_' . $hsp_xml->{'Hsp_query-from'} . '_'
+														. $hsp_xml->{'Hsp_query-to'} . ';';	
+						$Hsp_bit_score .= 	$hsp_xml->{'Hsp_bit-score'} .';';							
 
-          // SUMMARY ROW
-          // If the id is of the form gnl|BL_ORD_ID|### then the parseids flag
-          // to makeblastdb did a really poor job. In thhis case we want to use
-          // the def to provide the original FASTA header.
-
-
+					}	 
+					// SUMMARY ROW
+					// If the id is of the form gnl|BL_ORD_ID|### then the parseids flag
+					// to makeblastdb did a really poor job. In this case we want to use
+					// the def to provide the original FASTA header.
+					
           // If our BLAST DB is configured to handle link-outs then use the
           // regex & URL prefix provided to create one.
           if ($linkout) {
@@ -157,12 +186,25 @@ if ($xml) {
             }
           }
 
+					//@deepaksomanadh: Code added for BLAST visualization
+					// get the image and display
+					$hit_img = generateImage($target_name, $Hsp_bit_score, $hit_hsps, $target_size, $query_size, $q_name);
+				
+					ob_start(); // Start buffering the output
+					imagepng($hit_img, null, 0, PNG_NO_FILTER);
+					$b64 = base64_encode(ob_get_contents()); // Get what we've just outputted and base64 it
+					imagedestroy($hit_img);
+					ob_end_clean();
+
+					// Print the HTML tag with the image embedded
+					$hit_img = '<h3> Hit Visualization </h3> <br><img src="data:image/png;base64,'.$b64.'"/>';
+					
           $row = array(
             'data' => array(
               'number' => array('data' => $count, 'class' => array('number')),
               'query' => array('data' => $query_name, 'class' => array('query')),
               'hit' => array('data' => $hit_name, 'class' => array('hit')),
-              'evalue' => array('data' => $evalue, 'class' => array('evalue')),
+              'evalue' => array('data' => $rounded_evalue, 'class' => array('evalue')),
               'arrow-col' => array('data' => '<div class="arrow"></div>', 'class' => array('arrow-col'))
             ),
             'class' => array('result-summary')
@@ -177,8 +219,11 @@ if ($xml) {
               'number' => '',
               'query' => array(
                 'data' => theme('blast_report_alignment_row', array('HSPs' => $HSPs)),
-                'colspan' => 4,
-              )
+              ),
+							'hit' => array(
+                'data' => $hit_img,
+                'colspan' => 3,
+              ),
             ),
             'class' => array('alignment-row', $zebra_class),
             'no_striping' => TRUE

@@ -112,7 +112,7 @@ KRSLEEGLKTTGEGLDWGVLFGFGPGLTIETVVLRSVAI';
 /**
  * Form validator for the blastdb node
  */
-function blast_ui_validate($form, &$form_state) {
+function blast_ui_admin_form_validate($form, &$form_state) {
 	$blast_path = $form_state['values']['blast_path'];
 	$blast_path .= 'blastn';
 	if(!empty($blast_path)) {

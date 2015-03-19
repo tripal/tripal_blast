@@ -28,7 +28,7 @@ function get_blast_database($identifiers) {
 
   } elseif (isset($identifiers['path'])) {
 
-    $nid = db_query('SELECT nid FROM {blastdb} WHERE path=:path', array(':path' => $identifiers['path']))->fetchField();
+    $nid = db_query('SELECT nid FROM {blastdb} WHERE path LIKE :path', array(':path' => db_like($identifiers['path']) . '%'))->fetchField();
     $node = node_load($nid);
 
   }

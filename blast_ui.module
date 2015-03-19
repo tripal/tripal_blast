@@ -217,7 +217,9 @@ function show_blast_output($job_id) {
 
   // BLASTs are run as a Tripal job. As such we need to determine whether the current
   // BLAST is in the queue, running or complete in order to determine what to show the user
-  $job = tripal_get_job($job_id);
+  //decode the job_id
+  $job_id = base64_decode($job_id);
+	$job = tripal_get_job($job_id);
 
   // 1) Job is in the Queue
   if ($job->start_time === NULL AND $job->end_time == NULL) {

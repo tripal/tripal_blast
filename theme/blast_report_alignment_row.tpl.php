@@ -19,11 +19,11 @@
   <div class="alignment-metrics">
     <span class="identity">
       Identity=&nbsp;
-      <?php print $hsp['Hsp_identity']; ?>/<?php print $hsp['Hsp_align-len']; ?> (<?php print $hsp['Hsp_identity']/$hsp['Hsp_align-len']*100;?>%)
+      <?php print $hsp['Hsp_identity']; ?>/<?php print $hsp['Hsp_align-len']; ?> (<?php print round($hsp['Hsp_identity']/$hsp['Hsp_align-len']*100, 2, PHP_ROUND_HALF_EVEN);?>%)
     </span>,&nbsp;
     <span class="positive">
       Positive=&nbsp;
-      <?php print $hsp['Hsp_positive']; ?>/<?php print $hsp['Hsp_align-len']; ?> (<?php print $hsp['Hsp_positive']/$hsp['Hsp_align-len']*100;?>%)
+      <?php print $hsp['Hsp_positive']; ?>/<?php print $hsp['Hsp_align-len']; ?> (<?php print round($hsp['Hsp_positive']/$hsp['Hsp_align-len']*100, 2, PHP_ROUND_HALF_EVEN);?>%)
     </span>
     <span class="coord-summary">
       Query Matches <?php print $hsp['Hsp_query-from'] . ' to ' . $hsp['Hsp_query-to']; ?>
@@ -46,23 +46,33 @@
       foreach (array_keys($query) as $k) {
         // Determine the current coordinates.
         $coord['qstart'] = $hsp['Hsp_query-from'] + ($k * 60);
-        $coord['qstart'] = ($k == 0) ? $coord['qstart'] : $coord['qstart'] + 1;
-
-        $coord['hstart'] = $hsp['Hsp_hit-from'] + ($k * 60);
-        $coord['hstart'] = ($k == 0) ? $coord['hstart'] : $coord['hstart'] + 1;
-
-        $coord['qstop'] = $hsp['Hsp_query-from'] + (($k + 1) * 60);
-        $coord['qstop'] = ($coord['qstop'] > $hsp['Hsp_query-to']) ? $hsp['Hsp_query-to'] : $coord['qstop'];
-
-	$coord['hstop'] = $hsp['Hsp_hit-from'] + (($k + 1) * 60);
-        $coord['hstop'] = ($coord['hstop'] > $hsp['Hsp_hit-to']) ? $hsp['Hsp_hit-to'] : $hsp['Hsp_hit-from'];
-
-        // Pad these coordinates to ensure columned display.
-        foreach ($coord as $ck => $val) {
-          $pad_type = (preg_match('/start/', $ck)) ? STR_PAD_LEFT : STR_PAD_RIGHT;
-          $coord[$ck] = str_pad($val, $coord_length, '#', $pad_type);
-          $coord[$ck] =	str_replace('#', '&nbsp', $coord[$ck]);
-        }
+        $coord['qstart'] = ($k == 0) ? $coord['qstart'] : $coord['qstart'];
+				// code added to fix the range issue
+				// Cordinates can increase or decrease
+				if($hsp['Hsp_hit-from'] < $hsp['Hsp_hit-to']) {
+							$coord['hstart'] = $hsp['Hsp_hit-from'] + ($k * 60);		
+					}
+					else {
+									$coord['hstart'] = $hsp['Hsp_hit-from'] - ($k * 60);
+						}
+					$coord['qstop'] = $hsp['Hsp_query-from'] + (($k + 1) * 60) - 1;
+					$coord['qstop'] = ($coord['qstop'] > $hsp['Hsp_query-to']) ? $hsp['Hsp_query-to'] : $coord['qstop'];
+			
+					if($hsp['Hsp_hit-from'] < $hsp['Hsp_hit-to']) {
+							$coord['hstop'] = $hsp['Hsp_hit-from'] + (($k + 1) * 60) - 1;
+							$coord['hstop'] = ($coord['hstop'] > $hsp['Hsp_hit-to']) ? $hsp['Hsp_hit-to'] : $coord['hstop'];
+					
+					}
+					else {
+								$coord['hstop'] = $hsp['Hsp_hit-from'] - (($k + 1) * 60) + 1;
+								$coord['hstop'] = ($coord['hstop'] < $hsp['Hsp_hit-to']) ? $hsp['Hsp_hit-to'] : $coord['hstop'];
+					}
+					// Pad these coordinates to ensure columned display.
+					foreach ($coord as $ck => $val) {
+						$pad_type = (preg_match('/start/', $ck)) ? STR_PAD_LEFT : STR_PAD_RIGHT;
+						$coord[$ck] = str_pad($val, $coord_length, '#', $pad_type);
+						$coord[$ck] =	str_replace('#', '&nbsp', $coord[$ck]);
+	        }
       ?>
         <div class="alignment-subrow">
           <div class="query">

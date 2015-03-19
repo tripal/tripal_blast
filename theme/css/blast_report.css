@@ -20,6 +20,7 @@
 }
 #blast_report tr.odd td {
   cursor:pointer;
+	vertical-align : top;
 }
 #blast_report .arrow {
   background:transparent url('../images/arrows.png') no-repeat scroll 0px -16px;
