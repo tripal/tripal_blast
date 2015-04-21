@@ -33,7 +33,7 @@
    $name  = getCGIParamPC('name',    'GP', '');
   */
    // extract hit information from hit param
-function generateImage($acc = '', $scores, $hits, $tsize, $qsize, $name) {
+function generateImage($acc = '', $scores, $hits, $tsize, $qsize, $name, $hit_name) {
    $tok = strtok($hits, ";");
    $b_hits = Array();
    while ($tok !== false) {
@@ -85,7 +85,7 @@ function generateImage($acc = '', $scores, $hits, $tsize, $qsize, $name) {
    $t_center = $t_xstart + ($t_length / 2);
    
    // Target labels
-   $warn = " (not to scale)";
+   $warn = '"'. $hit_name . '"';
    imagestring($img, 5, $t_xstart, $t_ystart-20, $acc.$warn, $black);
    imagestring($img, 3, 5, $t_ystart+2, "Target", $black);
    
@@ -105,8 +105,8 @@ function generateImage($acc = '', $scores, $hits, $tsize, $qsize, $name) {
    $q_xwidth = $q_xend - $q_xstart;
 
    // Query labels
-   imagestring($img, 5, $q_xstart, $q_yend+2, $name.$warn, $black);
-   imagestring($img, 3, 5, $q_ystart+2, 'Query', $black);
+   imagestring($img, 5, $q_xstart, $q_yend+2, $name, $black);
+   imagestring($img, 3, $q_xstart, $q_ystart+2, 'Query', $black);
    
    // Draw bar representing query
    imagefilledrectangle($img, $q_xstart, $q_ystart, $q_xend, $q_yend, $gray);
@@ -169,7 +169,7 @@ function generateImage($acc = '', $scores, $hits, $tsize, $qsize, $name) {
 
       // show HSP
       
- 		imagestring($img, 3, 2, $hsp_bary, ($acc ."Hit" . $ii), $black);
+ 		imagestring($img, 3, 2, $hsp_bary, ($acc ."HSP" . ($ii + 1)), $black);
 
    	$cur_score = intval($b_scores[$ii]);
    	
@@ -201,7 +201,7 @@ function generateImage($acc = '', $scores, $hits, $tsize, $qsize, $name) {
    $ywidth = 7;
    $xinc = 10;
    
-   imagestring($img, 5, $xchart, $ychart - 5, "Scores", $black);
+   imagestring($img, 5, $xchart, $ychart - 5, "Bit Scores", $black);
    
    imagestring($img, $fontsize, $xchart + $yinc + $xinc,$ychart + ($yinc * 1) + $ywidth, ">= 200" , $black);
    imagestring($img, $fontsize, $xchart + $yinc + $xinc,$ychart + ($yinc * 2) + $ywidth, "80 - 200" , $black);

@@ -5,6 +5,7 @@
  *
  * Variables Available in this template:
  *   $xml_filename: The full path & filename of XML file containing the BLAST results
+ *		@deepaksomanadh: $job_data = meta data related to the current job
  */
 
 // Set ourselves up to do link-out if our blast database is configured to do so.
@@ -70,9 +71,45 @@ $no_hits = TRUE;
   <a href="<?php print '../../' . $tsv_filename; ?>">Tab-Delimited</a>,
   <a href="<?php print '../../' . $xml_filename; ?>">XML</a>
 </p>
+<!--	@deepaksomanadh: For displaying BLAST command details -->
+<table>
+<tr>
+	<th>Input query sequence(s) </th>
+	<th>Target Database selected </th>
+	<th>BLAST command executed </th>
+<tr>
+<tr>
+<?php 
+	// get input sequences from job_data variable
 
-<p>The following table summarizes the results of your BLAST. To see additional information
-about each hit including the alignment, click on that row in the table to expand it.</p>
+	$query_def = $job_id_data['query_def'];
+	echo "<td>";
+	echo "<ol>";
+	foreach($query_def as $row) {
+		echo "<li>";		
+		echo  $row . "</li>";
+	}
+	echo "</ol></td>";
+	echo "<td>" . 	$job_id_data['db_name'] . "</td>"
+ ?> 
+
+
+<?php
+	include_once("blast_align_image.php");
+ 
+	//display the BLAST command without revealing the internal path
+	$blast_cmd = $job_id_data['program'];
+	
+	foreach($job_id_data['options'] as $key => $value) {
+			$blast_cmd .= ' -' . $key. ' ' . $value ;
+	}
+	print "<td>" . $blast_cmd . "</td>";	
+ ?>
+</table>
+
+<p>The following table summarizes the results of your BLAST. 
+Click on a <strong>triangle </strong> on the left to see the alignment and a visualization of the hit, 
+and click the <strong>target name </strong> to open a new window with a genome browser around this hit.</p>
 
 <?php
 include_once("blast_align_image.php");
@@ -87,11 +124,11 @@ $xml = simplexml_load_file($xml_filename);
 if ($xml) {
   // Specify the header of the table
   $header = array(
+		'arrow-col' =>  array('data' => '', 'class' => array('arrow-col')),
     'number' =>  array('data' => '#', 'class' => array('number')),
     'query' =>  array('data' => 'Query Name  (Click for alignment & visualization)', 'class' => array('query')),
-    'hit' =>  array('data' => 'Hit Name', 'class' => array('hit')),
+    'hit' =>  array('data' => 'Target Name', 'class' => array('hit')),
     'evalue' =>  array('data' => 'E-Value', 'class' => array('evalue')),
-    'arrow-col' =>  array('data' => '', 'class' => array('arrow-col'))
   );
 
   $rows = array();
@@ -140,7 +177,9 @@ if ($xml) {
 					// hits=4263001_4262263_1_742;4260037_4259524_895_1411;&scores=722;473;
 					$HSPs = array();
 					$hit_hsps = '';
-					$hit_hsp_score = '';		
+					$hit_hsp_score = '';
+					$target_size = $hit->{'Hit_len'};
+		
 					foreach ($hit->{'Hit_hsps'}->children() as $hsp_xml) {
 						$HSPs[] = (array) $hsp_xml;
 		
@@ -188,7 +227,7 @@ if ($xml) {
 
 					//@deepaksomanadh: Code added for BLAST visualization
 					// get the image and display
-					$hit_img = generateImage($target_name, $Hsp_bit_score, $hit_hsps, $target_size, $query_size, $q_name);
+				  $hit_img = generateImage($target_name, $Hsp_bit_score, $hit_hsps, $target_size, $query_size, $q_name, $hit_name);
 				
 					ob_start(); // Start buffering the output
 					imagepng($hit_img, null, 0, PNG_NO_FILTER);
@@ -197,10 +236,11 @@ if ($xml) {
 					ob_end_clean();
 
 					// Print the HTML tag with the image embedded
-					$hit_img = '<h3> Hit Visualization </h3> <br><img src="data:image/png;base64,'.$b64.'"/>';
+					$hit_img = '<h4><strong> Hit Visualization </strong></h4> <br><img src="data:image/png;base64,'.$b64.'"/>';
 					
           $row = array(
             'data' => array(
+							'arrow-col' => array('data' => '<div class="arrow"></div>', 'class' => array('arrow-col')),
               'number' => array('data' => $count, 'class' => array('number')),
               'query' => array('data' => $query_name, 'class' => array('query')),
               'hit' => array('data' => $hit_name, 'class' => array('hit')),
@@ -216,9 +256,11 @@ if ($xml) {
 
           $row = array(
             'data' => array(
+							'arrow' => '',
               'number' => '',
               'query' => array(
                 'data' => theme('blast_report_alignment_row', array('HSPs' => $HSPs)),
+              //  'colspan' => 4,
               ),
 							'hit' => array(
                 'data' => $hit_img,
@@ -240,7 +282,7 @@ if ($xml) {
       $query_with_no_hits[] = $query_name;
 
 		} // end of else
-  }
+  }	//end of foreach - BlastOutput_iterations
 
   if ($no_hits) {
     print '<p class="no-hits-message">No results found.</p>';
@@ -268,3 +310,21 @@ else {
   print '<p>We encountered an error and are unable to load your BLAST results.</p>';
 }
 ?>
+<p> <!--	@deepaksomanadh: Building the edit and resubmit URL --> 
+	 <a style ="align:center" href="<?php print '../../'. $job_id_data['job_url'] . '?jid=' . base64_encode($job_id) ?>">Edit this query and re-submit</a>	
+</p>
+<strong> Recent Jobs </strong>
+	<ol>
+	<?php
+			$sid = session_id();	
+			$jobs = $_SESSION['all_jobs'][$sid];
+	
+			foreach ( $jobs as $job) {
+				echo "<li>";
+				$q_def = !isset($job['query_defs'][0]) ? "Query" : $job['query_defs'][0];
+				echo "<a href='" . "../../" . $job['job_output_url'] ."' >"  
+								. $q_def ."->". $job['program'] . "</a>";
+				echo "</li>";
+			}
+	?>
+	</ol>

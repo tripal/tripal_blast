@@ -87,7 +87,7 @@
             <span class="alignment-residues"><?php print str_replace(' ', '&nbsp', $matches[$k]); ?></span>
           </div>
           <div class="hit">
-            <span class="alignment-title">Hit:</span>&nbsp;&nbsp;&nbsp;&nbsp;
+            <span class="alignment-title">Sbjct:</span>&nbsp;&nbsp;&nbsp;&nbsp;
             <span class="alignment-start-coord"><?php print $coord['hstart']; ?></span>
             <span class="alignment-residues"><?php print $hit[$k]; ?></span>
             <span class="alignment-stop-coord"><?php print $coord['hstop']; ?></span>

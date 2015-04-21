@@ -18,6 +18,9 @@
 #blast_report th {
   text-align: left;
 }
+#blast_report tr td {
+	vertical-align : top;
+}
 #blast_report tr.odd td {
   cursor:pointer;
 	vertical-align : top;

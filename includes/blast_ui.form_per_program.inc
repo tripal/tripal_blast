@@ -19,7 +19,16 @@ function blast_ui_per_blast_program_form($form, $form_state) {
 	$form['#attached']['css'] = array(
 		drupal_get_path('module', 'blast_ui') . '/theme/css/form.css',
 	);
-
+	
+  // @deepaksomanadh - Code added for edit and resubmit funcitonality
+	// 	Approach: persist the form data and read it back using JobID
+	$job_data = variable_get('job_data', '');
+	if(isset($_GET['jid']) && isset($job_data)) {		
+			$jid = base64_decode($_GET['jid']);
+	}	else {
+			$job_data = array();
+			$jid = 0;
+	}
   // Determine the BLAST program.
   $query_type = $form_state['build_info']['args'][0];
   $db_type = $form_state['build_info']['args'][1];
@@ -102,6 +111,7 @@ function blast_ui_per_blast_program_form($form, $form_state) {
     '#type' => 'textarea',
     '#title' => t('Enter FASTA sequence(s)'),
     '#description'=>t('Enter query sequence(s) in the text area.'),
+		'#default_value' => isset($job_data[$jid]['fasta']) ? $job_data[$jid]['fasta'] : '',
     '#prefix' => '<div id="fasta-textarea">',
     '#suffix' => '</div>',
   );
@@ -147,7 +157,7 @@ attempting to submit your BLAST.</strong>',
     '#type' => 'select',
     '#title' => t('%type BLAST Databases:', array('%type' => ucfirst($db_type))),
     '#options' => $options,
-    '#default_value' => 0,
+    '#default_value' => isset($job_data[$jid]['db_option']) ? $job_data[$jid]['db_option'] : 0,
   );
 
   if (variable_get('blast_ui_allow_target_upload', FALSE)) {
@@ -393,7 +403,48 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
       $job_args,
       $user->uid
     );
-		// Encode job ID
+		//@deepaksomanadh Persist the important data for edit and resubmit
+		$job_data = variable_get('job_data', '');
+		$seq_rows = explode(PHP_EOL, $seq_content);
+		foreach($seq_rows as $row) {
+			if(strpos($row, ">") !== FALSE) {
+				$query_def[] = ltrim($row, ">");
+			}
+		}
+	
+		$job_data[$job_id] = 
+			array(
+				'program' => $blast_program,
+				'job_url' => current_path(),
+				'fasta' => $seq_content,
+				'query_def' => $query_def,
+				'db_name' => $blastdb_node->db_name,
+				'db_option' => $selected_db,
+				'options' => $advanced_options,
+			);
+		
+		variable_set('job_data', $job_data);
+		//@deepaksomanadh create session and save the recent jobs in respective session
+		if (session_status() === PHP_SESSION_NONE){
+					session_start();
+			}
+		$sid = session_id();
+		$job_encode_id = base64_encode($job_id);
+		$job_url = "blast/report/$job_encode_id";
+
+		$all_jobs = $_SESSION['all_jobs'];
+		
+		$session_jobs = $all_jobs[$sid];
+		$session_jobs[$job_id] = array(
+															'job_output_url'=> $job_url, 
+															'query_defs' => $query_def,
+															'program' => $blast_program,
+														 );
+		$all_jobs[$sid] = $session_jobs;
+		$_SESSION['all_jobs'] = $all_jobs;
+	
+		tripal_jobs_launch(1, $job_id);
+		//Encode the job_id
 		$job_encode_id = base64_encode($job_id);
     // Redirect to the BLAST results page
     drupal_goto("blast/report/$job_encode_id");
