@@ -1,3 +1,12 @@
+<script type="text/javascript">
+  window.onload = function() {
+    if (!window.location.hash) {
+      window.location = window.location + '#loaded';
+      window.location.reload();
+    }
+  }
+</script>
+ 
 <?php
 
 /**
@@ -5,14 +14,16 @@
  *
  * Variables Available in this template:
  *   $xml_filename: The full path & filename of XML file containing the BLAST results
- *		@deepaksomanadh: $job_data = meta data related to the current job
+ *    @deepaksomanadh: $job_data = meta data related to the current job
  */
 
 // Set ourselves up to do link-out if our blast database is configured to do so.
 $linkout = FALSE;
+
 if ($blastdb->linkout->none === FALSE) {
   $linkout = TRUE;
   $linkout_regex = $blastdb->linkout->regex;
+//eksc- linkout vs gbrowse
   if (isset($blastdb->linkout->db_id->urlprefix) AND !empty($blastdb->linkout->db_id->urlprefix)) {
     $linkout_urlprefix = $blastdb->linkout->db_id->urlprefix;
 
@@ -67,43 +78,43 @@ $no_hits = TRUE;
 </style>
 
 <p><strong>Download</strong>:
-  <a href="<?php print '../../' . $html_filename; ?>">HTML</a>,
+  <a href="<?php print '../../' . $html_filename; ?>">Alignment</a>,
   <a href="<?php print '../../' . $tsv_filename; ?>">Tab-Delimited</a>,
   <a href="<?php print '../../' . $xml_filename; ?>">XML</a>
 </p>
-<!--	@deepaksomanadh: For displaying BLAST command details -->
+<!--  @deepaksomanadh: For displaying BLAST command details -->
 <table>
 <tr>
-	<th>Input query sequence(s) </th>
-	<th>Target Database selected </th>
-	<th>BLAST command executed </th>
+  <th>Input query sequence(s) </th>
+  <th>Target Database selected </th>
+  <th>BLAST command executed </th>
 <tr>
 <tr>
 <?php 
-	// get input sequences from job_data variable
+  // get input sequences from job_data variable
 
-	$query_def = $job_id_data['query_def'];
-	echo "<td>";
-	echo "<ol>";
-	foreach($query_def as $row) {
-		echo "<li>";		
-		echo  $row . "</li>";
-	}
-	echo "</ol></td>";
-	echo "<td>" . 	$job_id_data['db_name'] . "</td>"
+  $query_def = $job_id_data['query_def'];
+  echo "<td>";
+  echo "<ol>";
+  foreach($query_def as $row) {
+    echo "<li>";    
+    echo  $row . "</li>";
+  }
+  echo "</ol></td>";
+  echo "<td>" .   $job_id_data['db_name'] . "</td>"
  ?> 
 
 
 <?php
-	include_once("blast_align_image.php");
+  include_once("blast_align_image.php");
  
-	//display the BLAST command without revealing the internal path
-	$blast_cmd = $job_id_data['program'];
-	
-	foreach($job_id_data['options'] as $key => $value) {
-			$blast_cmd .= ' -' . $key. ' ' . $value ;
-	}
-	print "<td>" . $blast_cmd . "</td>";	
+  //display the BLAST command without revealing the internal path
+  $blast_cmd = $job_id_data['program'];
+  
+  foreach($job_id_data['options'] as $key => $value) {
+      $blast_cmd .= ' -' . $key. ' ' . $value ;
+  }
+  print "<td>" . $blast_cmd . "</td>";  
  ?>
 </table>
 
@@ -124,7 +135,7 @@ $xml = simplexml_load_file($xml_filename);
 if ($xml) {
   // Specify the header of the table
   $header = array(
-		'arrow-col' =>  array('data' => '', 'class' => array('arrow-col')),
+    'arrow-col' =>  array('data' => '', 'class' => array('arrow-col')),
     'number' =>  array('data' => '#', 'class' => array('number')),
     'query' =>  array('data' => 'Query Name  (Click for alignment & visualization)', 'class' => array('query')),
     'hit' =>  array('data' => 'Target Name', 'class' => array('hit')),
@@ -137,65 +148,147 @@ if ($xml) {
   // Parse the BLAST XML to generate the rows of the table
   // where each hit results in two rows in the table: 1) A summary of the query/hit and
   // significance and 2) additional information including the alignment
-  foreach($xml->{'BlastOutput_iterations'}->children() as $iteration) {
+  foreach ($xml->{'BlastOutput_iterations'}->children() as $iteration) {
     $children_count = $iteration->{'Iteration_hits'}->children()->count();
-		//@deepaksomanadh: Code added for BLAST visualization
-		// parameters that need to be passed for BLAST image generation
-		$target_name = '';
-		$q_name = $xml->{'BlastOutput_query-def'};
-		$query_size = $xml->{'BlastOutput_query-len'};
-		$target_size = $iteration->{'Iteration_stat'}->{'Statistics'}->{'Statistics_db-len'};
-		
-    if($children_count != 0) {
-      foreach($iteration->{'Iteration_hits'}->children() as $hit) {
+    //@deepaksomanadh: Code added for BLAST visualization
+    // parameters that need to be passed for BLAST image generation
+    $target_name = '';
+    $q_name = $xml->{'BlastOutput_query-def'};
+    $query_size = $xml->{'BlastOutput_query-len'};
+    $target_size = $iteration->{'Iteration_stat'}->{'Statistics'}->{'Statistics_db-len'};
+    
+    if ($children_count != 0) {
+      foreach ($iteration->{'Iteration_hits'}->children() as $hit) {
         if (is_object($hit)) {
           $count +=1;
           $zebra_class = ($count % 2 == 0) ? 'even' : 'odd';
           $no_hits = FALSE;
 
-					// RETRIEVE INFO
-          $hit_name = (preg_match('/BL_ORD_ID/', $hit->{'Hit_id'})) ? $hit->{'Hit_def'} : $hit->{'Hit_id'};	
-					$score = $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_score'};
-					$evalue = $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_evalue'};
-				  $query_name = $iteration->{'Iteration_query-def'};
+          // RETRIEVE INFO
+          $hit_name = (preg_match('/BL_ORD_ID/', $hit->{'Hit_id'})) ? $hit->{'Hit_def'} : $hit->{'Hit_id'};  
+          $score = $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_score'};
+          $evalue = $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_evalue'};
+          $query_name = $iteration->{'Iteration_query-def'};
 
-					// Round e-val to two decimal values
-					$rounded_evalue = '';
-					if (strpos($evalue,'e') != false) {
-					 $evalue_split = explode('e', $evalue);
-					 $rounded_evalue = round($evalue_split[0], 2, PHP_ROUND_HALF_EVEN);				    
-						 $rounded_evalue .= 'e' . $evalue_split[1];
-					}
-					else { 
-							$rounded_evalue = $evalue;
-					}				
-				
-				  // ALIGNMENT ROW (collapsed by default)
-					// Process HSPs
-					// @deepaksomanadh: Code added for BLAST visualization
-					// hit array and corresponding bit scores 
-					// hits=4263001_4262263_1_742;4260037_4259524_895_1411;&scores=722;473;
-					$HSPs = array();
-					$hit_hsps = '';
-					$hit_hsp_score = '';
-					$target_size = $hit->{'Hit_len'};
-		
-					foreach ($hit->{'Hit_hsps'}->children() as $hsp_xml) {
-						$HSPs[] = (array) $hsp_xml;
-		
-						$hit_hsps .=  $hsp_xml->{'Hsp_hit-from'} . '_' . $hsp_xml->{'Hsp_hit-to'}  
-														. '_' . $hsp_xml->{'Hsp_query-from'} . '_'
-														. $hsp_xml->{'Hsp_query-to'} . ';';	
-						$Hsp_bit_score .= 	$hsp_xml->{'Hsp_bit-score'} .';';							
+          // Round e-val to two decimal values
+          $rounded_evalue = '';
+          if (strpos($evalue,'e') != false) {
+           $evalue_split = explode('e', $evalue);
+           $rounded_evalue = round($evalue_split[0], 2, PHP_ROUND_HALF_EVEN);            
+             $rounded_evalue .= 'e' . $evalue_split[1];
+          }
+          else { 
+              $rounded_evalue = $evalue;
+          }        
+        
+          // ALIGNMENT ROW (collapsed by default)
+          // Process HSPs
+          // @deepaksomanadh: Code added for BLAST visualization
+          // hit array and corresponding bit scores 
+          // hits=4263001_4262263_1_742;4260037_4259524_895_1411;&scores=722;473;
+          $HSPs = array();
+          $track_start = INF;
+          $track_end = -1;
+          $hsps_range = '';
+          $hit_hsps = '';
+          $hit_hsp_score = '';
+          $target_size = $hit->{'Hit_len'};
+    
+          foreach ($hit->{'Hit_hsps'}->children() as $hsp_xml) {
+            $HSPs[] = (array) $hsp_xml;
+    
+            if ($track_start > $hsp_xml->{'Hsp_hit-from'}) {
+              $track_start = $hsp_xml->{'Hsp_hit-from'} . "";
+            }
+            if ($track_end < $hsp_xml->{'Hsp_hit-to'}) {
+              $track_end = $hsp_xml->{'Hsp_hit-to'} . "";
+            }
+          }   
+          $range_start = (int) $track_start - 50000;
+          $range_end = (int) $track_end + 50000;
+        
+          if ($range_start < 1) 
+             $range_start = 1;  
 
-					}	 
-					// SUMMARY ROW
-					// If the id is of the form gnl|BL_ORD_ID|### then the parseids flag
-					// to makeblastdb did a really poor job. In this case we want to use
-					// the def to provide the original FASTA header.
-					
+          // For BLAST visualization 
+          $target_size = $hit->{'Hit_len'};
+        
+          foreach ($hit->{'Hit_hsps'}->children() as $hsp_xml) {
+            $hit_hsps .=  $hsp_xml->{'Hsp_hit-from'} . '_' . 
+                          $hsp_xml->{'Hsp_hit-to'} . '_' . 
+                          $hsp_xml->{'Hsp_query-from'} . '_' . $hsp_xml->{'Hsp_query-to'} . 
+                          ';';  
+            $Hsp_bit_score .=   $hsp_xml->{'Hsp_bit-score'} .';';              
+          }      
+          
+          // SUMMARY ROW
+          // If the id is of the form gnl|BL_ORD_ID|### then the parseids flag
+          // to makeblastdb did a really poor job. In this case we want to use
+          // the def to provide the original FASTA header.
+          
           // If our BLAST DB is configured to handle link-outs then use the
           // regex & URL prefix provided to create one.
+//eksc- linkout vs gbrowse
+          $hit_name = $hit->{'Hit_def'};
+          $query_name = $iteration->{'Iteration_query-def'};
+          
+          // ***** Future modification ***** The gbrowse_url can be extracted from Tripal Database table
+          if(preg_match('/.*(aradu).*/i', $hit_name) == 1) {
+            $gbrowse_url =   'gbrowse_aradu1.0';
+          }
+          else if(preg_match('/.*(araip).*/i', $hit_name) == 1) {
+            $gbrowse_url =  'gbrowse_araip1.0';
+          } else if(preg_match('/.*(phytozome).*/i', $hit_name) == 1) {
+            $gbrowse_url =  'http://legumeinfo.org/chado_phylotree/';
+          }  else {
+            // Not existing in available GBrowse tracks
+            $gbrowse_url = null;
+          }  
+          
+          // $hit_name_url = l($linkout_urlprefix . $linkout_match[1],
+          // array('attributes' => array('target' => '_blank'))
+          //  );
+          
+          // Link out functionality to GBrowse
+          if($gbrowse_url == null) {
+            // Not a valid hit. Hence, No link outs to GBrowse and the hit name is displayed.
+            $hit_name_url = $hit_name;
+          }
+          else {
+            // Link out is possible for this hit
+            
+            // Check if our BLAST DB is configured to handle link-outs then use the
+            // regex & URL prefix provided to create one. 
+            // Then, check if the db is configured to handle linkouts
+            // For alias targets
+            if ($linkout) {
+              // For CDS/protein alias targets                
+              if(preg_match("/http:/",  $gbrowse_url) == 1) {
+                  $hit_url =   $gbrowse_url . $hit_name ;
+                  $hit_name_url = l($hit_name, $hit_url, array('attributes' => array('target' => '_blank')));
+              } 
+              else if (preg_match($linkout_regex, $hit_name, $linkout_match) == 1) {
+                  $hit_name = $linkout_match[1];
+                    // matches found 
+                  $hit_url =   $GLOBALS['base_url'] . '/' . $gbrowse_url . '?' . 'query=q=';
+                  $hit_url .= $hit_name . ';h_feat=' . $iteration->{'Iteration_query-ID'};
+                  $hit_name_url = l($hit_name, $hit_url, array('attributes' => array('target' => '_blank')));
+              }            
+              else {
+              // No matches for regex. Hence, linkouts not possible
+              $hit_name_url = $hit_name;                
+              }  
+            }        
+            else {
+              // For Genome targets              
+                
+              $hit_url =   $GLOBALS['base_url'] . '/' .  $gbrowse_url . '?' . 'query=' . 'start=' . $range_start . ';' . 'stop=' .
+                              $range_end . ';' . 'ref=' . $hit_name . ';' . 'add=' . $hit_name . '+'  . 'BLAST+' . $iteration->{'Iteration_query-ID'} . '+' . $hsps_range . ';h_feat=' . $iteration->{'Iteration_query-ID'} ; 
+                              
+              $hit_name_url = l($hit_name, $hit_url, array('attributes' => array('target' => '_blank')));
+            }
+          }// end of GBrowse functionality
+/* eksc- linkout vs gbrowse
           if ($linkout) {
             if (preg_match($linkout_regex, $hit_name, $linkout_match)) {
 
@@ -224,23 +317,24 @@ if ($xml) {
               }
             }
           }
+*/
 
-					//@deepaksomanadh: Code added for BLAST visualization
-					// get the image and display
-				  $hit_img = generateImage($target_name, $Hsp_bit_score, $hit_hsps, $target_size, $query_size, $q_name, $hit_name);
-				
-					ob_start(); // Start buffering the output
-					imagepng($hit_img, null, 0, PNG_NO_FILTER);
-					$b64 = base64_encode(ob_get_contents()); // Get what we've just outputted and base64 it
-					imagedestroy($hit_img);
-					ob_end_clean();
+          //@deepaksomanadh: Code added for BLAST visualization
+          // get the image and display
+          $hit_img = generateImage($target_name, $Hsp_bit_score, $hit_hsps, $target_size, $query_size, $q_name, $hit_name);
+        
+          ob_start(); // Start buffering the output
+          imagepng($hit_img, null, 0, PNG_NO_FILTER);
+          $b64 = base64_encode(ob_get_contents()); // Get what we've just outputted and base64 it
+          imagedestroy($hit_img);
+          ob_end_clean();
 
-					// Print the HTML tag with the image embedded
-					$hit_img = '<h4><strong> Hit Visualization </strong></h4> <br><img src="data:image/png;base64,'.$b64.'"/>';
-					
+          // Print the HTML tag with the image embedded
+          $hit_img = '<h4><strong> Hit Visualization </strong></h4> <br><img src="data:image/png;base64,'.$b64.'"/>';
+          
           $row = array(
             'data' => array(
-							'arrow-col' => array('data' => '<div class="arrow"></div>', 'class' => array('arrow-col')),
+              'arrow-col' => array('data' => '<div class="arrow"></div>', 'class' => array('arrow-col')),
               'number' => array('data' => $count, 'class' => array('number')),
               'query' => array('data' => $query_name, 'class' => array('query')),
               'hit' => array('data' => $hit_name, 'class' => array('hit')),
@@ -256,13 +350,13 @@ if ($xml) {
 
           $row = array(
             'data' => array(
-							'arrow' => '',
+              'arrow' => '',
               'number' => '',
               'query' => array(
                 'data' => theme('blast_report_alignment_row', array('HSPs' => $HSPs)),
               //  'colspan' => 4,
               ),
-							'hit' => array(
+              'hit' => array(
                 'data' => $hit_img,
                 'colspan' => 3,
               ),
@@ -274,15 +368,15 @@ if ($xml) {
 
         }// end of if - checks $hit
       } //end of foreach - iteration_hits
-    }	// end of if - check for iteration_hits
+    }  // end of if - check for iteration_hits
     else {
 
       // Currently where the "no results" is added.
       $query_name = $iteration->{'Iteration_query-def'};
       $query_with_no_hits[] = $query_name;
 
-		} // end of else
-  }	//end of foreach - BlastOutput_iterations
+    }// end of else
+  }//end of foreach - BlastOutput_iterations
 
   if ($no_hits) {
     print '<p class="no-hits-message">No results found.</p>';
@@ -310,21 +404,22 @@ else {
   print '<p>We encountered an error and are unable to load your BLAST results.</p>';
 }
 ?>
-<p> <!--	@deepaksomanadh: Building the edit and resubmit URL --> 
-	 <a style ="align:center" href="<?php print '../../'. $job_id_data['job_url'] . '?jid=' . base64_encode($job_id) ?>">Edit this query and re-submit</a>	
+
+<p> <!--  @deepaksomanadh: Building the edit and resubmit URL --> 
+  <a style ="align:center" href="<?php print '../../'. $job_id_data['job_url'] . '?jid=' . base64_encode($job_id) ?>">Edit this query and re-submit</a>  
 </p>
 <strong> Recent Jobs </strong>
-	<ol>
-	<?php
-			$sid = session_id();	
-			$jobs = $_SESSION['all_jobs'][$sid];
-	
-			foreach ( $jobs as $job) {
-				echo "<li>";
-				$q_def = !isset($job['query_defs'][0]) ? "Query" : $job['query_defs'][0];
-				echo "<a href='" . "../../" . $job['job_output_url'] ."' >"  
-								. $q_def ."->". $job['program'] . "</a>";
-				echo "</li>";
-			}
-	?>
-	</ol>
+<ol>
+<?php
+    $sid = session_id();  
+    $jobs = $_SESSION['all_jobs'][$sid];
+
+    foreach ( $jobs as $job) {
+      echo "<li>";
+      $q_def = !isset($job['query_defs'][0]) ? "Query" : $job['query_defs'][0];
+      echo "<a href='" . "../../" . $job['job_output_url'] ."' >"  
+              . $q_def ."->". $job['program'] . "</a>";
+      echo "</li>";
+    }
+?>
+</ol>
