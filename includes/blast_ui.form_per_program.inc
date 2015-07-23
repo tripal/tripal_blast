@@ -15,20 +15,20 @@
  */
 function blast_ui_per_blast_program_form($form, $form_state) {
 
-	//  CSS support to the form
-	$form['#attached']['css'] = array(
-		drupal_get_path('module', 'blast_ui') . '/theme/css/form.css',
-	);
-	
+  //  CSS support to the form
+  $form['#attached']['css'] = array(
+    drupal_get_path('module', 'blast_ui') . '/theme/css/form.css',
+  );
+  
   // @deepaksomanadh - Code added for edit and resubmit funcitonality
-	// 	Approach: persist the form data and read it back using JobID
-	$job_data = variable_get('job_data', '');
-	if(isset($_GET['jid']) && isset($job_data)) {		
-			$jid = base64_decode($_GET['jid']);
-	}	else {
-			$job_data = array();
-			$jid = 0;
-	}
+  //   Approach: persist the form data and read it back using JobID
+  $job_data = variable_get('job_data', '');
+  if(isset($_GET['jid']) && isset($job_data)) {    
+      $jid = base64_decode($_GET['jid']);
+  }  else {
+      $job_data = array();
+      $jid = 0;
+  }
   // Determine the BLAST program.
   $query_type = $form_state['build_info']['args'][0];
   $db_type = $form_state['build_info']['args'][1];
@@ -99,8 +99,8 @@ function blast_ui_per_blast_program_form($form, $form_state) {
     '#prefix' => '<span style="float: right;">',
     '#suffix' => '</span>',
     '#ajax' => array(
-    	'callback' => 'ajax_blast_ui_example_sequence_callback',
-    	'wrapper'  => 'fasta-textarea',
+      'callback' => 'ajax_blast_ui_example_sequence_callback',
+      'wrapper'  => 'fasta-textarea',
       'method'   => 'replace',
       'effect'   => 'fade',
     ),
@@ -111,7 +111,7 @@ function blast_ui_per_blast_program_form($form, $form_state) {
     '#type' => 'textarea',
     '#title' => t('Enter FASTA sequence(s)'),
     '#description'=>t('Enter query sequence(s) in the text area.'),
-		'#default_value' => isset($job_data[$jid]['fasta']) ? $job_data[$jid]['fasta'] : '',
+    '#default_value' => isset($job_data[$jid]['fasta']) ? $job_data[$jid]['fasta'] : '',
     '#prefix' => '<div id="fasta-textarea">',
     '#suffix' => '</div>',
   );
@@ -119,7 +119,7 @@ function blast_ui_per_blast_program_form($form, $form_state) {
   // Upload a file as an alternative to enter a query sequence
   $form['#attributes']['enctype'] = 'multipart/form-data';
   $form['query']['UPLOAD'] = array(
-    '#title' => 'Or upload your own query FASTA:	',
+    '#title' => 'Or upload your own query FASTA:  ',
     '#type' => 'managed_file',
     '#description' => t('The file should be a plain-text FASTA
 (.fasta, .fna, .fa) file. In other words, it cannot have formatting as is the
@@ -142,7 +142,7 @@ attempting to submit your BLAST.</strong>',
 
   $form['DB'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Choose Search Set'),
+    '#title' => t('Choose Search Target'),
     '#description' => t('Choose from one of the %type BLAST databases listed '
       . 'below. You can also use the browse button to upload a file from your '
       . 'local disk. The file may contain a single sequence or a list of '
@@ -164,7 +164,7 @@ attempting to submit your BLAST.</strong>',
     // Upload a file as an alternative to selecting an existing BLAST database
     $form['#attributes']['enctype'] = 'multipart/form-data';
     $form['DB']['DBUPLOAD'] = array(
-      '#title' => 'Or upload your own dataset:	',
+      '#title' => 'Or upload your own dataset:  ',
       '#type' => 'managed_file',
       '#description' => t('The file should be a plain-text FASTA
   (.fasta, .fna, .fa) file. In other words, it cannot have formatting as is the
@@ -175,6 +175,7 @@ attempting to submit your BLAST.</strong>',
           '%max_size' => round(file_upload_max_size() / 1024 / 1024,1) . 'MB'
         )
       ),
+      '#default_value' => variable_get($db_file_id, ''),
       '#upload_validators' => array(
         'file_validate_extensions' => array('fasta fna fa'),
         'file_validate_size' => array(file_upload_max_size()),
@@ -319,18 +320,18 @@ function blast_ui_per_blast_program_form_submit($form, &$form_state) {
 
     if ($form_state['values']['db_type'] == 'nucleotide') {
       $mdb_type = 'nucl';
-      $file_suffix = '.nsq';
+//      $file_suffix = '.nsq'; eksc- handled below
     }
     else {
       $mdb_type = 'prot';
-      $file_suffix = '.psq';
+//      $file_suffix = '.psq';
     }
 
   // If the query was submitted via the texrfield then create a file containing it
   if ( isset($form_state['qFlag']) ) {
     if ( $form_state['qFlag'] == 'seqQuery' ) {
       $seq_content = $form_state['values']['FASTA'];
-	    $query = '/tmp/' . date('YMd_His') . '_query.fasta';
+      $query = '/tmp/' . date('YMd_His') . '_query.fasta';
       file_put_contents ( $query , $seq_content);
     }
     elseif ( $form_state['qFlag'] == 'upQuery' ) {
@@ -383,8 +384,22 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
     );
   }
 
+  // Set BLAST db paths
+  if ($mdb_type == 'nucl' && preg_match('/\.[pn]al/', $blastdb_with_path) == 0) {    
+    $file_suffix = ".nsq";
+    $blastdb_with_suffix = $blastdb_with_path . $file_suffix; 
+  }  
+  else if ($mdb_type == 'prot' && preg_match('/\.[pn]al/', $blastdb_with_path) == 0) {
+    $file_suffix = ".psq";
+    $blastdb_with_suffix = $blastdb_with_path . $file_suffix;  
+  }
+  else {
+    $blastdb_with_suffix = $blastdb_with_path;
+    $blastdb_with_path= preg_replace('/\.[pn]al/', '', $blastdb_with_path);
+  }    
+
   // Actually submit the BLAST Tripal Job
-  // NOTE: Tripal jobs needs to be executed from the command-line before it will be run!!
+  // NOTE: Tripal jobs need to be executed from the command-line before to run!!
   $blastdb_with_suffix = $blastdb_with_path . $file_suffix;
   if (is_readable($blastdb_with_suffix)) {
     global $user;
@@ -403,49 +418,49 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
       $job_args,
       $user->uid
     );
-		//@deepaksomanadh Persist the important data for edit and resubmit
-		$job_data = variable_get('job_data', '');
-		$seq_rows = explode(PHP_EOL, $seq_content);
-		foreach($seq_rows as $row) {
-			if(strpos($row, ">") !== FALSE) {
-				$query_def[] = ltrim($row, ">");
-			}
-		}
-	
-		$job_data[$job_id] = 
-			array(
-				'program' => $blast_program,
-				'job_url' => current_path(),
-				'fasta' => $seq_content,
-				'query_def' => $query_def,
-				'db_name' => $blastdb_node->db_name,
-				'db_option' => $selected_db,
-				'options' => $advanced_options,
-			);
-		
-		variable_set('job_data', $job_data);
-		//@deepaksomanadh create session and save the recent jobs in respective session
-		if (session_status() === PHP_SESSION_NONE){
-					session_start();
-			}
-		$sid = session_id();
-		$job_encode_id = base64_encode($job_id);
-		$job_url = "blast/report/$job_encode_id";
+    //@deepaksomanadh Persist the important data for edit and resubmit
+    $job_data = variable_get('job_data', '');
+    $seq_rows = explode(PHP_EOL, $seq_content);
+    foreach($seq_rows as $row) {
+      if(strpos($row, ">") !== FALSE) {
+        $query_def[] = ltrim($row, ">");
+      }
+    }
+  
+    $job_data[$job_id] = 
+      array(
+        'program' => $blast_program,
+        'job_url' => current_path(),
+        'fasta' => $seq_content,
+        'query_def' => $query_def,
+        'db_name' => $blastdb_node->db_name,
+        'db_option' => $selected_db,
+        'options' => $advanced_options,
+      );
+    
+    variable_set('job_data', $job_data);
+    //@deepaksomanadh create session and save the recent jobs in respective session
+    if (session_status() === PHP_SESSION_NONE){
+          session_start();
+      }
+    $sid = session_id();
+    $job_encode_id = base64_encode($job_id);
+    $job_url = "blast/report/$job_encode_id";
 
-		$all_jobs = $_SESSION['all_jobs'];
-		
-		$session_jobs = $all_jobs[$sid];
-		$session_jobs[$job_id] = array(
-															'job_output_url'=> $job_url, 
-															'query_defs' => $query_def,
-															'program' => $blast_program,
-														 );
-		$all_jobs[$sid] = $session_jobs;
-		$_SESSION['all_jobs'] = $all_jobs;
-	
-		tripal_jobs_launch(1, $job_id);
-		//Encode the job_id
-		$job_encode_id = base64_encode($job_id);
+    $all_jobs = $_SESSION['all_jobs'];
+    
+    $session_jobs = $all_jobs[$sid];
+    $session_jobs[$job_id] = array(
+                              'job_output_url'=> $job_url, 
+                              'query_defs' => $query_def,
+                              'program' => $blast_program,
+                             );
+    $all_jobs[$sid] = $session_jobs;
+    $_SESSION['all_jobs'] = $all_jobs;
+  
+    tripal_jobs_launch(1, $job_id);
+    //Encode the job_id
+    $job_encode_id = base64_encode($job_id);
     // Redirect to the BLAST results page
     drupal_goto("blast/report/$job_encode_id");
   }
