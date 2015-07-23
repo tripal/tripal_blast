@@ -47,32 +47,34 @@
         // Determine the current coordinates.
         $coord['qstart'] = $hsp['Hsp_query-from'] + ($k * 60);
         $coord['qstart'] = ($k == 0) ? $coord['qstart'] : $coord['qstart'];
-				// code added to fix the range issue
-				// Cordinates can increase or decrease
-				if($hsp['Hsp_hit-from'] < $hsp['Hsp_hit-to']) {
-							$coord['hstart'] = $hsp['Hsp_hit-from'] + ($k * 60);		
-					}
-					else {
-									$coord['hstart'] = $hsp['Hsp_hit-from'] - ($k * 60);
-						}
-					$coord['qstop'] = $hsp['Hsp_query-from'] + (($k + 1) * 60) - 1;
-					$coord['qstop'] = ($coord['qstop'] > $hsp['Hsp_query-to']) ? $hsp['Hsp_query-to'] : $coord['qstop'];
-			
-					if($hsp['Hsp_hit-from'] < $hsp['Hsp_hit-to']) {
-							$coord['hstop'] = $hsp['Hsp_hit-from'] + (($k + 1) * 60) - 1;
-							$coord['hstop'] = ($coord['hstop'] > $hsp['Hsp_hit-to']) ? $hsp['Hsp_hit-to'] : $coord['hstop'];
-					
-					}
-					else {
-								$coord['hstop'] = $hsp['Hsp_hit-from'] - (($k + 1) * 60) + 1;
-								$coord['hstop'] = ($coord['hstop'] < $hsp['Hsp_hit-to']) ? $hsp['Hsp_hit-to'] : $coord['hstop'];
-					}
-					// Pad these coordinates to ensure columned display.
-					foreach ($coord as $ck => $val) {
-						$pad_type = (preg_match('/start/', $ck)) ? STR_PAD_LEFT : STR_PAD_RIGHT;
-						$coord[$ck] = str_pad($val, $coord_length, '#', $pad_type);
-						$coord[$ck] =	str_replace('#', '&nbsp', $coord[$ck]);
-	        }
+        
+        // code added to fix the range issue
+        // Cordinates can increase or decrease
+        if($hsp['Hsp_hit-from'] < $hsp['Hsp_hit-to']) {
+            $coord['hstart'] = $hsp['Hsp_hit-from'] + ($k * 60);    
+          }
+          else {
+            $coord['hstart'] = $hsp['Hsp_hit-from'] - ($k * 60);
+          }
+//          $coord['qstop'] = $hsp['Hsp_query-from'] + (($k + 1) * 60) - 1;
+//          $coord['qstop'] = ($coord['qstop'] > $hsp['Hsp_query-to']) ? $hsp['Hsp_query-to'] : $coord['qstop'];
+      
+          if ($hsp['Hsp_hit-from'] < $hsp['Hsp_hit-to']) {
+            $coord['hstop'] = $hsp['Hsp_hit-from'] + (($k + 1) * 60) - 1;
+            $coord['hstop'] = ($coord['hstop'] > $hsp['Hsp_hit-to']) ? $hsp['Hsp_hit-to'] : $coord['hstop'];
+          
+          }
+          else {
+            $coord['hstop'] = $hsp['Hsp_hit-from'] - (($k + 1) * 60) + 1;
+            $coord['hstop'] = ($coord['hstop'] < $hsp['Hsp_hit-to']) ? $hsp['Hsp_hit-to'] : $coord['hstop'];
+          }
+          
+          // Pad these coordinates to ensure columned display.
+          foreach ($coord as $ck => $val) {
+            $pad_type = (preg_match('/start/', $ck)) ? STR_PAD_LEFT : STR_PAD_RIGHT;
+            $coord[$ck] = str_pad($val, $coord_length, '#', $pad_type);
+            $coord[$ck] =  str_replace('#', '&nbsp', $coord[$ck]);
+          }
       ?>
         <div class="alignment-subrow">
           <div class="query">
@@ -82,7 +84,7 @@
             <span class="alignment-stop-coord"><?php print $coord['qstop']; ?></span>
           </div>
           <div class="matches">
-            <?php print	str_repeat('&nbsp;', 8); ?>
+            <?php print  str_repeat('&nbsp;', 8); ?>
             <?php print str_repeat('&nbsp;', $coord_length); ?>
             <span class="alignment-residues"><?php print str_replace(' ', '&nbsp', $matches[$k]); ?></span>
           </div>
