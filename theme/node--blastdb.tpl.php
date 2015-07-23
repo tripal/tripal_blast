@@ -97,6 +97,7 @@
 
     <table>
       <tr><th>Human-Readable Name</th><td><?php print $node->db_name; ?></td></tr>
+      <tr><th>Database Path</th><td><?php print $node->db_path; ?></td></tr>
       <tr><th>Database Type</th><td><?php print $node->db_dbtype; ?></td></tr>
     </table>
 
