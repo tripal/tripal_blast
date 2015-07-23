@@ -28,7 +28,7 @@ function get_blast_database($identifiers) {
 
   } elseif (isset($identifiers['path'])) {
 
-    $nid = db_query('SELECT nid FROM {blastdb} WHERE path=:path', array(':path' => $identifiers['path']))->fetchField();
+    $nid = db_query('SELECT nid FROM {blastdb} WHERE path LIKE :path', array(':path' => db_like($identifiers['path']) . '%'))->fetchField();
     $node = node_load($nid);
 
   }
@@ -124,6 +124,8 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
   // Allow administrators to use an absolute path for these commands.
   // Defaults to using $PATH.
 	$blast_path = variable_get('blast_path', '');
+	$blast_threads = variable_get('blast_threads', '');
+	
 	$program = 	$blast_path . $program;
 	$blast_formatter_command = $blast_path .  'blast_formatter';
 

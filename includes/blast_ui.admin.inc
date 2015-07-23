@@ -38,6 +38,12 @@ function blast_ui_admin_form($form, $form_state) {
         FALSE
       )
   );
+	$form['general']['blast_threads']= array(
+    '#type' => 'textfield',
+    '#title' => t('Enter the number of CPU threads to use in blast search.'),
+    '#description' => t('You can increase the number to reduce the search time. Before you increase, please check your hardware configurations . A value of one(1) can result in a slower search for some programs eg. tblastn.'),
+    '#default_value' => variable_get('blast_threads', 1),
+  );
 
   $form['example_sequence'] = array(
     '#type' => 'fieldset',
@@ -112,7 +118,7 @@ KRSLEEGLKTTGEGLDWGVLFGFGPGLTIETVVLRSVAI';
 /**
  * Form validator for the blastdb node
  */
-function blast_ui_validate($form, &$form_state) {
+function blast_ui_admin_form_validate($form, &$form_state) {
 	$blast_path = $form_state['values']['blast_path'];
 	$blast_path .= 'blastn';
 	if(!empty($blast_path)) {
@@ -132,7 +138,7 @@ function blast_ui_validate($form, &$form_state) {
 function blast_ui_admin_form_submit($form, $form_state) {
 
   variable_set('blast_ui_allow_target_upload', $form_state['values']['target_upload']);
-
+	variable_set('blast_threads', $form_state['values']['blast_threads']);
   variable_set('blast_ui_nucleotide_example_sequence', $form_state['values']['nucleotide_example']);
   variable_set('blast_ui_protein_example_sequence', $form_state['values']['protein_example']);
 }
