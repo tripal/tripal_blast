@@ -37,15 +37,15 @@ function blast_ui_blastn_advanced_options_form(&$form, $form_state) {
     '#type' => 'select',
     '#title' => t('Max target sequences:'),
     '#options' => array(
-      0 => t('10'),
-      1 => t('50'),
-      2 => t('100'),
-      3 => t('250'),
-      4 => t('500'),
-      5 => t('1000'),
-      6 => t('5000'),
-      7 => t('10000'),
-      8 => t('20000'),
+      10 => t('10'),
+      50 => t('50'),
+      100 => t('100'),
+      250 => t('250'),
+      500 => t('500'),
+      1000 => t('1000'),
+      5000 => t('5000'),
+      10000 => t('10000'),
+      20000 => t('20000'),
     ),
     '#default_value' => 2,
     '#description' => t('Select the maximum number of aligned sequences to display'),
@@ -70,15 +70,18 @@ function blast_ui_blastn_advanced_options_form(&$form, $form_state) {
     '#type' => 'select',
     '#title' => t('Word size:'),
     '#options' => array(
-      0 => t('16'),
-      1 => t('20'),
-      2 => t('24'),
-      3 => t('28'),
-      4 => t('32'),
-      5 => t('48'),
-      6 => t('64'),
-      7 => t('128'),
-      8 => t('256'),
+      7 => t('7'),  
+      11 => t('11'),
+      15 => t('15'),
+      16 => t('16'),
+      20 => t('20'),
+      24 => t('24'),
+      28 => t('28'),
+      32 => t('32'),
+      48 => t('48'),
+      64 => t('64'),
+      128 => t('128'),
+      256 => t('256'),
     ),
     '#default_value' => 3,
     '#description' => t('The length of the seed that initiates an alignment'),
@@ -249,7 +252,7 @@ function blast_ui_blastn_advanced_options_form_submit($form, $form_state) {
  */
 function blast_ui_blastx_advanced_options_form(&$form, $form_state) {
 
-  $form['ALG']['GParam'] = array(
+   $form['ALG']['GParam'] = array(
    '#type' => 'fieldset',
    '#title' => t('General parameters'),
    '#collapsible' => FALSE,
@@ -259,15 +262,15 @@ function blast_ui_blastx_advanced_options_form(&$form, $form_state) {
     '#type' => 'select',
     '#title' => t('Max target sequences:'),
     '#options' => array(
-      0 => t('10'),
-      1 => t('50'),
-      2 => t('100'),
-      3 => t('250'),
-      4 => t('500'),
-      5 => t('1000'),
-      6 => t('5000'),
-      7 => t('10000'),
-      8 => t('20000'),
+      10 => t('10'),
+      50 => t('50'),
+      100 => t('100'),
+      250 => t('250'),
+      500 => t('500'),
+      1000 => t('1000'),
+      5000 => t('5000'),
+      10000 => t('10000'),
+      20000 => t('20000'),
     ),
     '#default_value' => 2,
     '#description' => t('Select the maximum number of aligned sequences to display'),
@@ -276,10 +279,75 @@ function blast_ui_blastx_advanced_options_form(&$form, $form_state) {
   $form['ALG']['GParam']['eVal'] = array(
     '#type' => 'textfield',
     '#title' => t('e-Value (Expected Threshold)'),
-    '#default_value' => 10,
+    '#default_value' => 0.01,
     '#size' => 12,
     '#maxlength' => 20,
     '#description' => t('Expected number of chance matches in a random model. This number should be give in a decimal format. <a href="http://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml#expect" target="_blank">More Information</a> | <a href="https://www.youtube.com/watch?v=nO0wJgZRZJs" target="_blank">Expect value vedio tutorial</a>'),
+  );
+
+ $form['ALG']['GParam']['shortQueries'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Automatically adjust parameters for short input sequences'),
+    '#default_value' => TRUE,
+  );
+
+  $form['ALG']['GParam']['wordSize'] = array(
+    '#type' => 'select',
+    '#title' => t('Word size:'),
+    '#options' => array(
+      2 => t('2'),
+      3 => t('3'),
+    ),
+    '#default_value' => 1,
+    '#description' => t('The length of the seed that initiates an alignment'),
+  );
+
+  // Scoring parameters
+  //.........................
+
+  $form['ALG']['SParam'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Scoring parameters'),
+    '#collapsible' => FALSE,
+  );
+
+  $options_first = _ajax_example_get_first_dropdown_options();
+  $selected = isset($form_state['values']['MATRIX'] ) 
+      ? $form_state['values']['MATRIX'] : key($options_first);
+
+  $form['ALG']['SParam']['MATRIX'] = array(
+    '#type' => 'select',
+    '#title' => 'Matrix',
+    '#options' => $options_first,
+    '#default_value' => $selected,
+    '#description' => t('Assigns a score for aligning pairs of residues, and determines overall alignment score..'),
+    '#ajax' => array(
+      'callback' => 'ajax_example_dependent_dropdown_callback',
+      'wrapper' => 'dropdown-second-replace',
+    ),
+  );
+
+  $form['ALG']['SParam']['gapCost'] = array(
+    '#type' => 'select',
+    '#title' => t('Gap Costs:'),
+    '#prefix' => '<div id="dropdown-second-replace">',
+    '#suffix' => '</div>',
+    '#options' => _ajax_example_get_second_dropdown_options($selected),
+    '#default_value' => 2,
+    '#description' => t('Cost to create and extend a gap in an alignment.'),
+  );
+
+  $form['ALG']['SParam']['M&MScores'] = array(
+    '#type' => 'select',
+    '#title' => t('Match/Mismatch Scores:'),
+    '#options' => array(
+      0 => t('No adjustment'),
+      1 => t('Composition-based statistics'),
+      2 => t('Conditional compositional score matrix adjustment'),
+      3 => t('Universal composition score matrix adjustment '),
+    ),
+    '#default_value' => 2,
+    '#description' => t('Matrix adjustment method to compensate for amino acid composition of sequences'),
   );
 
 }
@@ -298,14 +366,8 @@ function blast_ui_blastx_advanced_options_form_validate($form, $form_state) { }
  */
 function blast_ui_blastx_advanced_options_form_submit($form, $form_state) {
 
-  $eVal = $form_state['values']['eVal'];
-
-  $trgtKey = $form_state['values']['maxTarget'];
-  $numAlign = $form['ALG']['GParam']['maxTarget']['#options'][$trgtKey];
-
-  return array(
-    'evalue' => $eVal,
-  );
+  // Same as blastp form submit
+  return blast_ui_blastp_advanced_options_form(&$form, $form_state);
 
 }
 
@@ -340,15 +402,15 @@ function blast_ui_blastp_advanced_options_form(&$form, $form_state) {
     '#type' => 'select',
     '#title' => t('Max target sequences:'),
     '#options' => array(
-       0 => t('10'),
-       1 => t('50'),
-       2 => t('100'),
-       3 => t('250'),
-       4 => t('500'),
-       5 => t('1000'),
-       6 => t('5000'),
-       7 => t('10000'),
-       8 => t('20000'),
+       10 => t('10'),
+       50 => t('50'),
+       100 => t('100'),
+       250 => t('250'),
+       500 => t('500'),
+       1000 => t('1000'),
+       5000 => t('5000'),
+       10000 => t('10000'),
+       20000 => t('20000'),
     ),
     '#default_value' => 2,
     '#description' => t('Select the maximum number of aligned sequences to display'),
@@ -361,20 +423,20 @@ function blast_ui_blastp_advanced_options_form(&$form, $form_state) {
   );
 
   $form['ALG']['GParam']['eVal'] = array(
-  	'#type' => 'textfield',
-  	'#title' => t('e-value(Expect threshold)'),
-  	'#default_value' => 10,
-  	'#size' => 12,
-  	'#maxlength' => 20,
-  	'#description' => t('Expected number of chance matches in a random model.'),
+    '#type' => 'textfield',
+    '#title' => t('e-value(Expect threshold)'),
+    '#default_value' => 10,
+    '#size' => 12,
+    '#maxlength' => 20,
+    '#description' => t('Expected number of chance matches in a random model.'),
   );
 
   $form['ALG']['GParam']['wordSize'] = array(
     '#type' => 'select',
     '#title' => t('Word size:'),
     '#options' => array(
-       0 => t('2'),
-       1 => t('3'),
+       2 => t('2'),
+       3 => t('3'),
     ),
     '#default_value' => 1,
     '#description' => t('The length of the seed that initiates an alignment'),
@@ -956,9 +1018,9 @@ function _ajax_example_get_second_dropdown_options($key = '') {
     )),
     );
     if (isset($options[$key])) {
-    	return $options[$key];
+      return $options[$key];
     } else {
-    	return array();
+      return array();
     }
 }
 
@@ -998,15 +1060,15 @@ function blast_ui_tblastn_advanced_options_form(&$form, $form_state) {
     '#type' => 'select',
     '#title' => t('Max target sequences:'),
     '#options' => array(
-      0 => t('10'),
-      1 => t('50'),
-      2 => t('100'),
-      3 => t('250'),
-      4 => t('500'),
-      5 => t('1000'),
-      6 => t('5000'),
-      7 => t('10000'),
-      8 => t('20000'),
+      10 => t('10'),
+      50 => t('50'),
+      100 => t('100'),
+      250 => t('250'),
+      500 => t('500'),
+      1000 => t('1000'),
+      5000 => t('5000'),
+      10000 => t('10000'),
+      20000 => t('20000'),
     ),
     '#default_value' => 2,
     '#description' => t('Select the maximum number of aligned sequences to display'),
@@ -1021,29 +1083,86 @@ function blast_ui_tblastn_advanced_options_form(&$form, $form_state) {
     '#description' => t('Expected number of chance matches in a random model. This number should be give in a decimal format. <a href="http://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml#expect" target="_blank">More Information</a> | <a href="https://www.youtube.com/watch?v=nO0wJgZRZJs" target="_blank">Expect value vedio tutorial</a>'),
   );
 
+ $form['ALG']['GParam']['shortQueries'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Automatically adjust parameters for short input sequences'),
+    '#default_value' => TRUE,
+  );
+
+  $form['ALG']['GParam']['wordSize'] = array(
+    '#type' => 'select',
+    '#title' => t('Word size:'),
+    '#options' => array(
+      2 => t('2'),
+      3 => t('3'),
+    ),
+    '#default_value' => 1,
+    '#description' => t('The length of the seed that initiates an alignment'),
+  );
+
+  // Scoring parameters
+  //.........................
+
+  $form['ALG']['SParam'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Scoring parameters'),
+    '#collapsible' => FALSE,
+  );
+
+  $options_first = _ajax_example_get_first_dropdown_options();
+  $selected = isset($form_state['values']['MATRIX'] ) ? $form_state['values']['MATRIX'] : key($options_first);
+
+  $form['ALG']['SParam']['MATRIX'] = array(
+    '#type' => 'select',
+    '#title' => 'Matrix',
+    '#options' => $options_first,
+    '#default_value' => $selected,
+    '#description' => t('Assigns a score for aligning pairs of residues, and determines overall alignment score..'),
+    '#ajax' => array(
+      'callback' => 'ajax_example_dependent_dropdown_callback',
+      'wrapper' => 'dropdown-second-replace',
+    ),
+  );
+
+  $form['ALG']['SParam']['gapCost'] = array(
+    '#type' => 'select',
+    '#title' => t('Gap Costs:'),
+    '#prefix' => '<div id="dropdown-second-replace">',
+    '#suffix' => '</div>',
+    '#options' => _ajax_example_get_second_dropdown_options($selected),
+    '#default_value' => 2,
+    '#description' => t('Cost to create and extend a gap in an alignment.'),
+  );
+
+  $form['ALG']['SParam']['M&MScores'] = array(
+    '#type' => 'select',
+    '#title' => t('Match/Mismatch Scores:'),
+    '#options' => array(
+      0 => t('No adjustment'),
+      1 => t('Composition-based statistics'),
+      2 => t('Conditional compositional score matrix adjustment'),
+      3 => t('Universal composition score matrix adjustment '),
+    ),
+    '#default_value' => 2,
+    '#description' => t('Matrix adjustment method to compensate for amino acid composition of sequences'),
+  );
+
 }
 
 /**
- * Validate the advanced options provided by the BLASTn form above.
+ * Validate the advanced options provided by the tBLASTn form above.
  *
  * @see blast_ui_tblastn_advanced_options_form().
  */
 function blast_ui_tblastn_advanced_options_form_validate($form, $form_state) { }
 
 /**
- * Processed the advanced options provided by the yBLASTn form above.
+ * Processed the advanced options provided by the tBLASTn form above.
  *
  * @see blast_ui_tblastn_advanced_options_form().
  */
 function blast_ui_tblastn_advanced_options_form_submit($form, $form_state) {
 
-  $eVal = $form_state['values']['eVal'];
-
-  $trgtKey = $form_state['values']['maxTarget'];
-  $numAlign = $form['ALG']['GParam']['maxTarget']['#options'][$trgtKey];
-
-  return array(
-    'evalue' => $eVal,
-  );
+  return blast_ui_blastn_advanced_options_form_submit($form, $form_state);
 
 }
