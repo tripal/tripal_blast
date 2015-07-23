@@ -217,7 +217,6 @@ attempting to submit your BLAST.</strong>',
  */
 function blast_ui_per_blast_program_form_validate($form, &$form_state) {
 
-
   $blast_program = $form_state['values']['blast_program'];
 
   $type = $form_state['values']['query_type'];

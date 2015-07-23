@@ -9,7 +9,7 @@
 require_once 'includes/blast_ui.form_common.inc';
 require_once 'includes/blast_ui.form_advanced_options.inc';
 // NOTE: The forms themeselves are included using hook_menu to ensure they
-// are only inlcuded when needed.
+// are only included when needed.
 
 // BLAST DB Node functionality
 require_once 'includes/blast_ui.node.inc';
@@ -252,7 +252,7 @@ function show_blast_output($job_id) {
  *
  */
 function ajax_blast_ui_example_sequence_callback($form, $form_state) {
-
+//eksc- get this out of here!
   // First, set a default example sequence in case administrators have not yet
   // bothered to set their own.
   $sequence_type = $form_state['values']['query_type'];

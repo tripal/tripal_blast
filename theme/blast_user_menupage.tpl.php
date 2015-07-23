@@ -8,15 +8,14 @@
 ?>
 
 <h1> BLAST Search </h1>
-<p>  Search for one or more of your sequences (using BLAST) against the
-available wild peanut genome sequences. First pick a query type
-(nucleotide or protein). You will be able to set search parameters on
-the next page. (We will be adding additional BLAST targets in the coming
-months).
+<p>
+  Search for one or more of your sequences (using BLAST). First pick 
+  a query type (nucleotide or protein). You will be able to set search 
+  parameters on the next page.
 </p>
 <p>
-Choose the appropriate program based on the Query type and Target
-database type. Please click on the program name to view the search form.
+  Choose the appropriate program based on the Query type and Target
+  database type. Please click on the program name to view the search form.
 <p>
 
 <table>

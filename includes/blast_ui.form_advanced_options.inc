@@ -367,7 +367,7 @@ function blast_ui_blastx_advanced_options_form_validate($form, $form_state) { }
 function blast_ui_blastx_advanced_options_form_submit($form, $form_state) {
 
   // Same as blastp form submit
-  return blast_ui_blastp_advanced_options_form(&$form, $form_state);
+  return blast_ui_blastp_advanced_options_form($form, $form_state);
 
 }
 

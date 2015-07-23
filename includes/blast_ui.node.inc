@@ -187,7 +187,7 @@ function blastdb_form($node, &$form_state) {
   //  '#required' => TRUE,
     '#default_value' => isset($node->gbrowse_path) ? $node->gbrowse_path : '',
   );
-
+/*eksc- linkout vs gbrowse
   $types = module_invoke_all('blast_linkout_info');
   $options = array();
   foreach ($types as $machine_name => $details) {
@@ -200,6 +200,7 @@ function blastdb_form($node, &$form_state) {
     '#options' => $options,
     '#default_value' => (isset($node->linkout->type)) ? $node->linkout->type : 'link'
   );
+*/
 
   return $form;
 }
@@ -322,7 +323,7 @@ function blastdb_delete($node) {
 function blastdb_load($nodes) {
 
 //eksc- linkout vs gbrowse
-  $result = db_query('SELECT nid, name, path, dbtype, dbxref_id_regex, dbxref_db_id, dbxref_linkout_type FROM {blastdb} WHERE nid IN (:nids)', array(':nids' => array_keys($nodes)));
+//  $result = db_query('SELECT nid, name, path, dbtype, dbxref_id_regex, dbxref_db_id, dbxref_linkout_type FROM {blastdb} WHERE nid IN (:nids)', array(':nids' => array_keys($nodes)));
   $result = db_query('SELECT nid, name, path, dbtype, dbxref_id_regex, dbxref_db_id, gbrowse_path FROM {blastdb} WHERE nid IN (:nids)', array(':nids' => array_keys($nodes)));
 
   foreach ($result as $record) {
@@ -346,6 +347,7 @@ function blastdb_load($nodes) {
       $nodes[$record->nid]->linkout->db_id = tripal_get_db(array('db_id' => $record->dbxref_db_id));
       $nodes[$record->nid]->linkout->none = FALSE;
 
+/*eksc- linkouts vs gbrowse
       // Support complex link-outs.
       $nodes[$record->nid]->linkout->type = $record->dbxref_linkout_type;
       $types = module_invoke_all('blast_linkout_info');
@@ -361,6 +363,7 @@ function blastdb_load($nodes) {
           array('%type' => $record->dbxref_linkout_type)
         );
       }
+*/
     }
     else {
       $nodes[$record->nid]->linkout = new stdClass();
