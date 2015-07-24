@@ -187,7 +187,7 @@ function blastdb_form($node, &$form_state) {
   //  '#required' => TRUE,
     '#default_value' => isset($node->gbrowse_path) ? $node->gbrowse_path : '',
   );
-/*eksc- linkout vs gbrowse
+/*eksc- linkout vs gbrowse*/
   $types = module_invoke_all('blast_linkout_info');
   $options = array();
   foreach ($types as $machine_name => $details) {
@@ -200,7 +200,7 @@ function blastdb_form($node, &$form_state) {
     '#options' => $options,
     '#default_value' => (isset($node->linkout->type)) ? $node->linkout->type : 'link'
   );
-*/
+/**/
 
   return $form;
 }
@@ -243,7 +243,7 @@ function blastdb_form_validate($form, $form_state) {
  */
 function blastdb_insert($node) {
 
-  // Hangle Link-out Rules.
+  // Handle Link-out Rules.
   if ($node->dbxref_id_type == 'custom') {
     $regex = $node->regex;
   }
@@ -251,6 +251,10 @@ function blastdb_insert($node) {
     $regex = $node->dbxref_id_type;
   }
 
+  if (!$node->dbxref_linkout_type) {
+    $node->dbxref_linkout_type = 'link';
+  }
+  
   // Actually insert the record.
   db_insert('blastdb')->fields(array(
     'nid' => $node->nid,
@@ -262,7 +266,6 @@ function blastdb_insert($node) {
     'gbrowse_path' => $node->gbrowse_path,
     'dbxref_linkout_type' => $node->dbxref_linkout_type
   ))->execute();
-
 }
 
 /**
@@ -280,7 +283,7 @@ function blast_ui_node_insert($node) {
  */
 function blastdb_update($node) {
 
-  // Hangle Link-out Rules.
+  // Handle Link-out Rules.
   if ($node->dbxref_id_type == 'custom') {
     $regex = $node->regex;
   }
@@ -288,13 +291,16 @@ function blastdb_update($node) {
     $regex = $node->dbxref_id_type;
   }
 
-  // Actually insert the record.
+  if (!$node->dbxref_linkout_type) {
+    $node->dbxref_linkout_type = 'link';
+  }
+  
+  // Update the record.
   db_update('blastdb')->fields(array(
     'name' => $node->db_name,
     'path' => $node->db_path,
     'dbtype' => $node->db_dbtype,
     'dbxref_id_regex' => $regex,
-//eksc- linkout vs gbrowse
     'dbxref_db_id' => $node->db_id,
     'dbxref_linkout_type' => $node->dbxref_linkout_type
   ))->condition('nid', $node->nid)->execute();
@@ -314,7 +320,7 @@ function blast_ui_node_update($node) {
  * Implements hook_delete().
  */
 function blastdb_delete($node) {
-   db_delete('blastdb')->condition('nid',$node->nid)->execute();
+  db_delete('blastdb')->condition('nid',$node->nid)->execute();
 }
 
 /**
@@ -323,8 +329,8 @@ function blastdb_delete($node) {
 function blastdb_load($nodes) {
 
 //eksc- linkout vs gbrowse
-//  $result = db_query('SELECT nid, name, path, dbtype, dbxref_id_regex, dbxref_db_id, dbxref_linkout_type FROM {blastdb} WHERE nid IN (:nids)', array(':nids' => array_keys($nodes)));
-  $result = db_query('SELECT nid, name, path, dbtype, dbxref_id_regex, dbxref_db_id, gbrowse_path FROM {blastdb} WHERE nid IN (:nids)', array(':nids' => array_keys($nodes)));
+  $result = db_query('SELECT nid, name, path, dbtype, dbxref_id_regex, dbxref_db_id, dbxref_linkout_type FROM {blastdb} WHERE nid IN (:nids)', array(':nids' => array_keys($nodes)));
+//  $result = db_query('SELECT nid, name, path, dbtype, dbxref_id_regex, dbxref_db_id, gbrowse_path FROM {blastdb} WHERE nid IN (:nids)', array(':nids' => array_keys($nodes)));
 
   foreach ($result as $record) {
     $nodes[$record->nid]->db_name = $record->name;
@@ -347,7 +353,7 @@ function blastdb_load($nodes) {
       $nodes[$record->nid]->linkout->db_id = tripal_get_db(array('db_id' => $record->dbxref_db_id));
       $nodes[$record->nid]->linkout->none = FALSE;
 
-/*eksc- linkouts vs gbrowse
+/*eksc- linkouts vs gbrowse*/
       // Support complex link-outs.
       $nodes[$record->nid]->linkout->type = $record->dbxref_linkout_type;
       $types = module_invoke_all('blast_linkout_info');
@@ -363,7 +369,7 @@ function blastdb_load($nodes) {
           array('%type' => $record->dbxref_linkout_type)
         );
       }
-*/
+/**/
     }
     else {
       $nodes[$record->nid]->linkout = new stdClass();
@@ -372,7 +378,6 @@ function blastdb_load($nodes) {
       $nodes[$record->nid]->linkout->none = TRUE;
     }
   }
-
 }
 
 /**
