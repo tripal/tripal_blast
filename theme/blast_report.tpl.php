@@ -1,12 +1,3 @@
-<script type="text/javascript">
-  window.onload = function() {
-    if (!window.location.hash) {
-      window.location = window.location + '#loaded';
-      window.location.reload();
-    }
-  }
-</script>
- 
 <?php
 
 /**
@@ -24,7 +15,7 @@ if ($blastdb->linkout->none === FALSE) {
   $linkout = TRUE;
   $linkout_regex = $blastdb->linkout->regex;
 //eksc- linkout vs gbrowse
-  if (isset($blastdb->linkout->db_id->urlprefix) AND !empty($blastdb->linkout->db_id->urlprefix)) {
+  if (isset($blastdb->linkout->db_id->urlprefix) && !empty($blastdb->linkout->db_id->urlprefix)) {
     $linkout_urlprefix = $blastdb->linkout->db_id->urlprefix;
 
     // Furthermore, check that we can determine the URL.
@@ -51,8 +42,15 @@ $no_hits = TRUE;
 
 ?>
 
-<!-- JQuery controlling display of the alignment information (hidden by default) -->
 <script type="text/javascript">
+  window.onload = function() {
+    if (!window.location.hash) {
+      window.location = window.location + '#loaded';
+      window.location.reload();
+    }
+  }
+
+  // JQuery controlling display of the alignment information (hidden by default)
   $(document).ready(function(){
 
     // Hide the alignment rows in the table
@@ -82,6 +80,7 @@ $no_hits = TRUE;
   <a href="<?php print '../../' . $tsv_filename; ?>">Tab-Delimited</a>,
   <a href="<?php print '../../' . $xml_filename; ?>">XML</a>
 </p>
+
 <!--  @deepaksomanadh: For displaying BLAST command details -->
 <table>
 <tr>
@@ -93,6 +92,7 @@ $no_hits = TRUE;
 <?php 
   // get input sequences from job_data variable
 
+echo "job data:<pre>";var_dump($job_id_data);echo "</pre>";
   $query_def = $job_id_data['query_def'];
   echo "<td>";
   echo "<ol>";
@@ -101,11 +101,8 @@ $no_hits = TRUE;
     echo  $row . "</li>";
   }
   echo "</ol></td>";
-  echo "<td>" .   $job_id_data['db_name'] . "</td>"
- ?> 
-
-
-<?php
+  echo "<td>" .   $job_id_data['db_name'] . "</td>";
+ 
   include_once("blast_align_image.php");
  
   //display the BLAST command without revealing the internal path
@@ -411,14 +408,18 @@ else {
 <strong> Recent Jobs </strong>
 <ol>
 <?php
+echo "<pre>";var_dump($job_id_data);echo "</pre>";
     $sid = session_id();  
     $jobs = $_SESSION['all_jobs'][$sid];
 
-    foreach ( $jobs as $job) {
+    foreach ($jobs as $job) {
+echo "<pre>";var_dump($job);echo "</pre>";
       echo "<li>";
       $q_def = !isset($job['query_defs'][0]) ? "Query" : $job['query_defs'][0];
-      echo "<a href='" . "../../" . $job['job_output_url'] ."' >"  
-              . $q_def ."->". $job['program'] . "</a>";
+      echo "
+        <a href='" . "../../" . $job['job_output_url'] ."'>
+          Q:$q_def, T:" . $job['target'] . ' (' . $job['program'] . ') - ' . $job['date'] . "
+        </a>";
       echo "</li>";
     }
 ?>

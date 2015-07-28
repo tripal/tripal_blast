@@ -23,12 +23,14 @@ function blast_ui_per_blast_program_form($form, $form_state) {
   // @deepaksomanadh - Code added for edit and resubmit funcitonality
   //   Approach: persist the form data and read it back using JobID
   $job_data = variable_get('job_data', '');
-  if(isset($_GET['jid']) && isset($job_data)) {    
-      $jid = base64_decode($_GET['jid']);
-  }  else {
-      $job_data = array();
-      $jid = 0;
+  if (isset($_GET['jid']) && isset($job_data)) {    
+    $jid = base64_decode($_GET['jid']);
+  }  
+  else {
+    $job_data = array();
+    $jid = 0;
   }
+  
   // Determine the BLAST program.
   $query_type = $form_state['build_info']['args'][0];
   $db_type = $form_state['build_info']['args'][1];
@@ -361,16 +363,14 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
 
       $error = TRUE;
     }
-
   }
   // Otherwise, we are using one of the website provided BLAST databases so form the
   // BLAST command accordingly
   elseif ($form_state['dbFlag'] == 'blastdb') {
-
     $selected_db = $form_state['values']['SELECT_DB'];
     $blastdb_node = node_load($selected_db);
+    $blastdb_name = $blastdb_node->db_name;
     $blastdb_with_path = $blastdb_node->db_path;
-
   }
 
   // Now let each program process it's own advanced options.
@@ -381,6 +381,9 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
       $advanced_options_form_submit,
       array($form, &$form_state)
     );
+  }
+  else {
+  	$advanced_options = array('none' => 0);
   }
 
   // Set BLAST db paths
@@ -428,20 +431,20 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
   
     $job_data[$job_id] = 
       array(
-        'program' => $blast_program,
-        'job_url' => current_path(),
-        'fasta' => $seq_content,
+        'program'   => $blast_program,
+        'job_url'   => current_path(),
+        'fasta'     => $seq_content,
         'query_def' => $query_def,
-        'db_name' => $blastdb_node->db_name,
+        'db_name'   => $db_name,
         'db_option' => $selected_db,
-        'options' => $advanced_options,
+        'options'   => $advanced_options,
       );
     
     variable_set('job_data', $job_data);
     //@deepaksomanadh create session and save the recent jobs in respective session
-    if (session_status() === PHP_SESSION_NONE){
-          session_start();
-      }
+    if (session_status() === PHP_SESSION_NONE) {
+       session_start();
+    }
     $sid = session_id();
     $job_encode_id = base64_encode($job_id);
     $job_url = "blast/report/$job_encode_id";
@@ -451,18 +454,23 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
     $session_jobs = $all_jobs[$sid];
     $session_jobs[$job_id] = array(
                               'job_output_url'=> $job_url, 
-                              'query_defs' => $query_def,
-                              'program' => $blast_program,
+                              'query_defs'    => $query_def,
+                              'target'        => $blastdb_name,
+                              'program'       => $blast_program,
+                              'date'          => date('Y-M-d h:i:s'),
                              );
     $all_jobs[$sid] = $session_jobs;
     $_SESSION['all_jobs'] = $all_jobs;
   
-    tripal_jobs_launch(1, $job_id);
+//    tripal_jobs_launch(1, $job_id);
+    
     //Encode the job_id
     $job_encode_id = base64_encode($job_id);
+    
     // Redirect to the BLAST results page
     drupal_goto("blast/report/$job_encode_id");
   }
+  
   // We check if $error is set to TRUE because if so then the error has already
   // been reported.
   elseif (!$error) {
