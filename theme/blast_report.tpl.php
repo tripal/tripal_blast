@@ -15,7 +15,6 @@ if ($blastdb->linkout->none === FALSE) {
   $linkout       = TRUE;
   $linkout_type  = $blastdb->linkout->type;
   $linkout_regex = $blastdb->linkout->regex;
-//eksc- linkout vs gbrowse
   if (isset($blastdb->linkout->db_id->urlprefix) && !empty($blastdb->linkout->db_id->urlprefix)) {
     $linkout_urlprefix = $blastdb->linkout->db_id->urlprefix;
 
@@ -32,10 +31,6 @@ if ($blastdb->linkout->none === FALSE) {
     $linkout = FALSE;
   }
 }
-//echo "blastdb: <pre>";var_dump($blastdb);echo "</pre>";
-echo "LINKOUT: $linkout<br>";
-echo "linkout function: $url_function<br>";
-echo "linkout URL prefix: $linkout_urlprefix<br>";
 
 // Handle no hits. This following array will hold the names of all query
 // sequences which didn't have any hits.
@@ -97,7 +92,7 @@ $no_hits = TRUE;
 <?php 
   // get input sequences from job_data variable
 
-echo "job data:<pre>";var_dump($job_id_data);echo "</pre>";
+//echo "job data:<pre>";var_dump($job_id_data);echo "</pre>";
   $query_def = $job_id_data['query_def'];
   echo "<td>";
   echo "<ol>";
@@ -122,7 +117,7 @@ echo "job data:<pre>";var_dump($job_id_data);echo "</pre>";
 
 <p>The following table summarizes the results of your BLAST. 
 Click on a <strong>triangle </strong> on the left to see the alignment and a visualization of the hit, 
-and click the <strong>target name </strong> to open a new window with a genome browser around this hit.</p>
+and click the <strong>target name </strong> to get more information about the target hit.</p>
 
 <?php
 include_once("blast_align_image.php");
@@ -230,75 +225,16 @@ if ($xml) {
           
           // If our BLAST DB is configured to handle link-outs then use the
           // regex & URL prefix provided to create one.
-//eksc- linkout vs gbrowse
           $hit_name = $hit->{'Hit_def'};
           $query_name = $iteration->{'Iteration_query-def'};
  
-
-          // ***** Future modification ***** The gbrowse_url can be extracted from Tripal Database table
-//          if(preg_match('/.*(aradu).*/i', $hit_name) == 1) {
-//            $gbrowse_url =   'gbrowse_aradu1.0';
-//          }
-//          else if(preg_match('/.*(araip).*/i', $hit_name) == 1) {
-//            $gbrowse_url =  'gbrowse_araip1.0';
-//          } else if(preg_match('/.*(phytozome).*/i', $hit_name) == 1) {
-//            $gbrowse_url =  'http://legumeinfo.org/chado_phylotree/';
-//          }  else {
-//            // Not existing in available GBrowse tracks
-//            $gbrowse_url = null;
-//          }  
-          
-          // $hit_name_url = l($linkout_urlprefix . $linkout_match[1],
-          // array('attributes' => array('target' => '_blank'))
-          //  );
-/*          
-          // Link out functionality to GBrowse
-          if ($gbrowse_url == null) {
-            // Not a valid hit. Hence, No link outs to GBrowse and the hit name is displayed.
-            $hit_name_url = $hit_name;
-          }
-          else {
-            // Link out is possible for this hit
-            
-            // Check if our BLAST DB is configured to handle link-outs then use the
-            // regex & URL prefix provided to create one. 
-            // Then, check if the db is configured to handle linkouts
-            // For alias targets
-            if ($linkout) {
-              // For CDS/protein alias targets                
-              if(preg_match("/http:/",  $gbrowse_url) == 1) {
-                  $hit_url =   $gbrowse_url . $hit_name ;
-                  $hit_name_url = l($hit_name, $hit_url, array('attributes' => array('target' => '_blank')));
-              } 
-              else if (preg_match($linkout_regex, $hit_name, $linkout_match) == 1) {
-                  $hit_name = $linkout_match[1];
-                    // matches found 
-                  $hit_url =   $GLOBALS['base_url'] . '/' . $gbrowse_url . '?' . 'query=q=';
-                  $hit_url .= $hit_name . ';h_feat=' . $iteration->{'Iteration_query-ID'};
-                  $hit_name_url = l($hit_name, $hit_url, array('attributes' => array('target' => '_blank')));
-              }            
-              else {
-              // No matches for regex. Hence, linkouts not possible
-              $hit_name_url = $hit_name;                
-              }  
-            }        
-            else {
-              // For Genome targets              
-                
-              $hit_url =   $GLOBALS['base_url'] . '/' .  $gbrowse_url . '?' . 'query=' . 'start=' . $range_start . ';' . 'stop=' .
-                              $range_end . ';' . 'ref=' . $hit_name . ';' . 'add=' . $hit_name . '+'  . 'BLAST+' . $iteration->{'Iteration_query-ID'} . '+' . $hsps_range . ';h_feat=' . $iteration->{'Iteration_query-ID'} ; 
-                              
-              $hit_name_url = l($hit_name, $hit_url, array('attributes' => array('target' => '_blank')));
-            }
-          }// end of GBrowse functionality
-*/
           if ($linkout) {
             if (preg_match($linkout_regex, $hit_name, $linkout_match)) {
               $linkout_id = $linkout_match[1];
               $hit->{'linkout_id'} = $linkout_id;
               $hit->{'hit_name'} = $hit_name;
               
-              if ($linkout_type == 'link') {
+//              if ($linkout_type == 'link') {
                 $hit_url = call_user_func(
                   $url_function,
                   $linkout_urlprefix,
@@ -323,13 +259,14 @@ if ($xml) {
                     <a href=\"$hit_url\" target=\"_blank\">
                       $linkout_id
                     </a>";
-                }//link
-              }
+                }
+//              }//link
+/*
               else if ($linkout_type == 'gbrowse') {
               	if (function_exists(_custom_get_GBRowse_link) {
                 }
                 else {
-                  $hit_name = _get_GBRowse_link();
+                  $hit_name = _get_GBRowse_link($hit, $linkout_id, $linkout_urlprefix);
                 }
               }
               else if ($linkout_type == 'jbrowse') {
@@ -339,12 +276,14 @@ if ($xml) {
                 	$hit_name = _get_JBRowse_link();
                 }
               }
+*/
             }
           }//handle linkout
 
           //@deepaksomanadh: Code added for BLAST visualization
           // get the image and display
-          $hit_img = generateImage($target_name, $Hsp_bit_score, $hit_hsps, $target_size, $query_size, $q_name, $hit_name);
+          $hit_img = generateImage($target_name, $Hsp_bit_score, $hit_hsps, 
+                                   $target_size, $query_size, $q_name, $hit_name);
         
           ob_start(); // Start buffering the output
           imagepng($hit_img, null, 0, PNG_NO_FILTER);
@@ -434,27 +373,17 @@ else {
 <strong> Recent Jobs </strong>
 <ol>
 <?php
-echo "<pre>";var_dump($job_id_data);echo "</pre>";
     $sid = session_id();  
     $jobs = $_SESSION['all_jobs'][$sid];
 
     foreach ($jobs as $job) {
-echo "<pre>";var_dump($job);echo "</pre>";
       echo "<li>";
       $q_def = !isset($job['query_defs'][0]) ? "Query" : $job['query_defs'][0];
       echo "
         <a href='" . "../../" . $job['job_output_url'] ."'>
-          Q:$q_def, T:" . $job['target'] . ' (' . $job['program'] . ') - ' . $job['date'] . "
+          $q_def X " . $job['target'] . ' (' . $job['program'] . ') - ' . $job['date'] . "
         </a>";
       echo "</li>";
     }
 ?>
 </ol>
-
-<?php
-function _get_GBRowse_link($hit, $linkout_urlprefix) {
-}
-
-function _get_JBRowse_link() {
-}
-?>
