@@ -124,7 +124,7 @@ function blast_ui_per_blast_program_form($form, $form_state) {
     '#title' => 'Or upload your own query FASTA:  ',
     '#type' => 'managed_file',
     '#description' => t('The file should be a plain-text FASTA
-(.fasta, .fna, .fa) file. In other words, it cannot have formatting as is the
+(.fasta, .fna, .fa, .fas) file. In other words, it cannot have formatting as is the
 case with MS Word (.doc, .docx) or Rich Text Format (.rtf). It cannot be greater
 than %max_size in size. <strong>Don\'t forget to press the Upload button before
 attempting to submit your BLAST.</strong>',
@@ -133,7 +133,7 @@ attempting to submit your BLAST.</strong>',
       )
     ),
     '#upload_validators' => array(
-      'file_validate_extensions' => array('fasta fna fa'),
+      'file_validate_extensions' => array('fasta fna fa fas'),
       'file_validate_size' => array(file_upload_max_size()),
     ),
   );
