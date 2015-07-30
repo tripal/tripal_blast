@@ -68,12 +68,6 @@ function blast_ui_schema(){
         'not null' => true,
         'default' => 'link'
       ),
-	    'gbrowse_path' => array(
-        'description' => t('The gbrowse URL in the website of the target database.'),
-        'type' => 'varchar',
-        'length' => 1023,
-        'not null' => true,
-      ),
     ),
     
     'indexes' => array(
