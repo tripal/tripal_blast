@@ -32,9 +32,7 @@ function blast_ui_blastn_advanced_options_form(&$form, $form_state) {
     $job_data = array();
     $jid = 0;
   }
-echo "job data for $jid:<pre>";var_dump($job_data);echo "</pre>";
   $defaults = _get_default_values($job_data, 'blastn');
-echo "DEFAULTS <pre>";var_dump($defaults);echo "</pre>";
 
   // General parameters
   //.........................
@@ -180,9 +178,7 @@ function blast_ui_blastx_advanced_options_form(&$form, $form_state) {
     $job_data = array();
     $jid = 0;
   }
-echo "job data for $jid:<pre>";var_dump($job_data);echo "</pre>";
   $defaults = _get_default_values($job_data, 'blastx');
-echo "DEFAULTS <pre>";var_dump($defaults);echo "</pre>";
 
    $form['ALG']['GParam'] = array(
    '#type' => 'fieldset',
@@ -320,9 +316,7 @@ function blast_ui_blastp_advanced_options_form(&$form, $form_state) {
     $job_data = array();
     $jid = 0;
   }
-echo "job data for $jid:<pre>";var_dump($job_data);echo "</pre>";
   $defaults = _get_default_values($job_data, 'blastp');
-echo "DEFAULTS <pre>";var_dump($defaults);echo "</pre>";
 
   //General parameters
 
@@ -806,7 +800,7 @@ function blast_ui_blastp_advanced_options_form_submit($form, $form_state) {
   }
   
 //eksc- need to implement query range limit
-//  $num_alignments = 0;
+//  q_range
 
   return array(
   	'max_target_seqs' => $numAlign,
@@ -814,7 +808,7 @@ function blast_ui_blastp_advanced_options_form_submit($form, $form_state) {
     'word_size'       => $wordSize,
     'gapopen'         => $gapOpen,
     'gapextend'       => $gapExtend,
-//    'num_alignments'  => $num_alignments,
+//    'q_range'  => $q_range,
     'matrix'          => $matrix,
   );
 }//blast_ui_blastp_advanced_options_form_submit
@@ -984,9 +978,7 @@ function blast_ui_tblastn_advanced_options_form(&$form, $form_state) {
     $job_data = array();
     $jid = 0;
   }
-echo "job data for $jid:<pre>";var_dump($job_data);echo "</pre>";
   $defaults = _get_default_values($job_data, 'tblastn');
-echo "DEFAULTS <pre>";var_dump($defaults);echo "</pre>";
 
   $form['ALG']['GParam'] = array(
    '#type' => 'fieldset',
@@ -1099,7 +1091,6 @@ function blast_ui_tblastn_advanced_options_form_submit($form, $form_state) {
  *   a previous job.
  */
 function _get_default_values($job_data) {
-echo "job data in function<pre>";var_dump($job_data);echo "</pre>";
   // restore previous values or set to default
   $max_target = (isset($job_data['options']['max_target_seqs'])) 
   					? $job_data['options']['max_target_seqs'] : 10;
@@ -1158,7 +1149,7 @@ echo "job data in function<pre>";var_dump($job_data);echo "</pre>";
   }
   
 // eksc- need to implement query range limit
-//  $num_alignments = 0;
+//  $q_range = 0;
   
   $matrix = (isset($job_data['options']['matrix'])) 
   					? $job_data['options']['matrix'] : 'PAM30';
@@ -1169,7 +1160,7 @@ echo "job data in function<pre>";var_dump($job_data);echo "</pre>";
   	'evalue'          => $evalue,
   	'matchmiss'       => $matchmiss,
   	'gap'             => $gap,
-//  	'num_alignments' => $num_alignments,
+//  	'q_range' => $q_range,
     'matrix'          => $matrix,
   );
 }//_get_default_values
