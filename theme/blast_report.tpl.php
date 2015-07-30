@@ -12,7 +12,8 @@
 $linkout = FALSE;
 
 if ($blastdb->linkout->none === FALSE) {
-  $linkout = TRUE;
+  $linkout       = TRUE;
+  $linkout_type  = $blastdb->linkout->type;
   $linkout_regex = $blastdb->linkout->regex;
 //eksc- linkout vs gbrowse
   if (isset($blastdb->linkout->db_id->urlprefix) && !empty($blastdb->linkout->db_id->urlprefix)) {
@@ -31,6 +32,10 @@ if ($blastdb->linkout->none === FALSE) {
     $linkout = FALSE;
   }
 }
+//echo "blastdb: <pre>";var_dump($blastdb);echo "</pre>";
+echo "LINKOUT: $linkout<br>";
+echo "linkout function: $url_function<br>";
+echo "linkout URL prefix: $linkout_urlprefix<br>";
 
 // Handle no hits. This following array will hold the names of all query
 // sequences which didn't have any hits.
@@ -228,26 +233,27 @@ if ($xml) {
 //eksc- linkout vs gbrowse
           $hit_name = $hit->{'Hit_def'};
           $query_name = $iteration->{'Iteration_query-def'};
-          
+ 
+
           // ***** Future modification ***** The gbrowse_url can be extracted from Tripal Database table
-          if(preg_match('/.*(aradu).*/i', $hit_name) == 1) {
-            $gbrowse_url =   'gbrowse_aradu1.0';
-          }
-          else if(preg_match('/.*(araip).*/i', $hit_name) == 1) {
-            $gbrowse_url =  'gbrowse_araip1.0';
-          } else if(preg_match('/.*(phytozome).*/i', $hit_name) == 1) {
-            $gbrowse_url =  'http://legumeinfo.org/chado_phylotree/';
-          }  else {
-            // Not existing in available GBrowse tracks
-            $gbrowse_url = null;
-          }  
+//          if(preg_match('/.*(aradu).*/i', $hit_name) == 1) {
+//            $gbrowse_url =   'gbrowse_aradu1.0';
+//          }
+//          else if(preg_match('/.*(araip).*/i', $hit_name) == 1) {
+//            $gbrowse_url =  'gbrowse_araip1.0';
+//          } else if(preg_match('/.*(phytozome).*/i', $hit_name) == 1) {
+//            $gbrowse_url =  'http://legumeinfo.org/chado_phylotree/';
+//          }  else {
+//            // Not existing in available GBrowse tracks
+//            $gbrowse_url = null;
+//          }  
           
           // $hit_name_url = l($linkout_urlprefix . $linkout_match[1],
           // array('attributes' => array('target' => '_blank'))
           //  );
-          
+/*          
           // Link out functionality to GBrowse
-          if($gbrowse_url == null) {
+          if ($gbrowse_url == null) {
             // Not a valid hit. Hence, No link outs to GBrowse and the hit name is displayed.
             $hit_name_url = $hit_name;
           }
@@ -285,36 +291,56 @@ if ($xml) {
               $hit_name_url = l($hit_name, $hit_url, array('attributes' => array('target' => '_blank')));
             }
           }// end of GBrowse functionality
-/* eksc- linkout vs gbrowse
+*/
           if ($linkout) {
             if (preg_match($linkout_regex, $hit_name, $linkout_match)) {
-
               $linkout_id = $linkout_match[1];
               $hit->{'linkout_id'} = $linkout_id;
               $hit->{'hit_name'} = $hit_name;
-
-              $hit_url = call_user_func(
-                $url_function,
-                $linkout_urlprefix,
-                $hit,
-                array(
-                  'query_name' => $query_name,
-                  'score' => $score,
-                  'e-value' => $evalue,
-                  'HSPs' => $HSPs
-                )
-              );
-
-              if ($hit_url) {
-                $hit_name = l(
-                  $linkout_id,
-                  $hit_url,
-                  array('attributes' => array('target' => '_blank'))
+              
+              if ($linkout_type == 'link') {
+                $hit_url = call_user_func(
+                  $url_function,
+                  $linkout_urlprefix,
+                  $hit,
+                  array(
+                    'query_name' => $query_name,
+                    'score' => $score,
+                    'e-value' => $evalue,
+                    'HSPs' => $HSPs
+                  )
                 );
+
+                if ($hit_url) {
+/* eksc- l() URL-encodes the URL path too, which is often not what we want.
+                  $hit_name = l(
+                    $linkout_id,
+                    $hit_url,
+                    array('attributes' => array('target' => '_blank'))
+                  );
+*/
+                  $hit_name = "
+                    <a href=\"$hit_url\" target=\"_blank\">
+                      $linkout_id
+                    </a>";
+                }//link
+              }
+              else if ($linkout_type == 'gbrowse') {
+              	if (function_exists(_custom_get_GBRowse_link) {
+                }
+                else {
+                  $hit_name = _get_GBRowse_link();
+                }
+              }
+              else if ($linkout_type == 'jbrowse') {
+                if (function_exists(_custom_get_JBRowse_link) {
+                }
+                else {
+                	$hit_name = _get_JBRowse_link();
+                }
               }
             }
-          }
-*/
+          }//handle linkout
 
           //@deepaksomanadh: Code added for BLAST visualization
           // get the image and display
@@ -424,3 +450,11 @@ echo "<pre>";var_dump($job);echo "</pre>";
     }
 ?>
 </ol>
+
+<?php
+function _get_GBRowse_link($hit, $linkout_urlprefix) {
+}
+
+function _get_JBRowse_link() {
+}
+?>
