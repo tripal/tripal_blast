@@ -143,13 +143,21 @@ function tripal_blast_generate_linkout_gbrowse($url_prefix, $hit, $info, $option
   $ranges = array();
   $coords = array();
   foreach($info['HSPs'] as $hsp) {
-     array_push($ranges,$hsp['Hsp_hit-from'] . '..' . $hsp['Hsp_hit-to'] );
-     array_push($coords,$hsp['Hsp_hit-from'] , $hsp['Hsp_hit-to'] );
+     $start = min($hsp['Hsp_hit-from'], $hsp['Hsp_hit-to']);
+     $stop = max($hsp['Hsp_hit-from'], $hsp['Hsp_hit-to']);
+     array_push($ranges, "$start..$stop");
+     array_push($coords, $start, $stop);
    }
    $min = min($coords);
    $max = max($coords);
    $joined_ranges = join ("," , $ranges);
-   $url_postfix = '&start=' . $min . '&stop='  . $max . '&add=' . $hit->{'hit_name'} . '+BLAST+' . $hit->{'hit_name'} . '_' . $info['query_name'] . '_' . $info['e-value'] . '+' . $joined_ranges ;
+   $track_name = $hit->{'hit_name'} . '_' . $info['query_name'] . '_' . $info['e-value'];
+   
+   $url_postfix = 'query=';
+   $url_postfix .= 'start=' . $min . ';stop=' . $max;
+   $url_protfix .= ';ref=' . $hit->{'hit_name'};
+   $url_postfix .= ';add=' . $hit->{'hit_name'} . '+BLAST+Query+' . $joined_ranges;
+   $url_postfix .= ';h_feat=Query';
 
    return $url_prefix . $url_postfix;
 }
