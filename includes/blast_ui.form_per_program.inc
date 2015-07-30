@@ -424,8 +424,8 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
     $job_data = variable_get('job_data', '');
     $seq_rows = explode(PHP_EOL, $seq_content);
     foreach($seq_rows as $row) {
-      if(strpos($row, ">") !== FALSE) {
-        $query_def[] = ltrim($row, ">");
+      if (strpos($row, ">") !== FALSE) {
+       $query_def[] = trim($row, "> \t\n\r\0\x0B");
       }
     }
   
