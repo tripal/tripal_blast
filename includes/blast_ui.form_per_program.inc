@@ -462,7 +462,7 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
     $all_jobs[$sid] = $session_jobs;
     $_SESSION['all_jobs'] = $all_jobs;
   
-//    tripal_jobs_launch(1, $job_id);
+    tripal_jobs_launch(1, $job_id);
     
     //Encode the job_id
     $job_encode_id = base64_encode($job_id);

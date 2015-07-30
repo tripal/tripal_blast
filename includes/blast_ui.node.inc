@@ -180,14 +180,14 @@ function blastdb_form($node, &$form_state) {
     '#default_value' => (isset($node->linkout->db_id->db_id)) ? $node->linkout->db_id->db_id : 0
   );
 
-  $form['dbxref']['gbrowse_path']= array(
+  $form['dbxref']['gbrowse_path'] = array(
     '#type' => 'textfield',
     '#title' => t('Website URL path for the GBrowse track'),
     '#description' => t('The website URL path for the GBrowse track corresponding to the database. For example, /gbrowse_aradu1.0, prefix with /'),
-  //  '#required' => TRUE,
+    '#size' => 40,
     '#default_value' => isset($node->gbrowse_path) ? $node->gbrowse_path : '',
   );
-/*eksc- linkout vs gbrowse*/
+
   $types = module_invoke_all('blast_linkout_info');
   $options = array();
   foreach ($types as $machine_name => $details) {
@@ -200,7 +200,6 @@ function blastdb_form($node, &$form_state) {
     '#options' => $options,
     '#default_value' => (isset($node->linkout->type)) ? $node->linkout->type : 'link'
   );
-/**/
 
   return $form;
 }
@@ -257,14 +256,15 @@ function blastdb_insert($node) {
   
   // Actually insert the record.
   db_insert('blastdb')->fields(array(
-    'nid' => $node->nid,
-    'name' => $node->db_name,
-    'path' => $node->db_path,
-    'dbtype' => $node->db_dbtype,
-    'dbxref_id_regex' => $regex,
-    'dbxref_db_id' => $node->db_id,
-    'gbrowse_path' => $node->gbrowse_path,
-    'dbxref_linkout_type' => $node->dbxref_linkout_type
+    'nid'                 => $node->nid,
+    'name'                => $node->db_name,
+    'path'                => $node->db_path,
+    'dbtype'              => $node->db_dbtype,
+    'dbxref_id_regex'     => $regex,
+    'dbxref_db_id'        => $node->db_id,
+    'gbrowse_path'        => $node->gbrowse_path,
+    'dbxref_linkout_type' => $node->dbxref_linkout_type,
+    'gbrowse_path'        => $node->gbrowse_paht,
   ))->execute();
 }
 
@@ -297,12 +297,13 @@ function blastdb_update($node) {
   
   // Update the record.
   db_update('blastdb')->fields(array(
-    'name' => $node->db_name,
-    'path' => $node->db_path,
-    'dbtype' => $node->db_dbtype,
-    'dbxref_id_regex' => $regex,
-    'dbxref_db_id' => $node->db_id,
-    'dbxref_linkout_type' => $node->dbxref_linkout_type
+    'name'                => $node->db_name,
+    'path'                => $node->db_path,
+    'dbtype'              => $node->db_dbtype,
+    'dbxref_id_regex'     => $regex,
+    'dbxref_db_id'        => $node->db_id,
+    'dbxref_linkout_type' => $node->dbxref_linkout_type,
+    'gbrowse_path'        => $node->gbrowse_path,
   ))->condition('nid', $node->nid)->execute();
 }
 
@@ -328,9 +329,12 @@ function blastdb_delete($node) {
  */
 function blastdb_load($nodes) {
 
-//eksc- linkout vs gbrowse
-  $result = db_query('SELECT nid, name, path, dbtype, dbxref_id_regex, dbxref_db_id, dbxref_linkout_type FROM {blastdb} WHERE nid IN (:nids)', array(':nids' => array_keys($nodes)));
-//  $result = db_query('SELECT nid, name, path, dbtype, dbxref_id_regex, dbxref_db_id, gbrowse_path FROM {blastdb} WHERE nid IN (:nids)', array(':nids' => array_keys($nodes)));
+  $sql = "
+    SELECT nid, name, path, dbtype, dbxref_id_regex, dbxref_db_id, 
+           dbxref_linkout_type, gbrowse_path
+    FROM {blastdb} 
+    WHERE nid IN (:nids)', array(':nids' => array_keys($nodes)))";
+  $result = db_query($sql);
 
   foreach ($result as $record) {
     $nodes[$record->nid]->db_name = $record->name;
