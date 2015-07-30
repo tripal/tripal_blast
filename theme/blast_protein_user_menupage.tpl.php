@@ -4,10 +4,6 @@
  * @file
  *
  */
-
-//eksc- better to get this from module settings
-$nucl_blastpath = './blast/nucleotide/nucleotide';
-$prot_blastpath = './blast/nucleotide/protein';
 ?>
 
 <style>
@@ -40,23 +36,23 @@ local alignment search tool. J. Mol. Biol., 215, 403–410.</blockquote>
   <tr>
     <td rowspan="2">Nucleotide</td>
     <td>Nucleotide</td>
-    <td><?php print l('blastn', $nucl_blastpath);?>:
+    <td><?php print l('blastn', './blast/nucleotide/nucleotide');?>:
       Search a nucleotide database using a nucleotide query.</td>
   </tr>
   <tr>
     <td>Protein</td>
-    <td><?php print l('blastx', $nucl_blastpath);?>:
+    <td><?php print l('blastx', './blast/nucleotide/protein');?>:
       Search protein database using a translated nucleotide query.</td>
   </tr>
   <tr class="blast-highlighted">
     <td  rowspan="2">Protein</td>
     <td>Nucleotide</td>
-    <td><?php print l('tblastn', $prot_blastpath);?>:
+    <td><?php print l('tblastn', './blast/protein/nucleotide');?>:
       Search translated nucleotide database using a protein query.</td>
   </tr>
   <tr class="blast-highlighted">
     <td>Protein</td>
-    <td><?php print l('blastp', $prot_blastpath);?>:
+    <td><?php print l('blastp', './blast/protein/protein');?>:
       Search protein database using a protein query.</td>
   </tr>
 </table>
