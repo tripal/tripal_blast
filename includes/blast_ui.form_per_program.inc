@@ -307,7 +307,8 @@ function blast_ui_per_blast_program_form_validate($form, &$form_state) {
     );
   }
 
-}
+}//blast_ui_per_blast_program_form_validate
+
 
 /**
  * Process the user options submitted via the blast program form.
@@ -319,29 +320,27 @@ function blast_ui_per_blast_program_form_submit($form, &$form_state) {
   $error = FALSE;
   $blast_program = $form_state['values']['blast_program'];
 
-    if ($form_state['values']['db_type'] == 'nucleotide') {
-      $mdb_type = 'nucl';
-//      $file_suffix = '.nsq'; eksc- handled below
-    }
-    else {
-      $mdb_type = 'prot';
-//      $file_suffix = '.psq';
-    }
+  if ($form_state['values']['db_type'] == 'nucleotide') {
+    $mdb_type = 'nucl';
+  }
+  else {
+    $mdb_type = 'prot';
+  }
 
   // If the query was submitted via the texrfield then create a file containing it
-  if ( isset($form_state['qFlag']) ) {
-    if ( $form_state['qFlag'] == 'seqQuery' ) {
+  if (isset($form_state['qFlag'])) {
+    if ($form_state['qFlag'] == 'seqQuery') {
       $seq_content = $form_state['values']['FASTA'];
       $query = '/tmp/' . date('YMd_His') . '_query.fasta';
-      file_put_contents ( $query , $seq_content);
+      file_put_contents ($query , $seq_content);
     }
-    elseif ( $form_state['qFlag'] == 'upQuery' ) {
+    elseif ($form_state['qFlag'] == 'upQuery') {
       $query = $form_state['upQuery_path'];
     }
   }
 
   // If the BLAST database was uploaded then use it to run the BLAST
-  if ( $form_state['dbFlag'] == 'upDB') {
+  if ($form_state['dbFlag'] == 'upDB') {
 
     // Since we only support using the -db flag (not -subject) we need to create a
     // blast database for the FASTA uploaded.
@@ -363,7 +362,8 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
 
       $error = TRUE;
     }
-  }
+  }//upload target db
+  
   // Otherwise, we are using one of the website provided BLAST databases so form the
   // BLAST command accordingly
   elseif ($form_state['dbFlag'] == 'blastdb') {
@@ -373,7 +373,7 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
     $blastdb_with_path = $blastdb_node->db_path;
   }
 
-  // Now let each program process it's own advanced options.
+  // Now let each program process its own advanced options.
   $advanced_options = array();
   $advanced_options_form_submit = 'blast_ui_' . $blast_program . '_advanced_options_form_submit';
   if (function_exists($advanced_options_form_submit)) {
@@ -386,25 +386,34 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
   	$advanced_options = array('none' => 0);
   }
 
-  // Set BLAST db paths
-  if ($mdb_type == 'nucl' && preg_match('/\.[pn]al/', $blastdb_with_path) == 0) {    
-    $file_suffix = ".nsq";
-    $blastdb_with_suffix = $blastdb_with_path . $file_suffix; 
+  // Set path to a BLAST target file to check for its existence
+  if ($mdb_type == 'nucl' && (preg_match('/\.[pn]al/', $blastdb_with_path) == 0)) {  
+    // Suffix may be .nsq or .nal
+    if (is_readable("$blastdb_with_path.nsq")) {
+      $blastdb_with_suffix = "$blastdb_with_path.nsq";
+    }
+    else if (is_readable("$blastdb_with_path.nal")) {
+      $blastdb_with_suffix = "$blastdb_with_path.nal";
+    }
   }  
-  else if ($mdb_type == 'prot' && preg_match('/\.[pn]al/', $blastdb_with_path) == 0) {
-    $file_suffix = ".psq";
-    $blastdb_with_suffix = $blastdb_with_path . $file_suffix;  
+  else if ($mdb_type == 'prot' && (preg_match('/\.[pn]al/', $blastdb_with_path) == 0)) {
+    // Suffix may be .psq or .pal
+    if (is_readable("$blastdb_with_path.psq")) {
+      $blastdb_with_suffix = "$blastdb_with_path.psq";
+    }
+    else if (is_readable("$blastdb_with_path.pal")) {
+      $blastdb_with_suffix = "$blastdb_with_path.pal";
+    }
   }
   else {
     $blastdb_with_suffix = $blastdb_with_path;
-    $blastdb_with_path= preg_replace('/\.[pn]al/', '', $blastdb_with_path);
   }    
 
   // Actually submit the BLAST Tripal Job
-  // NOTE: Tripal jobs need to be executed from the command-line before to run!!
-  $blastdb_with_suffix = $blastdb_with_path . $file_suffix;
   if (is_readable($blastdb_with_suffix)) {
+    // BLAST target exists.
     global $user;
+
     $output_filestub = date('YMd_His');
     $job_args = array(
       'program' => $blast_program,
@@ -413,6 +422,7 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
       'output_filename' => $output_filestub,
       'options' => $advanced_options
     );
+    
     $job_id = tripal_add_job(
       t('BLAST (@program): @query', array('@program' => $blast_program, '@query' => $query)),
       'blast_job',
@@ -420,6 +430,7 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
       $job_args,
       $user->uid
     );
+    
     //@deepaksomanadh Persist the important data for edit and resubmit
     $job_data = variable_get('job_data', '');
     $seq_rows = explode(PHP_EOL, $seq_content);
@@ -452,16 +463,19 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
     $all_jobs = $_SESSION['all_jobs'];
     
     $session_jobs = $all_jobs[$sid];
-    $session_jobs[$job_id] = array(
-                              'job_output_url'=> $job_url, 
-                              'query_defs'    => $query_def,
-                              'target'        => $blastdb_name,
-                              'program'       => $blast_program,
-                              'date'          => date('Y-M-d h:i:s'),
-                             );
+    $session_jobs[$job_id] = 
+      array(
+        'job_output_url'=> $job_url, 
+        'query_defs'    => $query_def,
+        'target'        => $blastdb_name,
+        'program'       => $blast_program,
+        'date'          => date('Y-M-d h:i:s'),
+       );
     $all_jobs[$sid] = $session_jobs;
     $_SESSION['all_jobs'] = $all_jobs;
   
+// Comment out this line to run BLAST by hand via the command:
+//   drush trp-run-jobs --username=admin 
     tripal_jobs_launch(1, $job_id);
     
     //Encode the job_id
@@ -469,18 +483,21 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
     
     // Redirect to the BLAST results page
     drupal_goto("blast/report/$job_encode_id");
-  }
+  }//BLAST target is readable
   
-  // We check if $error is set to TRUE because if so then the error has already
-  // been reported.
-  elseif (!$error) {
-    $dbfile_uploaded_msg = ($form_state['dbFlag'] == 'upDB') ? 'The BLAST database was submitted via user upload.' : 'Existing BLAST Database was chosen';
+  // BLAST target is unreadable
+  else {
+    $dbfile_uploaded_msg = ($form_state['dbFlag'] == 'upDB') 
+        ? 'The BLAST database was submitted via user upload.' 
+        : 'Existing BLAST Database was chosen.';
     tripal_report_error(
       'blast_ui',
       TRIPAL_ERROR,
-      "BLAST database %db unaccessible. $dbfile_uploaded_msg",
-      array('%db' => $blastdb_with_path)
+      "BLAST database %db unaccessible. %msg",
+      array('%db' => $blastdb_with_path, '%msg' => $dbfile_uploaded_msg)
     );
-    drupal_set_message('BLAST database unaccessible. Please contact the site administrator.','error');
+    $msg = "$dbfile_uploaded_msg BLAST database '$blastdb_with_path' is unaccessible. ";
+    $msg .= "Please contact the site administrator.";
+    drupal_set_message($msg, 'error');
   }
-}
+}//blast_ui_per_blast_program_form_submit
