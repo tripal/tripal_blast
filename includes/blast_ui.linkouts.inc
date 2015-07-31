@@ -52,6 +52,7 @@
  * human-readable name to be used in the Blast Database add/edit form and the
  * function to be used to determine the URL for each hit in BLAST results.
  */
+
 function blast_ui_blast_linkout_info() {
   $types = array();
 
@@ -73,6 +74,11 @@ function blast_ui_blast_linkout_info() {
   $types['jbrowse'] = array(
     'name' => 'JBrowse',
     'process function' => 'tripal_blast_generate_linkout_jbrowse',
+  );
+
+  $types['custom'] = array(
+    'name' => 'Custom',
+    'process function' => 'tripal_custom_generate_linkout',
   );
 
   return $types;
@@ -155,7 +161,7 @@ function tripal_blast_generate_linkout_gbrowse($url_prefix, $hit, $info, $option
    
    $url_postfix = 'query=';
    $url_postfix .= 'start=' . $min . ';stop=' . $max;
-   $url_protfix .= ';ref=' . $hit->{'hit_name'};
+   $url_postfix .= ';ref=' . $hit->{'hit_name'};
    $url_postfix .= ';add=' . $hit->{'hit_name'} . '+BLAST+Query+' . $joined_ranges;
    $url_postfix .= ';h_feat=Query';
 
