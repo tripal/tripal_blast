@@ -7,30 +7,34 @@
  *   $xml_filename: The full path & filename of XML file containing the BLAST results
  *    @deepaksomanadh: $job_data = meta data related to the current job
  */
+ 
+// uncomment this to see the contents of the $blastdb object
+//echo "blastdb:<pre>";var_dump($blastdb);echo "</pre>";
 
 // Set ourselves up to do link-out if our blast database is configured to do so.
 $linkout = FALSE;
 
 if ($blastdb->linkout->none === FALSE) {
-  $linkout       = TRUE;
   $linkout_type  = $blastdb->linkout->type;
   $linkout_regex = $blastdb->linkout->regex;
+  
+  // Note that URL prefix is not required if linkout type is 'custom'
   if (isset($blastdb->linkout->db_id->urlprefix) && !empty($blastdb->linkout->db_id->urlprefix)) {
     $linkout_urlprefix = $blastdb->linkout->db_id->urlprefix;
-
-    // Furthermore, check that we can determine the URL.
-    // (ie: that the function specified to do so, exists).
-    if (function_exists($blastdb->linkout->url_function)) {
-      $url_function = $blastdb->linkout->url_function;
-    }
-    else {
-      $linkout = FALSE;
-    }
   }
-  else {
-    $linkout = FALSE;
+
+  // Check that we can determine the linkout URL.
+  // (ie: that the function specified to do so, exists).
+  if (function_exists($blastdb->linkout->url_function)) {
+    $url_function = $blastdb->linkout->url_function;
+    $linkout = TRUE;
   }
 }
+echo "linkout: $linkout<br>";
+echo "linkout type: $linkout_type<br>";
+echo "linkout regex: $linkout_regex<br>";
+echo "linkout function: $url_function<br>";
+echo "linkout URL: $linkout_urlprefix<br>";
 
 // Handle no hits. This following array will hold the names of all query
 // sequences which didn't have any hits.
@@ -92,7 +96,6 @@ $no_hits = TRUE;
 <?php 
   // get input sequences from job_data variable
 
-//echo "job data:<pre>";var_dump($job_id_data);echo "</pre>";
   $query_def = $job_id_data['query_def'];
   echo "<td>";
   echo "<ol>";
@@ -170,12 +173,12 @@ if ($xml) {
           // Round e-val to two decimal values
           $rounded_evalue = '';
           if (strpos($evalue,'e') != false) {
-           $evalue_split = explode('e', $evalue);
-           $rounded_evalue = round($evalue_split[0], 2, PHP_ROUND_HALF_EVEN);            
-             $rounded_evalue .= 'e' . $evalue_split[1];
+            $evalue_split = explode('e', $evalue);
+            $rounded_evalue = round($evalue_split[0], 2, PHP_ROUND_HALF_EVEN);            
+            $rounded_evalue .= 'e' . $evalue_split[1];
           }
           else { 
-              $rounded_evalue = $evalue;
+            $rounded_evalue = $evalue;
           }        
         
           // ALIGNMENT ROW (collapsed by default)
@@ -200,12 +203,12 @@ if ($xml) {
             if ($track_end < $hsp_xml->{'Hsp_hit-to'}) {
               $track_end = $hsp_xml->{'Hsp_hit-to'} . "";
             }
-          }   
+          }  
           $range_start = (int) $track_start - 50000;
           $range_end = (int) $track_end + 50000;
         
           if ($range_start < 1) 
-             $range_start = 1;  
+            $range_start = 1;  
 
           // For BLAST visualization 
           $target_size = $hit->{'Hit_len'};
@@ -233,21 +236,28 @@ if ($xml) {
               $linkout_id = $linkout_match[1];
               $hit->{'linkout_id'} = $linkout_id;
               $hit->{'hit_name'} = $hit_name;
-              
-//              if ($linkout_type == 'link') {
-                $hit_url = call_user_func(
-                  $url_function,
-                  $linkout_urlprefix,
-                  $hit,
-                  array(
-                    'query_name' => $query_name,
-                    'score' => $score,
-                    'e-value' => $evalue,
-                    'HSPs' => $HSPs
-                  )
-                );
+            }
+            
+            $hit_url = call_user_func(
+              $url_function,
+              $linkout_urlprefix,
+              $hit,
+              array(
+                'query_name' => $query_name,
+                'score'      => $score,
+                'e-value'    => $evalue,
+                'HSPs'       => $HSPs,
+                'Target'     => $blastdb->title,
+              )
+            );
+            
+            // The linkout id might have been set/changed by the custom linkout code.
+            if ($linkout_type == 'custom' && $hit->{'linkout_id'}) {
+              $linkout_id = $hit->{'linkout_id'};
+            }
 
-                if ($hit_url) {
+
+            if ($hit_url) {
 /* eksc- l() URL-encodes the URL path too, which is often not what we want.
                   $hit_name = l(
                     $linkout_id,
@@ -255,28 +265,10 @@ if ($xml) {
                     array('attributes' => array('target' => '_blank'))
                   );
 */
-                  $hit_name = "
-                    <a href=\"$hit_url\" target=\"_blank\">
-                      $linkout_id
-                    </a>";
-                }
-//              }//link
-/*
-              else if ($linkout_type == 'gbrowse') {
-              	if (function_exists(_custom_get_GBRowse_link) {
-                }
-                else {
-                  $hit_name = _get_GBRowse_link($hit, $linkout_id, $linkout_urlprefix);
-                }
-              }
-              else if ($linkout_type == 'jbrowse') {
-                if (function_exists(_custom_get_JBRowse_link) {
-                }
-                else {
-                	$hit_name = _get_JBRowse_link();
-                }
-              }
-*/
+               $hit_name = "
+                  <a href=\"$hit_url\" target=\"_blank\">
+                    $linkout_id
+                  </a>";
             }
           }//handle linkout
 
@@ -290,7 +282,7 @@ if ($xml) {
           $b64 = base64_encode(ob_get_contents()); // Get what we've just outputted and base64 it
           imagedestroy($hit_img);
           ob_end_clean();
-
+  
           // Print the HTML tag with the image embedded
           $hit_img = '<h4><strong> Hit Visualization </strong></h4> <br><img src="data:image/png;base64,'.$b64.'"/>';
           
@@ -328,16 +320,16 @@ if ($xml) {
           );
           $rows[] = $row;
 
-        }// end of if - checks $hit
-      } //end of foreach - iteration_hits
-    }  // end of if - check for iteration_hits
+        }//end of if - checks $hit
+      }//end of foreach - iteration_hits
+    }//end of if - check for iteration_hits
+    
     else {
-
       // Currently where the "no results" is added.
       $query_name = $iteration->{'Iteration_query-def'};
       $query_with_no_hits[] = $query_name;
 
-    }// end of else
+    }//no results
   }//end of foreach - BlastOutput_iterations
 
   if ($no_hits) {
@@ -359,8 +351,9 @@ if ($xml) {
         'attributes' => array('id' => 'blast_report'),
       ));
     }
-  }
-}
+  }//handle no hits
+}//XML exists
+
 else {
   drupal_set_title('BLAST: Error Encountered');
   print '<p>We encountered an error and are unable to load your BLAST results.</p>';
