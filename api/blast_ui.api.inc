@@ -108,7 +108,8 @@ function get_blast_database_options($type) {
  */
 function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $options, $job_id = NULL) {
   $output_file = file_directory_temp() .  DIRECTORY_SEPARATOR . $output_filestub . '.blast.asn';
-  $output_dir = variable_get('file_public_path', conf_path() . '/files') . DIRECTORY_SEPARATOR . 'tripal' . DIRECTORY_SEPARATOR . 'tripal_blast';
+  $output_dir = variable_get('file_public_path', conf_path() . '/files') 
+              . DIRECTORY_SEPARATOR . 'tripal' . DIRECTORY_SEPARATOR . 'tripal_blast';
   $output_file_xml = $output_dir . DIRECTORY_SEPARATOR . $output_filestub . '.blast.xml';
   $output_file_tsv = $output_dir . DIRECTORY_SEPARATOR . $output_filestub . '.blast.tsv';
   $output_file_html = $output_dir . DIRECTORY_SEPARATOR . $output_filestub . '.blast.html';
@@ -122,11 +123,15 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
 
   // Allow administrators to use an absolute path for these commands.
   // Defaults to using $PATH.
-	$blast_path = variable_get('blast_path', '');
+	$blast_path    = variable_get('blast_path', '');
 	$blast_threads = variable_get('blast_threads', '');
 	
-	$program = 	$blast_path . $program;
-	$blast_formatter_command = $blast_path .  'blast_formatter';
+	// Strip the extension off the BLAST target
+	$database = preg_replace("/(.*)\.[pn]\w\w/", '$1', $database);
+	
+	// The executables:
+	$program       = $blast_path . $program;
+	$blast_formatter_command = $blast_path . 'blast_formatter';
 
   $blast_cmd = "$program -query '$query' -db '$database' -out '$output_file' -outfmt=11";
   if (!empty($options)) {
