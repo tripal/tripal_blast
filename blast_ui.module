@@ -16,6 +16,7 @@ require_once 'includes/blast_ui.node.inc';
 
 // BLAST Link-out functionality.
 require_once 'includes/blast_ui.linkouts.inc';
+include_once('includes/blast_ui.custom.inc');
 
 // Functions specific to themeing (ie: preprocess)
 require_once 'theme/blast_ui.theme.inc';
