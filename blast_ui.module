@@ -280,3 +280,23 @@ function ajax_blast_ui_example_sequence_callback($form, $form_state) {
 
   return $form['query']['FASTA'];
 }
+
+
+/**
+ * Enable web services API
+ *
+ * @param $owner
+ *   
+ * @param $api
+ *
+ * @return $result
+ *  
+ */
+function blast_ui_ctools_plugin_api($owner, $api) {
+  if ($owner == 'services' && $api == 'services') {
+    return array(
+      'version' => 3,
+      'file' => 'includes/blast_ui.services.inc'
+    );
+  }
+}
