@@ -30,11 +30,6 @@ if ($blastdb->linkout->none === FALSE) {
     $linkout = TRUE;
   }
 }
-echo "linkout: $linkout<br>";
-echo "linkout type: $linkout_type<br>";
-echo "linkout regex: $linkout_regex<br>";
-echo "linkout function: $url_function<br>";
-echo "linkout URL: $linkout_urlprefix<br>";
 
 // Handle no hits. This following array will hold the names of all query
 // sequences which didn't have any hits.
