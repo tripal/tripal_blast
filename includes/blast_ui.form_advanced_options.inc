@@ -76,16 +76,14 @@ function blast_ui_blastn_advanced_options_form(&$form, $form_state) {
     '#description' => t('The length of the seed that initiates an alignment'),
   );
 
-/*eksc- remove until we learn how to imlement this one
   $form['ALG']['GParam']['qRange'] = array(
     '#type' => 'textfield',
     '#title' => t('Max matches in a query range'),
-    '#default_value' => $defaults['num_alignments'],
+    '#default_value' => $defaults['qRange'],
     '#size' => 12,
     '#maxlength' => 20,
-    '#description' => t('Limit the number of matches to a query range. This option is useful if many strong matches to one part of a query prevents BLAST from presenting weaker matches to another part of the query.'),
+    '#description' => t('Limit the number of matches to a query range. This option is useful if many strong matches to one part of a query may prevent BLAST from presenting weaker matches to another part of the query.'),
   );
-*/
 
   // Scoring parameters
   //.........................
@@ -137,8 +135,11 @@ function blast_ui_blastn_advanced_options_form_submit($form, $form_state) {
   // Expand Gap Cost key into open and extend penalties
   $gap = _set_gap($form_state['values']['gapCost']);
 
-  // Epand Match/Mismatch option into penalty/reward values
+  // Expand Match/Mismatch option into penalty/reward values
   $m_m = _set_match_mismatch($form_state['values']['M&MScores']);
+
+  // Limit number of query hits
+  $qRange = $form_state['values']['qRange'];
 
   return array(
   	'max_target_seqs' => $numAlign,
@@ -148,6 +149,7 @@ function blast_ui_blastn_advanced_options_form_submit($form, $form_state) {
     'gapextend'       => $gap['gapExtend'],
     'penalty'         => $m_m['penalty'],
     'reward'          => $m_m['reward'],
+    'culling_limit'   => $qRange,
   );
 }//blast_ui_blastn_advanced_options_form_submit
 
@@ -241,17 +243,14 @@ function blast_ui_blastx_advanced_options_form(&$form, $form_state) {
     ),
   );
 
-/*eksc- probably not used for blastx
-  $form['ALG']['SParam']['gapCost'] = array(
-    '#type' => 'select',
-    '#title' => t('Gap Costs:'),
-    '#prefix' => '<div id="dropdown-second-replace">',
-    '#suffix' => '</div>',
-    '#options' => _get_gap_for_matrix($selected),
-    '#default_value' => 2,
-    '#description' => t('Cost to create and extend a gap in an alignment.'),
+  $form['ALG']['GParam']['qRange'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Max matches in a query range'),
+    '#default_value' => $defaults['qRange'],
+    '#size' => 12,
+    '#maxlength' => 20,
+    '#description' => t('Limit the number of matches to a query range. This option is useful if many strong matches to one part of a query may prevent BLAST from presenting weaker matches to another part of the query.'),
   );
-*/
 
 /*eksc- NOT match/mismatch but instead computational adjustments; 
         need to learn how there are implemented for blastx
@@ -359,16 +358,14 @@ function blast_ui_blastp_advanced_options_form(&$form, $form_state) {
     '#description' => t('The length of the seed that initiates an alignment'),
   );
 
-/*eksc- remove until we learn how to implement
   $form['ALG']['GParam']['qRange'] = array(
-   '#type' => 'textfield',
-   '#title' => t('Max matches in a query range'),
-   '#default_value' => $defaults['num_alignments'],
-   '#size' => 12,
-   '#maxlength' => 20,
-   '#description' => t('Limit the number of matches to a query range. This option is useful if many strong matches to one part of a query may prevent BLAST from presenting weaker matches to another part of the query.'),
+    '#type' => 'textfield',
+    '#title' => t('Max matches in a query range'),
+    '#default_value' => $defaults['qRange'],
+    '#size' => 12,
+    '#maxlength' => 20,
+    '#description' => t('Limit the number of matches to a query range. This option is useful if many strong matches to one part of a query may prevent BLAST from presenting weaker matches to another part of the query.'),
   );
-*/
 
   // Scoring parameters
 
@@ -442,6 +439,8 @@ function blast_ui_blastp_advanced_options_form_submit($form, $form_state) {
   $wsKey = $form_state['values']['wordSize'];
   $wordSize = $form['ALG']['GParam']['wordSize']['#options'][$wsKey];
 
+  $qRange = $form_state['values']['qRange'];
+  
   // Expand Gap Cost key into open and extend penalties
   $matrix = $form_state['values']['Matrix'];
   switch ($matrix) {
@@ -808,7 +807,7 @@ function blast_ui_blastp_advanced_options_form_submit($form, $form_state) {
     'word_size'       => $wordSize,
     'gapopen'         => $gapOpen,
     'gapextend'       => $gapExtend,
-//    'q_range'  => $q_range,
+    'culling_limit'   => $qRange,
     'matrix'          => $matrix,
   );
 }//blast_ui_blastp_advanced_options_form_submit
@@ -1051,21 +1050,14 @@ function blast_ui_tblastn_advanced_options_form(&$form, $form_state) {
     '#description' => t('Cost to create and extend a gap in an alignment.'),
   );
 
-/*eksc- NOT match/mismatch but instead computational adjustments; 
-        need to learn how there are implemented for tblastn
-  $form['ALG']['SParam']['M&MScores'] = array(
-    '#type' => 'select',
-    '#title' => t('Match/Mismatch Scores:'),
-    '#options' => array(
-      0 => t('No adjustment'),
-      1 => t('Composition-based statistics'),
-      2 => t('Conditional compositional score matrix adjustment'),
-      3 => t('Universal composition score matrix adjustment '),
-    ),
-    '#default_value' => 2,
-    '#description' => t('Matrix adjustment method to compensate for amino acid composition of sequences'),
+  $form['ALG']['GParam']['qRange'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Max matches in a query range'),
+    '#default_value' => $defaults['qRange'],
+    '#size' => 12,
+    '#maxlength' => 20,
+    '#description' => t('Limit the number of matches to a query range. This option is useful if many strong matches to one part of a query may prevent BLAST from presenting weaker matches to another part of the query.'),
   );
-*/
 }//blast_ui_tblastn_advanced_options_form
 
 /**
@@ -1100,9 +1092,8 @@ function _get_default_values($job_data) {
   					? $job_data['options']['evalue'] : .001;
   $word_size = (isset($job_data['options']['word_size'])) 
   					? $job_data['options']['word_size'] : 11;
-  					
-//eksc- need to learn how this is implemented:
-//  q-range
+  $qRange = (isset($job_data['options']['culling_limit'])) 
+  					? $job_data['options']['culling_limit'] : 0;
 
   $matchmiss = 0;
   $reward = (isset($job_data['options']['reward'])) 
@@ -1160,7 +1151,7 @@ function _get_default_values($job_data) {
   	'evalue'          => $evalue,
   	'matchmiss'       => $matchmiss,
   	'gap'             => $gap,
-//  	'q_range' => $q_range,
+  	'qRange'          => $qRange,
     'matrix'          => $matrix,
   );
 }//_get_default_values
