@@ -1199,6 +1199,7 @@ function _get_word_size($which) {
     	return array(
         2 => t('2'),
         3 => t('3'),
+        6 => t('6'),
       );
 	}//switch
 }
