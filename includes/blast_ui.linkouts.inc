@@ -157,12 +157,15 @@ function tripal_blast_generate_linkout_gbrowse($url_prefix, $hit, $info, $option
    $min = min($coords);
    $max = max($coords);
    $joined_ranges = join ("," , $ranges);
-   $track_name = $hit->{'hit_name'} . '_' . $info['query_name'] . '_' . $info['e-value'];
+//   $track_name = $hit->{'hit_name'} . '_' . $info['query_name'] . '_' . $info['e-value'];
+   $track_name = $hit->{'linkout_id'} . '_' . $info['query_name'] . '_' . $info['e-value'];
    
-   $url_postfix = 'query=';
-   $url_postfix .= 'start=' . $min . ';stop=' . $max;
-   $url_postfix .= ';ref=' . $hit->{'hit_name'};
-   $url_postfix .= ';add=' . $hit->{'hit_name'} . '+BLAST+Query+' . $joined_ranges;
+//   $url_postfix = 'query=';
+   $url_postfix = 'start=' . $min . ';stop=' . $max;
+//   $url_postfix .= ';ref=' . $hit->{'hit_name'};
+//   $url_postfix .= ';add=' . $hit->{'hit_name'} . '+BLAST+Query+' . $joined_ranges;
+   $url_postfix .= ';ref=' . $hit->{'linkout_id'};
+   $url_postfix .= ';add=' . $hit->{'linkout_id'} . '+BLAST+Query+' . $joined_ranges;
    $url_postfix .= ';h_feat=Query';
 
    return $url_prefix . $url_postfix;
