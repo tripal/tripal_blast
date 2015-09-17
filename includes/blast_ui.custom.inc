@@ -14,15 +14,37 @@ function tripal_custom_generate_linkout($url_prefix, $hit, $info, $options = arr
 
   if ($info['Target'] == 'All genomes') {
     if (preg_match('/.*(aradu).*/i', $hit_name) == 1) {
-      $hit->{'linkout_id'} = $hit_name;
-      $url_prefix = "\gbrowse_aradu1.0?";   
-      $url = tripal_blast_generate_linkout_gbrowse($url_prefix, $hit, $info, $options);
+      $blastdb_name = 'PeanutBase_aradu_gbrowse';
     }
     else if (preg_match('/.*(araip).*/i', $hit_name) == 1) {
-      $hit->{'linkout_id'} = $hit_name;
-      $url_prefix = "\gbrowse_araip1.0?";   
-      $url = tripal_blast_generate_linkout_gbrowse($url_prefix, $hit, $info, $options);
+      $blastdb_name = 'PeanutBase_araip_gbrowse';
     }
+    else if (preg_match('/^Cc/', $hit_name) == 1) {
+      $blastdb_name = 'LegumeInfo_cajca_gbrowse';
+    }
+    else if (preg_match('/^Ca/', $hit_name) == 1) {
+      $blastdb_name = 'LegumeInfo_cicar_gbrowse';
+      $hit_name = preg_replace("/(.*?)\s.*/", '$1', $hit_name);
+    }
+    else if (preg_match('/^Gm/', $hit_name) == 1) {
+      $blastdb_name = 'SoyBase_glyma_gbrowse';
+    }
+    else if (preg_match('/^Lj/', $hit_name) == 1) {
+      $blastdb_name = 'LegumeInfo_lotja_gbrowse';
+    }
+    else if (preg_match('/^Mt/', $hit_name) == 1) {
+      $blastdb_name = 'LegumeInfo_medtr_gbrowse';
+    }
+    else if (preg_match('/^Pv/', $hit_name) == 1) {
+      $blastdb_name = 'LegumeInfo_phavu_gbrowse';
+    }
+    else if (preg_match('/^Vr/', $hit_name) == 1) {
+      $blastdb_name = 'LegumeInfo_vigra_gbrowse';
+    }
+
+    $hit->{'linkout_id'} = $hit_name;
+    $url_prefix = tripal_custom_getURLprefix($blastdb_name);
+    $url = tripal_blast_generate_linkout_gbrowse($url_prefix, $hit, $info, $options);
   }//handle All genomes BLAST target
   
   else {
@@ -53,3 +75,15 @@ function tripal_custom_generate_linkout($url_prefix, $hit, $info, $options = arr
     
   return "$url";
 }
+
+
+function tripal_custom_getURLprefix($blastdb_name) {
+  $sql = "SELECT urlprefix FROM db WHERE name='$blastdb_name'";
+  if ($res = chado_query($sql)) {
+    if ($row=$res->fetchObject()) {
+      return $row->urlprefix;
+    }
+  }
+  
+  return false;
+}//tripal_custom_getURLprefix
