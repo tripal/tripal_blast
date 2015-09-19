@@ -175,7 +175,8 @@ function blastdb_form($node, &$form_state) {
     '#description' => 'The external database you would like to link-out to. '
       . 'Note that this list includes all Tripal Databases and if the database '
       . 'you would like to link-out to is not included you can add it through '
-      . l('Administration > Tripal > Chado Modules > Databases','admin/tripal/chado/tripal_db/add', array('attributes' => array('target' => '_blank'))) . '.',
+      . l('Administration > Tripal > Chado Modules > Databases','admin/tripal/chado/tripal_db/add', array('attributes' => array('target' => '_blank')))
+      . '.',
     '#options' => $db_options,
     '#default_value' => (isset($node->linkout->db_id->db_id)) ? $node->linkout->db_id->db_id : 0
   );
@@ -188,7 +189,14 @@ function blastdb_form($node, &$form_state) {
   $form['dbxref']['dbxref_linkout_type'] = array(
     '#type' => 'select',
     '#title' => 'Link-out Type',
-    '#description' => 'This determines how the URL to be linked to is formed. NOTE: this is very dependant on the External Database chosen above since it needs to be able to support the type of linking choosen. For example, only External Databases which reference a GBrowse instance can use the GBrowse link type.',
+    '#description' => 'This determines how the URL to be linked to is formed. '
+                    . 'NOTE: this is very dependant on the External Database '
+                    . 'chosen above since it needs to be able to support the '
+                    . 'type of linking choosen. For example, only External '
+                    . 'Databases which reference a GBrowse instance can use the '
+                    . 'GBrowse link type.  If a link requires customized code, '
+                    . 'select "custom" and add the code to the file ' 
+                    . 'includes/blast_ui.custom/inc.',
     '#options' => $options,
     '#default_value' => (isset($node->linkout->type)) ? $node->linkout->type : 'link'
   );
