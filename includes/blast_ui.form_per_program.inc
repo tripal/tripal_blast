@@ -209,6 +209,12 @@ attempting to submit your BLAST.</strong>',
     '#default_value' => ' BLAST ',
   );
 
+  // Recent jobs list
+  $form['recentjobs'] = array(
+     '#type' => 'fieldset',
+     '#prefix' => get_recent_jobs(),
+   );
+   
   return $form;
 }
 
@@ -431,7 +437,6 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
       $user->uid
     );
     
-    //@deepaksomanadh Persist the important data for edit and resubmit
     $job_data = variable_get('job_data', '');
     $seq_rows = explode(PHP_EOL, $seq_content);
     foreach($seq_rows as $row) {
@@ -446,7 +451,7 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
         'job_url'   => current_path(),
         'fasta'     => $seq_content,
         'query_def' => $query_def,
-        'db_name'   => $db_name,
+        'db_name'   => $blastdb_node->db_name,
         'db_option' => $selected_db,
         'options'   => $advanced_options,
       );
