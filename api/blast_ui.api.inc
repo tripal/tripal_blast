@@ -280,3 +280,35 @@ function get_blastdb_linkout_regex($node, $options = array()) {
 
   return $regex;
 }
+
+
+function get_recent_jobs() {
+  $html = "
+  <h3><strong> Recent Jobs </h3>
+  <dl>";
+
+  $sid = session_id();  
+  $jobs = $_SESSION['all_jobs'][$sid];
+
+  // Remove jobs older than 48 hours
+  foreach ($jobs as $job_id => $job) {
+    if ($diff = abs(time() - strtotime($job['date'])) > 172800) {
+      unset($jobs[$job_id]);
+    }
+  }
+  $_SESSION['all_jobs'][$sid] = $jobs;
+
+  foreach (array_reverse($jobs) as $job) {
+    $q_def = !isset($job['query_defs'][0]) ? "Query" : $job['query_defs'][0];
+    $html .= "
+      <dd>
+        <a href='" . "../../" . $job['job_output_url'] ."'>
+          $q_def X " . $job['target'] . ' (' . $job['program'] . ') - ' . $job['date'] . "
+        </a>
+      </dd>";
+  }
+   $html .= "
+  </dl>";
+  
+  return $html;
+}
