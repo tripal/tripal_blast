@@ -90,7 +90,6 @@ $no_hits = TRUE;
 <tr>
 <?php 
   // get input sequences from job_data variable
-
   $query_def = $job_id_data['query_def'];
   echo "<td>";
   echo "<ol>";
@@ -227,6 +226,9 @@ if ($xml) {
           $query_name = $iteration->{'Iteration_query-def'};
  
           if ($linkout) {
+//echo "link out regex: $linkout_regex executed on [$hit_name]<br>";
+//preg_match($linkout_regex, $hit_name, $linkout_match);
+//echo "<br>matches:<pre>" . var_dump($linkout_match);echo "</pre>";
             if (preg_match($linkout_regex, $hit_name, $linkout_match)) {
               $linkout_id = $linkout_match[1];
               $hit->{'linkout_id'} = $linkout_id;
@@ -355,23 +357,7 @@ else {
 }
 ?>
 
-<p> <!--  @deepaksomanadh: Building the edit and resubmit URL --> 
+<p> 
   <a style ="align:center" href="<?php print '../../'. $job_id_data['job_url'] . '?jid=' . base64_encode($job_id) ?>">Edit this query and re-submit</a>  
 </p>
-<strong> Recent Jobs </strong>
-<ol>
-<?php
-    $sid = session_id();  
-    $jobs = $_SESSION['all_jobs'][$sid];
-
-    foreach ($jobs as $job) {
-      echo "<li>";
-      $q_def = !isset($job['query_defs'][0]) ? "Query" : $job['query_defs'][0];
-      echo "
-        <a href='" . "../../" . $job['job_output_url'] ."'>
-          $q_def X " . $job['target'] . ' (' . $job['program'] . ') - ' . $job['date'] . "
-        </a>";
-      echo "</li>";
-    }
-?>
-</ol>
+<?php echo get_recent_jobs(); ?>
