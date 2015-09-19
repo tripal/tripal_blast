@@ -47,3 +47,5 @@
       Search protein database using a protein query.</td>
   </tr>
 </table>
+
+<?php echo get_recent_jobs(); ?>
