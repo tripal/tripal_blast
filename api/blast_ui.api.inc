@@ -283,10 +283,8 @@ function get_blastdb_linkout_regex($node, $options = array()) {
 
 
 function get_recent_jobs() {
-  $html = "
-  <h3><strong> Recent Jobs </h3>
-  <dl>";
-
+  $html = '';
+  
   $sid = session_id();  
   $jobs = $_SESSION['all_jobs'][$sid];
 
@@ -297,18 +295,24 @@ function get_recent_jobs() {
     }
   }
   $_SESSION['all_jobs'][$sid] = $jobs;
+  
+  if (count($jobs) > 0) {
+    $html = "
+    <h3><strong> Recent Jobs </h3>
+    <dl>";
 
-  foreach (array_reverse($jobs) as $job) {
-    $q_def = !isset($job['query_defs'][0]) ? "Query" : $job['query_defs'][0];
-    $html .= "
-      <dd>
-        <a href='" . "../../" . $job['job_output_url'] ."'>
-          $q_def X " . $job['target'] . ' (' . $job['program'] . ') - ' . $job['date'] . "
-        </a>
-      </dd>";
+    foreach (array_reverse($jobs) as $job) {
+      $q_def = !isset($job['query_defs'][0]) ? "Query" : $job['query_defs'][0];
+      $html .= "
+        <dd>
+          <a href='" . "../../" . $job['job_output_url'] ."'>
+            $q_def X " . $job['target'] . ' (' . $job['program'] . ') - ' . $job['date'] . "
+          </a>
+        </dd>";
+    }
+     $html .= "
+    </dl>";
   }
-   $html .= "
-  </dl>";
   
   return $html;
 }
