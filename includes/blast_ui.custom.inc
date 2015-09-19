@@ -15,6 +15,9 @@ function tripal_custom_generate_linkout($url_prefix, $hit, $info, $options = arr
 //echo "hit name: $hit_name ... ";
 
   if ($info['Target'] == 'All genomes') {
+    // default regex
+    $regex = "/^\w+\.(\S+).*/";
+    
     if (preg_match('/^aradu/', $hit_name) == 1) {
       $blastdb_name = 'PeanutBase_aradu_gbrowse';
     }
@@ -47,7 +50,7 @@ function tripal_custom_generate_linkout($url_prefix, $hit, $info, $options = arr
       drupal_set_message("Don't know how to create GBrowse linkout for $hit_name", 'error');
     }  
 
-    $hit_name = preg_replace("/^\w+\.(\S+).*/", '$1', $hit_name);
+    $hit_name = preg_replace($regex, '$1', $hit_name);
     $hit->{'linkout_id'} = $hit_name;
     if ($blastdb_info = tripal_custom_getBLASTdbinfo($blastdb_name)) {
 //echo "generate gbrowse link with " . $blastdb_info['urlprefix'] . " $hit<br>";
