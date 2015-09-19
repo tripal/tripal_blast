@@ -118,6 +118,7 @@ function blast_ui_per_blast_program_form($form, $form_state) {
     '#suffix' => '</div>',
   );
 
+/*TODO: FIX THIS! Shouldn't come up if not selected in configuration
   // Upload a file as an alternative to enter a query sequence
   $form['#attributes']['enctype'] = 'multipart/form-data';
   $form['query']['UPLOAD'] = array(
@@ -137,6 +138,7 @@ attempting to submit your BLAST.</strong>',
       'file_validate_size' => array(file_upload_max_size()),
     ),
   );
+*/
 
 
   // BLAST DATABASE
