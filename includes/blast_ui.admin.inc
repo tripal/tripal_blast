@@ -136,7 +136,7 @@ function blast_ui_admin_form_validate($form, &$form_state) {
  *
  */
 function blast_ui_admin_form_submit($form, $form_state) {
-
+  variable_set('blast_path', $form_state['values']['blast_path']);
   variable_set('blast_ui_allow_target_upload', $form_state['values']['target_upload']);
 	variable_set('blast_threads', $form_state['values']['blast_threads']);
   variable_set('blast_ui_nucleotide_example_sequence', $form_state['values']['nucleotide_example']);

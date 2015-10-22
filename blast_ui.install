@@ -69,9 +69,11 @@ function blast_ui_schema(){
         'default' => 'link'
       ),
     ),
+    
     'indexes' => array(
       'name' => array('name'),
     ),
+    
     'primary key' => array('nid'),
     'unique keys' => array(
        'nid' => array('nid'),
@@ -79,7 +81,6 @@ function blast_ui_schema(){
   );
 
   return $schema;
-
 }
 
 /**

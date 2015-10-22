@@ -9,13 +9,14 @@
 require_once 'includes/blast_ui.form_common.inc';
 require_once 'includes/blast_ui.form_advanced_options.inc';
 // NOTE: The forms themeselves are included using hook_menu to ensure they
-// are only inlcuded when needed.
+// are only included when needed.
 
 // BLAST DB Node functionality
 require_once 'includes/blast_ui.node.inc';
 
 // BLAST Link-out functionality.
 require_once 'includes/blast_ui.linkouts.inc';
+include_once('includes/blast_ui.custom.inc');
 
 // Functions specific to themeing (ie: preprocess)
 require_once 'theme/blast_ui.theme.inc';
@@ -219,7 +220,7 @@ function show_blast_output($job_id) {
   // BLAST is in the queue, running or complete in order to determine what to show the user
   //decode the job_id
   $job_id = base64_decode($job_id);
-	$job = tripal_get_job($job_id);
+  $job = tripal_get_job($job_id);
 
   // 1) Job is in the Queue
   if ($job->start_time === NULL AND $job->end_time == NULL) {
@@ -252,50 +253,15 @@ function show_blast_output($job_id) {
  *
  */
 function ajax_blast_ui_example_sequence_callback($form, $form_state) {
-
-  // First, set a default example sequence in case administrators have not yet
-  // bothered to set their own.
   $sequence_type = $form_state['values']['query_type'];
   if ($sequence_type == 'nucleotide') {
-    $default_example_sequence = '>partial lipoxygenase Glyma15g03040
-TTTCGTATGA GATTAAAATG TGTGAAATTT TGTTTGATAG GACATGGGAA
-AGGAAAAGTT GGAAAGGCTA CAAATTTAAG AGGACAAGTG TCGTTACCAA
-CCTTGGGAGC TGGCGAAGAT GCATACGATG TTCATTTTGA ATGGGACAGT
-GACTTCGGAA TTCCCGGTGC ATTTTACATT AAGAACTTCA TGCAAGTTGA
-GTTCTATCTC AAGTCTCTAA CTCTCGAAGA CATTCCAAAC CACGGAACCA
-TTCACTTCGT ATGCAACTCC TGGGTTTACA ACTCAAAATC CTACCATTCT
-GATCGCATTT TCTTTGCCAA CAATGTAAGC TACTTAAATA CTGTTATACA
-TTGTCTAACA TCTTGTTAGA GTCTTGCATG ATGTGTACCG TTTATTGTTG
-TTGTTGAACT TTACCACATG GCATGGATGC AAAAGTTGTT ATACACATAA
-ATTATAATGC AGACATATCT TCCAAGCGAG ACACCGGCTC CACTTGTCAA
-GTACAGAGAA GAAGAATTGA AGAATGTAAG AGGGGATGGA ACTGGTGAGC
-GCAAGGAATG GGATAGGATC TATGATTATG ATGTCTACAA TGACTTGGGC
-GATCCAGATA AGGGTGAAAA GTATGCACGC CCCGTTCTTG GAGGTTCTGC
-CTTACCTTAC CCTCGCAGAG GAAGAACCGG AAGAGGAAAA ACTAGAAAAG
-GTTTCTCACT AGTCACTAAT TTATTACTTT TTAATGTTTG TTTTTAGGCA
-TCTTTTCTGA TGAAATGTAT ACTTTTGATG TTTTTTTGTT TTAGCATAAC
-TGAATTAGTA AAGTGTGTTG TGTTCCTTAG AAGTTAGAAA AGTACTAAGT
-ATAAGGTCTT TGAGTTGTCG TCTTTATCTT AACAGATCCC AACAGTGAGA
-AGCCCAGTGA TTTTGTTTAC CTTCCGAGAG ATGAAGCATT TGGTCACTTG
-AAGTCATCAG ATTTTCTCGT TTATGGAATC AAATCAGTGG CTCAAGACGT
-CTTGCCCGTG TTGACTGATG CGTTTGATGG CAATCTTTTG AGCCTTGAGT
-TTGATAACTT TGCTGAAGTG CGCAAACTCT ATGAAGGTGG AGTTACACTA
-CCTACAAACT TTCTTAGCAA GATCGCCCCT ATACCAGTGG TCAAGGAAAT
-TTTTCGAACT GATGGCGAAC AGTTCCTCAA GTATCCACCA CCTAAAGTGA
-TGCAGGGTAT GCTACATATT TTGAATATGT AGAATATTAT CAATATACTC
-CTGTTTTTAT TCAACATATT TAATCACATG GATGAATTTT TGAACTGTTA';
+    $default_example_sequence = variable_get('blast_ui_nucleotide_example_sequence', 'sample');
   }
   elseif ($sequence_type == 'protein') {
-    $default_example_sequence = '>gi|166477|gb|AAA96434.1| resveratrol synthase [Arachis hypogaea]
-MVSVSGIRKVQRAEGPATVLAIGTANPPNCIDQSTYADYYFRVTNSEHMTDLKKKFQRICERTQIKNRHM
-YLTEEILKENPNMCAYKAPSLDAREDMMIREVPRVGKEAATKAIKEWGQPMSKITHLIFCTTSGVALPGV
-DYELIVLLGLDPCVKRYMMYHQGCFAGGTVLRLAKDLAENNKDARVLIVCSENTAVTFRGPSETDMDSLV
-GQALFADGAAAIIIGSDPVPEVEKPIFELVSTDQKLVPGSHGAIGGLLREVGLTFYLNKSVPDIISQNIN
-DALNKAFDPLGISDYNSIFWIAHPGGRAILDQVEQKVNLKPEKMKATRDVLSNYGNMSSACVFFIMDLMR
-KRSLEEGLKTTGEGLDWGVLFGFGPGLTIETVVLRSVAI';
+    $default_example_sequence = variable_get('blast_ui_protein_example_sequence', 'sample');
   }
   else {
-    $default_example_sequence = '';
+    $default_example_sequence = 'unknown query type';
   }
 
   // If the Show Example checkbox is true then put the example in the textfield
@@ -313,5 +279,24 @@ KRSLEEGLKTTGEGLDWGVLFGFGPGLTIETVVLRSVAI';
   }
 
   return $form['query']['FASTA'];
+}
 
+
+/**
+ * Enable web services API
+ *
+ * @param $owner
+ *   
+ * @param $api
+ *
+ * @return $result
+ *  
+ */
+function blast_ui_ctools_plugin_api($owner, $api) {
+  if ($owner == 'services' && $api == 'services') {
+    return array(
+      'version' => 3,
+      'file' => 'includes/blast_ui.services.inc'
+    );
+  }
 }

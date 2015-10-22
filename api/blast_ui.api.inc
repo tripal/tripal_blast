@@ -107,12 +107,12 @@ function get_blast_database_options($type) {
  *   BLAST job (ie: 250)
  */
 function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $options, $job_id = NULL) {
-
- $output_file = file_directory_temp() .  DIRECTORY_SEPARATOR . $output_filestub . '.blast.asn';
- $output_file_xml = variable_get('file_public_path', conf_path() . '/files') . DIRECTORY_SEPARATOR . $output_filestub . '.blast.xml';
- $output_file_tsv = variable_get('file_public_path', conf_path() . '/files') . DIRECTORY_SEPARATOR . $output_filestub . '.blast.tsv';
- $output_file_html = variable_get('file_public_path', conf_path() . '/files') . DIRECTORY_SEPARATOR . $output_filestub . '.blast.html';
-
+  $output_file = file_directory_temp() .  DIRECTORY_SEPARATOR . $output_filestub . '.blast.asn';
+  $output_dir = variable_get('file_public_path', conf_path() . '/files') 
+              . DIRECTORY_SEPARATOR . 'tripal' . DIRECTORY_SEPARATOR . 'tripal_blast';
+  $output_file_xml = $output_dir . DIRECTORY_SEPARATOR . $output_filestub . '.blast.xml';
+  $output_file_tsv = $output_dir . DIRECTORY_SEPARATOR . $output_filestub . '.blast.tsv';
+  $output_file_html = $output_dir . DIRECTORY_SEPARATOR . $output_filestub . '.blast.html';
 
   print "\nExecuting $program\n\n";
   print "Query: $query\n";
@@ -123,11 +123,15 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
 
   // Allow administrators to use an absolute path for these commands.
   // Defaults to using $PATH.
-	$blast_path = variable_get('blast_path', '');
+	$blast_path    = variable_get('blast_path', '');
 	$blast_threads = variable_get('blast_threads', '');
 	
-	$program = 	$blast_path . $program;
-	$blast_formatter_command = $blast_path .  'blast_formatter';
+	// Strip the extension off the BLAST target
+	$database = preg_replace("/(.*)\.[pn]\w\w/", '$1', $database);
+	
+	// The executables:
+	$program       = $blast_path . $program;
+	$blast_formatter_command = $blast_path . 'blast_formatter';
 
   $blast_cmd = "$program -query '$query' -db '$database' -out '$output_file' -outfmt=11";
   if (!empty($options)) {
@@ -155,7 +159,9 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
   print "\nGenerating additional download formats...\n";
 
   print "\tXML\n";
-  system("$blast_formatter_command -archive $output_file -outfmt 5 -out $output_file_xml");
+  $format_cmd = "$blast_formatter_command -archive $output_file -outfmt 5 -out $output_file_xml";
+  print "\nExecuting $format_cmd\n\n";
+  system($format_cmd);
   if(!file_exists($output_file_xml)) {
     tripal_report_error(
       'blast_ui',
@@ -273,4 +279,40 @@ function get_blastdb_linkout_regex($node, $options = array()) {
   }
 
   return $regex;
+}
+
+
+function get_recent_jobs() {
+  $html = '';
+  
+  $sid = session_id();  
+  $jobs = $_SESSION['all_jobs'][$sid];
+
+  // Remove jobs older than 48 hours
+  foreach ($jobs as $job_id => $job) {
+    if ($diff = abs(time() - strtotime($job['date'])) > 172800) {
+      unset($jobs[$job_id]);
+    }
+  }
+  $_SESSION['all_jobs'][$sid] = $jobs;
+  
+  if (count($jobs) > 0) {
+    $html = "
+    <h3><strong> Recent Jobs </h3>
+    <dl>";
+
+    foreach (array_reverse($jobs) as $job) {
+      $q_def = !isset($job['query_defs'][0]) ? "Query" : $job['query_defs'][0];
+      $html .= "
+        <dd>
+          <a href='" . "../../" . $job['job_output_url'] ."'>
+            $q_def X " . $job['target'] . ' (' . $job['program'] . ') - ' . $job['date'] . "
+          </a>
+        </dd>";
+    }
+     $html .= "
+    </dl>";
+  }
+  
+  return $html;
 }

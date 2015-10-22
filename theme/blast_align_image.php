@@ -17,22 +17,10 @@
  * history:
  *    09/23/10  Carson  created
  *    04/16/12  eksc    adapted into POPcorn code
- *		03/12/15	deepak	Adapted code into Tripal BLAST
+ *    03/12/15  deepak  Adapted code into Tripal BLAST
  */
  
-  /* include_once('../../inc/lib.php');
-   session_start();
-   $pc_system = getSystemInfoPC('sequence_search');
-  
-   $acc    = getCGIParamPC('acc',    'GP', '');
-   $scores = getCGIParamPC('scores', 'GP', '');
-   $links  = getCGIParamPC('links',  'GP', '');
-   $hits   = getCGIParamPC('hits',   'GP', '');
-   $tsize  = intval(getCGIParamPC('tsize', 'GP', ''));
-   $qsize  = intval(getCGIParamPC('qsize', 'GP', ''));
-   $name  = getCGIParamPC('name',    'GP', '');
-  */
-   // extract hit information from hit param
+// extract hit information from hit param
 function generateImage($acc = '', $scores, $hits, $tsize, $qsize, $name, $hit_name) {
    $tok = strtok($hits, ";");
    $b_hits = Array();
@@ -118,77 +106,77 @@ function generateImage($acc = '', $scores, $hits, $tsize, $qsize, $name, $hit_na
    // Draw solids for HSP alignments
    for ($ii=count($b_hits)-1; $ii>=0; $ii--) {
       // alignment 
-	
-   	$cur_hit = $b_hits[$ii];
-   	$cur_score = intval($b_scores[$ii]);
-   	
-   	// set color according to score
-   	$cur_color = $darkgray;
-   	if ($cur_score > 200) { 
-   		$cur_color = $strong;
-   	} 
-   	else if ($cur_score > 80 && $cur_score <= 200) { 
-   		$cur_color = $moderate;
-   	} 
-   	else if ($cur_score > 50 && $cur_score <= 80) { 
-   		$cur_color = $present;
-   	} 
-   	else if ($cur_score > 40 && $cur_score <= 50) { 
-   		$cur_color = $weak;
-   	} 
-	
-	   $t_start = $tnormal *  intval(strtok($cur_hit, "_")) + $t_xstart;
+  
+     $cur_hit = $b_hits[$ii];
+     $cur_score = intval($b_scores[$ii]);
+     
+     // set color according to score
+     $cur_color = $darkgray;
+     if ($cur_score > 200) { 
+       $cur_color = $strong;
+     } 
+     else if ($cur_score > 80 && $cur_score <= 200) { 
+       $cur_color = $moderate;
+     } 
+     else if ($cur_score > 50 && $cur_score <= 80) { 
+       $cur_color = $present;
+     } 
+     else if ($cur_score > 40 && $cur_score <= 50) { 
+       $cur_color = $weak;
+     } 
+  
+     $t_start = $tnormal *  intval(strtok($cur_hit, "_")) + $t_xstart;
       $t_end = $tnormal *  intval(strtok("_")) + $t_xstart;
       $q_start = $qnormal * intval(strtok("_")) + $q_xstart;
       $q_end = $qnormal *  intval(strtok("_")) + $q_xstart;
-		
+    
       $hit1_array = array($t_start, $t_yend, $t_end, $t_yend, $q_end, 
                           $q_ystart, $q_start, $q_ystart);
 
-	   // HSP coords
+     // HSP coords
       imagefilledpolygon($img, $hit1_array, 4, $cur_color);
-	
+  
    }//each hit
 
    // Draw lines over fills for HSP alignments
    for ($ii=0; $ii<count($b_hits); $ii++) {
-   	// alignment 
-   	
-   	$cur_hit = $b_hits[$ii];
-   	$t_start = $tnormal *  intval(strtok($cur_hit, "_")) + $t_xstart;
+     // alignment 
+     
+     $cur_hit = $b_hits[$ii];
+     $t_start = $tnormal *  intval(strtok($cur_hit, "_")) + $t_xstart;
       $t_end = $tnormal *  intval(strtok("_")) + $t_xstart;
       $q_start = $qnormal * intval(strtok("_")) + $q_xstart;
       $q_end = $qnormal *  intval(strtok("_")) + $q_xstart;
-   		
-   	$hit1_array = array($t_start, $t_yend, $t_end, $t_yend, $q_end, $q_ystart,
-   	                    $q_start, $q_ystart,);
+       
+     $hit1_array = array($t_start, $t_yend, $t_end, $t_yend, $q_end, $q_ystart,
+                         $q_start, $q_ystart,);
    
-   	imagerectangle($img, $t_start, $t_ystart, $t_end, $t_yend, $black);
-   	imagerectangle($img, $q_start, $q_ystart, $q_end, $q_yend, $black);
-   	imagepolygon ($img, $hit1_array, 4, $black);
+     imagerectangle($img, $t_start, $t_ystart, $t_end, $t_yend, $black);
+     imagerectangle($img, $q_start, $q_ystart, $q_end, $q_yend, $black);
+     imagepolygon ($img, $hit1_array, 4, $black);
 
       // show HSP
       
- 		imagestring($img, 3, 2, $hsp_bary, ($acc ."HSP" . ($ii + 1)), $black);
+     imagestring($img, 3, 2, $hsp_bary, ($acc ."HSP" . ($ii + 1)), $black);
 
-   	$cur_score = intval($b_scores[$ii]);
-   	
-   	// set color according to score
-   	$cur_color = $darkgray;
-   	if ($cur_score > 200) { 
-   		$cur_color = $strong;
-   	} 
-   	else if ($cur_score > 80 && $cur_score <= 200) { 
-   		$cur_color = $moderate;
-   	} 
-   	else if ($cur_score > 50 && $cur_score <= 80) { 
-   		$cur_color = $present;
-   	} 
-   	else if ($cur_score > 40 && $cur_score <= 50) { 
-   		$cur_color = $weak;
-   	}
-   	
-   	imagefilledrectangle($img, $q_start, $hsp_bary, $q_end, $hsp_bary+10, $cur_color);
+     $cur_score = intval($b_scores[$ii]);
+     
+     // set color according to score
+     $cur_color = $darkgray;
+     if ($cur_score > 200) { 
+       $cur_color = $strong;
+     } 
+     else if ($cur_score > 80 && $cur_score <= 200) { 
+       $cur_color = $moderate;
+     } 
+     else if ($cur_score > 50 && $cur_score <= 80) { 
+       $cur_color = $present;
+     } 
+     else if ($cur_score > 40 && $cur_score <= 50) { 
+       $cur_color = $weak;
+     }
+     
+     imagefilledrectangle($img, $q_start, $hsp_bary, $q_end, $hsp_bary+10, $cur_color);
       $hsp_bary += 15;
    }//each hit
 
@@ -215,9 +203,6 @@ function generateImage($acc = '', $scores, $hits, $tsize, $qsize, $name, $hit_na
    imagefilledRectangle($img, $xchart, $ychart + ($yinc * 4) + $xinc, $xchart + $yinc, $ychart + ($yinc * 5), $weak);
    imagefilledRectangle($img, $xchart, $ychart + ($yinc * 5) + $xinc, $xchart + $yinc, $ychart + ($yinc * 6), $darkgray);
    
-	 return $img;
-  // write out images
-//    header("Content-type: image/png");
-//    imagepng($img);
+   return $img;
 }
 ?>

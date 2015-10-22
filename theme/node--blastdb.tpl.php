@@ -97,7 +97,12 @@
 
     <table>
       <tr><th>Human-Readable Name</th><td><?php print $node->db_name; ?></td></tr>
+      <tr><th>Database Path</th><td><?php print $node->db_path; ?></td></tr>
       <tr><th>Database Type</th><td><?php print $node->db_dbtype; ?></td></tr>
+      <tr><th>FASTA Header Format</th><td><?php print $node->linkout->regex_type; ?></td></tr>
+      <tr><th>External Database</th><td><?php print $node->linkout->db_id->name; ?></td></tr>
+      <tr><th>RegEx</th><td><?php print $node->linkout->regex; ?></td></tr>
+      <tr><th>Link-out Type</th><td><?php print $node->linkout->type; ?></td></tr>
     </table>
 
     <?php

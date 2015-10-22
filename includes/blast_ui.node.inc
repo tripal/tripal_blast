@@ -175,7 +175,8 @@ function blastdb_form($node, &$form_state) {
     '#description' => 'The external database you would like to link-out to. '
       . 'Note that this list includes all Tripal Databases and if the database '
       . 'you would like to link-out to is not included you can add it through '
-      . l('Administration > Tripal > Chado Modules > Databases','admin/tripal/chado/tripal_db/add', array('attributes' => array('target' => '_blank'))) . '.',
+      . l('Administration > Tripal > Chado Modules > Databases','admin/tripal/chado/tripal_db/add', array('attributes' => array('target' => '_blank')))
+      . '.',
     '#options' => $db_options,
     '#default_value' => (isset($node->linkout->db_id->db_id)) ? $node->linkout->db_id->db_id : 0
   );
@@ -188,7 +189,14 @@ function blastdb_form($node, &$form_state) {
   $form['dbxref']['dbxref_linkout_type'] = array(
     '#type' => 'select',
     '#title' => 'Link-out Type',
-    '#description' => 'This determines how the URL to be linked to is formed. NOTE: this is very dependant on the External Database chosen above since it needs to be able to support the type of linking choosen. For example, only External Databases which reference a GBrowse instance can use the GBrowse link type.',
+    '#description' => 'This determines how the URL to be linked to is formed. '
+                    . 'NOTE: this is very dependant on the External Database '
+                    . 'chosen above since it needs to be able to support the '
+                    . 'type of linking choosen. For example, only External '
+                    . 'Databases which reference a GBrowse instance can use the '
+                    . 'GBrowse link type.  If a link requires customized code, '
+                    . 'select "custom" and add the code to the file ' 
+                    . 'includes/blast_ui.custom/inc.',
     '#options' => $options,
     '#default_value' => (isset($node->linkout->type)) ? $node->linkout->type : 'link'
   );
@@ -234,7 +242,7 @@ function blastdb_form_validate($form, $form_state) {
  */
 function blastdb_insert($node) {
 
-  // Hangle Link-out Rules.
+  // Handle Link-out Rules.
   if ($node->dbxref_id_type == 'custom') {
     $regex = $node->regex;
   }
@@ -242,17 +250,20 @@ function blastdb_insert($node) {
     $regex = $node->dbxref_id_type;
   }
 
+  if (!$node->dbxref_linkout_type) {
+    $node->dbxref_linkout_type = 'link';
+  }
+  
   // Actually insert the record.
   db_insert('blastdb')->fields(array(
-    'nid' => $node->nid,
-    'name' => $node->db_name,
-    'path' => $node->db_path,
-    'dbtype' => $node->db_dbtype,
-    'dbxref_id_regex' => $regex,
-    'dbxref_db_id' => $node->db_id,
-    'dbxref_linkout_type' => $node->dbxref_linkout_type
+    'nid'                 => $node->nid,
+    'name'                => $node->db_name,
+    'path'                => $node->db_path,
+    'dbtype'              => $node->db_dbtype,
+    'dbxref_id_regex'     => $regex,
+    'dbxref_db_id'        => $node->db_id,
+    'dbxref_linkout_type' => $node->dbxref_linkout_type,
   ))->execute();
-
 }
 
 /**
@@ -270,7 +281,7 @@ function blast_ui_node_insert($node) {
  */
 function blastdb_update($node) {
 
-  // Hangle Link-out Rules.
+  // Handle Link-out Rules.
   if ($node->dbxref_id_type == 'custom') {
     $regex = $node->regex;
   }
@@ -278,23 +289,27 @@ function blastdb_update($node) {
     $regex = $node->dbxref_id_type;
   }
 
-  // Actually insert the record.
+  if (!$node->dbxref_linkout_type) {
+    $node->dbxref_linkout_type = 'link';
+  }
+  
+  // Update the record.
   db_update('blastdb')->fields(array(
-    'name' => $node->db_name,
-    'path' => $node->db_path,
-    'dbtype' => $node->db_dbtype,
-    'dbxref_id_regex' => $regex,
-    'dbxref_db_id' => $node->db_id,
-    'dbxref_linkout_type' => $node->dbxref_linkout_type
+    'name'                => $node->db_name,
+    'path'                => $node->db_path,
+    'dbtype'              => $node->db_dbtype,
+    'dbxref_id_regex'     => $regex,
+    'dbxref_db_id'        => $node->db_id,
+    'dbxref_linkout_type' => $node->dbxref_linkout_type,
   ))->condition('nid', $node->nid)->execute();
 }
 
 /**
  * Implements hook_node_update().
- * This	function acts on ALL NODES
+ * This  function acts on ALL NODES
  */
 function blast_ui_node_update($node) {
-  if ($node->type == 'blastdb')	{
+  if ($node->type == 'blastdb')  {
     $node->title = $node->db_name;
   }
 }
@@ -303,7 +318,7 @@ function blast_ui_node_update($node) {
  * Implements hook_delete().
  */
 function blastdb_delete($node) {
-   db_delete('blastdb')->condition('nid',$node->nid)->execute();
+  db_delete('blastdb')->condition('nid',$node->nid)->execute();
 }
 
 /**
@@ -311,7 +326,12 @@ function blastdb_delete($node) {
  */
 function blastdb_load($nodes) {
 
-  $result = db_query('SELECT nid, name, path, dbtype, dbxref_id_regex, dbxref_db_id, dbxref_linkout_type FROM {blastdb} WHERE nid IN (:nids)', array(':nids' => array_keys($nodes)));
+  $sql = "
+    SELECT nid, name, path, dbtype, dbxref_id_regex, dbxref_db_id, 
+           dbxref_linkout_type
+    FROM {blastdb} 
+    WHERE nid IN (:nids)";
+  $result = db_query($sql, array(':nids' => array_keys($nodes)));
 
   foreach ($result as $record) {
     $nodes[$record->nid]->db_name = $record->name;
@@ -356,7 +376,6 @@ function blastdb_load($nodes) {
       $nodes[$record->nid]->linkout->none = TRUE;
     }
   }
-
 }
 
 /**
