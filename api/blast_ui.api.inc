@@ -137,16 +137,19 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
   $blast_cmd = "$program -query '$query' -db '$database' -out '$output_file' -outfmt=11";
   if (!empty($options)) {
     foreach ($options as $opt => $val) {
-      print "\t$opt: $val\n";
-      $blast_cmd .= " -$opt $val";
+      if ($val) {
+        print "\t$opt: $val\n";
+        $blast_cmd .= " -$opt $val";
+      }
     }
   }
 
   print "\nExecuting the following BLAST command:\n" . $blast_cmd . "\n";
 
+  ddl($blast_cmd);
   system($blast_cmd);
 
-  if(!file_exists($output_file)) {
+  if (!file_exists($output_file)) {
     tripal_report_error(
       'blast_ui',
       TRIPAL_ERROR,
@@ -160,38 +163,41 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
   print "\nGenerating additional download formats...\n";
 
   print "\tXML\n";
+  ddl("$blast_formatter_command -archive $output_file -outfmt 5 -out $output_file_xml");
   $format_cmd = "$blast_formatter_command -archive $output_file -outfmt 5 -out $output_file_xml";
   print "\nExecuting $format_cmd\n\n";
   system($format_cmd);
-  if(!file_exists($output_file_xml)) {
+  if (!file_exists($output_file_xml)) {
     tripal_report_error(
       'blast_ui',
       TRIPAL_ERROR,
-      "Unable to convert BLAST ASN.1 archive (%archive) to XML (%file).",
+      "Unable to convert BLAST ASN.1 archive to XML (%archive => %file).",
       array('%archive' => $output_file, '%file' => $output_file_xml),
       array('print' => TRUE)
     );
   }
 
   print "\tTab-delimited\n";
+  ddl("$blast_formatter_command -archive $output_file -outfmt 7 -out $output_file_tsv");
   system("$blast_formatter_command -archive $output_file -outfmt 7 -out $output_file_tsv");
-  if(!file_exists($output_file_tsv)) {
+  if (!file_exists($output_file_tsv)) {
     tripal_report_error(
       'blast_ui',
       TRIPAL_WARNING,
-      "Unable to convert BLAST ASN.1 archive (%archive) to Tabular Output (%file).",
+      "Unable to convert BLAST ASN.1 archive to Tabular Output (%archive => %file).",
       array('%archive' => $output_file, '%file' => $output_file_tsv),
       array('print' => TRUE)
     );
   }
 
   print "\tHTML (includes alignments)\n";
+  ddl("$blast_formatter_command -archive $output_file -outfmt 0 -out $output_file_html -html");
   system("$blast_formatter_command -archive $output_file -outfmt 0 -out $output_file_html -html");
-  if(!file_exists($output_file_tsv)) {
+  if (!file_exists($output_file_tsv)) {
     tripal_report_error(
       'blast_ui',
       TRIPAL_WARNING,
-      "Unable to convert BLAST ASN.1 archive (%archive) to HTML Output (%file).",
+      "Unable to convert BLAST ASN.1 archive to HTML Output (%archive => %file).",
       array('%archive' => $output_file, '%file' => $output_file_html),
       array('print' => TRUE)
     );

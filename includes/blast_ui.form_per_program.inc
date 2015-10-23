@@ -435,7 +435,7 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
   if (function_exists($advanced_options_form_submit)) {
     $advanced_options = call_user_func_array(
       $advanced_options_form_submit,
-      array($form, &$form_state)
+      array($form['B'], $form_state)
     );
   }
   else {
