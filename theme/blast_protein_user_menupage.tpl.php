@@ -78,6 +78,7 @@ local alignment search tool. J. Mol. Biol., 215, 403–410.</blockquote>
       'header' => array('Query Information', 'Search Target', 'Date Requested', ''),
       'rows' => array(),
       'attributes' => array('class' => array('tripal-blast', 'recent-jobs')),
+      'sticky' => FALSE
     );
   
     foreach ($recent_jobs as $job) {

@@ -99,6 +99,7 @@ function blast_ui_per_blast_program_form($form, $form_state) {
       'header' => array('Query Information', 'Search Target', 'Date Requested', ''),
       'rows' => array(),
       'attributes' => array('class' => array('tripal-blast', 'recent-jobs')),
+      'sticky' => TRUE,
     );
       
     foreach ($recent_jobs as $job) {

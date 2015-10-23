@@ -74,52 +74,30 @@ $no_hits = TRUE;
 }
 </style>
 
-<p><strong>Download</strong>:
-  <a href="<?php print '../../' . $html_filename; ?>">Alignment</a>,
-  <a href="<?php print '../../' . $tsv_filename; ?>">Tab-Delimited</a>,
-  <a href="<?php print '../../' . $xml_filename; ?>">XML</a>
-</p>
+<div class="blast-report">
 
-<!--  @deepaksomanadh: For displaying BLAST command details -->
-<table>
-<tr>
-  <th>Input query sequence(s) </th>
-  <th>Target Database selected </th>
-  <th>BLAST command executed </th>
-<tr>
-<tr>
-<?php 
-  // get input sequences from job_data variable
-  $query_def = $job_id_data['query_def'];
-  echo "<td>";
-  echo "<ol>";
-  foreach($query_def as $row) {
-    echo "<li>";    
-    echo  $row . "</li>";
-  }
-  echo "</ol></td>";
-  echo "<td>" .   $job_id_data['db_name'] . "</td>";
- 
-  include_once("blast_align_image.php");
- 
-  //display the BLAST command without revealing the internal path
-  $blast_cmd = $job_id_data['program'];
-  
-  foreach($job_id_data['options'] as $key => $value) {
-      $blast_cmd .= ' -' . $key. ' ' . $value ;
-  }
-  print "<td>" . $blast_cmd . "</td>";  
- ?>
-</table>
-
-<p>The following table summarizes the results of your BLAST. 
-Click on a <strong>triangle </strong> on the left to see the alignment and a visualization of the hit, 
-and click the <strong>target name </strong> to get more information about the target hit.</p>
+<!-- Provide Information to the user about their blast job -->
+<div class="blast-job-info">
+<?php if($xml): ?>
+  <div class="blast-download-info"><strong>Download</strong>:
+    <a href="<?php print '../../' . $html_filename; ?>">Alignment</a>,
+    <a href="<?php print '../../' . $tsv_filename; ?>">Tab-Delimited</a>,
+    <a href="<?php print '../../' . $xml_filename; ?>">XML</a>
+  </div>
+<?php endif; ?>
+  <br />
+  <div class="blast-query-info"><strong>Query Information</strong>: 
+    <?php print $blast_job->display['query_info'];?></div>
+  <div class="blast-target-info"><strong>Search Target</strong>: 
+    <?php print $blast_job->display['target'];?></div>
+  <div class="blast-date-info"><strong>Submission Date</strong>: 
+    <?php print $blast_job->display['date'];?></div>
+  <div class="blast-cmd-info"><strong>BLAST Command executed</strong>: 
+    <?php print $blast_job->display['blast_cmd'];?></div>
+</div>
+<br />
 
 <?php
-include_once("blast_align_image.php");
-// Load the XML file
-$xml = simplexml_load_file($xml_filename);
 
 /**
  * We are using the drupal table theme functionality to create this listing
@@ -127,6 +105,13 @@ $xml = simplexml_load_file($xml_filename);
  */
 
 if ($xml) {
+?>
+
+<p>The following table summarizes the results of your BLAST. 
+Click on a <em>triangle </em> on the left to see the alignment and a visualization of the hit, 
+and click the <em>target name </em> to get more information about the target hit.</p>
+
+<?php
   // Specify the header of the table
   $header = array(
     'arrow-col' =>  array('data' => '', 'class' => array('arrow-col')),
@@ -206,7 +191,7 @@ if ($xml) {
 
           // For BLAST visualization 
           $target_size = $hit->{'Hit_len'};
-        
+          $Hsp_bit_score = '';
           foreach ($hit->{'Hit_hsps'}->children() as $hsp_xml) {
             $hit_hsps .=  $hsp_xml->{'Hsp_hit-from'} . '_' . 
                           $hsp_xml->{'Hsp_hit-to'} . '_' . 
@@ -223,6 +208,7 @@ if ($xml) {
           // If our BLAST DB is configured to handle link-outs then use the
           // regex & URL prefix provided to create one.
           $hit_name = $hit->{'Hit_def'};
+          $hit_name_short = (preg_match('/^([^\s]+)/', $hit_name, $matches)) ? $matches[1] : $hit_name;
           $query_name = $iteration->{'Iteration_query-def'};
  
           if ($linkout) {
@@ -271,17 +257,8 @@ if ($xml) {
 
           //@deepaksomanadh: Code added for BLAST visualization
           // get the image and display
-          $hit_img = generateImage($target_name, $Hsp_bit_score, $hit_hsps, 
-                                   $target_size, $query_size, $q_name, $hit_name);
-        
-          ob_start(); // Start buffering the output
-          imagepng($hit_img, null, 0, PNG_NO_FILTER);
-          $b64 = base64_encode(ob_get_contents()); // Get what we've just outputted and base64 it
-          imagedestroy($hit_img);
-          ob_end_clean();
-  
-          // Print the HTML tag with the image embedded
-          $hit_img = '<h4><strong> Hit Visualization </strong></h4> <br><img src="data:image/png;base64,'.$b64.'"/>';
+          $hit_img = generate_blast_hit_image($target_name, $Hsp_bit_score, $hit_hsps, 
+                                   $target_size, $query_size, $q_name, $hit_name_short);
           
           $row = array(
             'data' => array(
@@ -301,15 +278,9 @@ if ($xml) {
 
           $row = array(
             'data' => array(
-              'arrow' => '',
-              'number' => '',
-              'query' => array(
-                'data' => theme('blast_report_alignment_row', array('HSPs' => $HSPs)),
-              //  'colspan' => 4,
-              ),
-              'hit' => array(
-                'data' => $hit_img,
-                'colspan' => 3,
+              'arrow' => array(
+                'data' => theme('blast_report_alignment_row', array('HSPs' => $HSPs, 'hit_visualization' => $hit_img)),
+                'colspan' => 5,
               ),
             ),
             'class' => array('alignment-row', $zebra_class),
@@ -346,6 +317,7 @@ if ($xml) {
         'header' => $header,
         'rows' => $rows,
         'attributes' => array('id' => 'blast_report'),
+        'sticky' => FALSE
       ));
     }
   }//handle no hits
@@ -353,19 +325,22 @@ if ($xml) {
 
 else {
   drupal_set_title('BLAST: Error Encountered');
-  print '<p>We encountered an error and are unable to load your BLAST results.</p>';
+  print '<p class="blast-no-results">We encountered an error and are unable to load your BLAST results.</p>';
 }
 ?>
 
-<p> 
-  <a style ="align:center" href="<?php print '../../'. $job_id_data['job_url'] . '?jid=' . base64_encode($job_id) ?>">Edit this query and re-submit</a>  
-</p>
+<p><?php print l(
+  'Edit this query and re-submit', 
+  '../../' . $blast_job->form_options['job_url'],
+  array('query' => array('jid' => base64_encode($job_id))));
+?></p>
+</div>
 
 <!-- Recent Jobs -->
 <?php
 
   // Gets the list of recent jobs filtered to the current blast program (ie: blastn).
-  $recent_jobs = get_recent_blast_jobs();
+  
   if ($recent_jobs) {
   
     print '<h2>Recent Jobs</h2>';
@@ -374,6 +349,7 @@ else {
       'header' => array('Query Information', 'Search Target', 'Date Requested', ''),
       'rows' => array(),
       'attributes' => array('class' => array('tripal-blast', 'recent-jobs')),
+      'sticky' => FALSE
     );
   
     foreach ($recent_jobs as $job) {

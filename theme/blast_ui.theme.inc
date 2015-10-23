@@ -24,6 +24,7 @@ function blast_ui_preprocess_show_blast_report(&$vars) {
   // Get the filename of the BLAST results
   $job = tripal_get_job($vars['job_id']);
   $job_args = unserialize($job->arguments);
+  
 //eksc- could stand better use of module settings and fewer hardcoded paths.
   $vars['xml_filename'] = variable_get('file_public_path', conf_path() . '/files') . '/tripal/tripal_blast/' . $job_args['output_filename'] . '.blast.xml';
   $vars['tsv_filename'] = variable_get('file_public_path', conf_path() . '/files') . '/tripal/tripal_blast/' . $job_args['output_filename'] . '.blast.tsv';
@@ -32,10 +33,32 @@ function blast_ui_preprocess_show_blast_report(&$vars) {
   // Add the blast database node.
   // This is needed for link-out functionality.
   $vars['blastdb'] = get_blast_database(array('path' => $job_args['database']));
-  //@deepaksomanadh: code added to use the persisted data in the template file.
-  $job_id = $vars['job_id'];
+  
+  // Get the recent job information.
+  $vars['recent_jobs'] = get_recent_blast_jobs();
+  
+  // Make job information available in the template.
+  $vars['blast_job'] = $job;
   $job_data = variable_get('job_data', '');
-  $vars['job_id_data'] = $job_data[$job_id];
+  if (isset($job_data[ $vars['job_id'] ])) {
+    $vars['blast_job']->form_options = $job_data[ $vars['job_id'] ];
+  }
+  if (isset($vars['recent_jobs'][ $vars['job_id'] ])) {
+    $vars['blast_job']->display = $vars['recent_jobs'][ $vars['job_id'] ];
+  }
+  
+  // Determine the blast command for display.
+  $vars['blast_job']->display['blast_cmd'] = $vars['blast_job']->form_options['program'];
+  foreach($vars['blast_job']->form_options['options'] as $key => $value) {
+      $vars['blast_job']->display['blast_cmd'] .= ' -' . $key. ' ' . $value ;
+  }
+  
+  // Load the XML file.
+  $vars['xml'] = NULL;
+  if (is_readable($vars['xml_filename'])) {
+    $vars['xml'] = simplexml_load_file($vars['xml_filename']);
+  }
+
 }
 
 /**
