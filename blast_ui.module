@@ -250,39 +250,6 @@ function show_blast_output($job_id) {
 }
 
 /**
- *
- */
-function ajax_blast_ui_example_sequence_callback($form, $form_state) {
-  $sequence_type = $form_state['values']['query_type'];
-  if ($sequence_type == 'nucleotide') {
-    $default_example_sequence = variable_get('blast_ui_nucleotide_example_sequence', 'sample');
-  }
-  elseif ($sequence_type == 'protein') {
-    $default_example_sequence = variable_get('blast_ui_protein_example_sequence', 'sample');
-  }
-  else {
-    $default_example_sequence = 'unknown query type';
-  }
-
-  // If the Show Example checkbox is true then put the example in the textfield
-  if ($form_state['values']['example_sequence']) {
-    // Set the value to be the example sequence (either set by the administrator
-    // or the default set above).
-    $form['query']['FASTA']['#value'] = variable_get(
-      'blast_ui_' . $sequence_type . '_example_sequence',
-      $default_example_sequence
-    );
-  }
-  // Otherwise we want to remove the already displayed example.
-  else {
-    $form['query']['FASTA']['#value'] = '';
-  }
-
-  return $form['query']['FASTA'];
-}
-
-
-/**
  * Enable web services API
  *
  * @param $owner

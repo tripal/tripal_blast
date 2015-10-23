@@ -151,7 +151,7 @@ function blast_ui_blastn_advanced_options_form_submit($form, $form_state) {
     'reward'          => $m_m['reward'],
     'culling_limit'   => $qRange,
   );
-}//blast_ui_blastn_advanced_options_form_submit
+}
 
 /**
  * @section
@@ -235,7 +235,7 @@ function blast_ui_blastx_advanced_options_form(&$form, $form_state) {
     '#type' => 'select',
     '#title' => 'Matrix',
     '#options' => $matrix_options,
-    '#default_value' => $default['matrix'],
+    '#default_value' => $defaults['matrix'],
     '#description' => t('Assigns a score for aligning pairs of residues, and determines overall alignment score..'),
     '#ajax' => array(
       'callback' => 'ajax_dependent_dropdown_callback',
@@ -415,7 +415,7 @@ function blast_ui_blastp_advanced_options_form(&$form, $form_state) {
     '#description' => t('Matrix adjustment method to compensate for amino acid composition of sequences'),
   );
 */
-}//blast_ui_blastp_advanced_options_form
+}
 
 /**
  * Validate the advanced options provided by the BLASTp form above.
@@ -1045,7 +1045,7 @@ function blast_ui_tblastn_advanced_options_form(&$form, $form_state) {
     '#title' => t('Gap Costs:'),
     '#prefix' => '<div id="dropdown-second-replace">',
     '#suffix' => '</div>',
-    '#options' => _get_gap_for_matrix($$default['matrix']),
+    '#options' => _get_gap_for_matrix($defaults['matrix']),
     '#default_value' => 2,
     '#description' => t('Cost to create and extend a gap in an alignment.'),
   );
@@ -1058,7 +1058,7 @@ function blast_ui_tblastn_advanced_options_form(&$form, $form_state) {
     '#maxlength' => 20,
     '#description' => t('Limit the number of matches to a query range. This option is useful if many strong matches to one part of a query may prevent BLAST from presenting weaker matches to another part of the query.'),
   );
-}//blast_ui_tblastn_advanced_options_form
+}
 
 /**
  * Validate the advanced options provided by the tBLASTn form above.

@@ -21,28 +21,37 @@ function blast_ui_admin_form($form, $form_state) {
     '#description' => t('You can ignore if your $PATH variable is set. Otherwise, enter the absoulte path to bin folder. For example, /opt/blast/2.2.29+/bin/'),
     '#default_value' => variable_get('blast_path', ''),
   );
-
-  $form['general']['target_upload'] = array(
-    '#type' => 'checkbox',
-    '#title' => 'Enable Taget Sequence Upload',
-    '#default_value' => FALSE,
-    '#description' => 'When this option is checked, a file upload field will '
-      . 'show up on the various BLAST forms under the Database section. This '
-      . 'will allow users to upload a FASTA file they want to BLAST against '
-      . '(database) as well as a FASTA file containing their query, providing '
-      . 'the ultimate in flexibility for your users. However, since this does '
-      . 'allow & in fact encourage the upload of large files which are then '
-      . 'processed into BLAST databases, this option is disabled by default.',
-    '#default_value' => variable_get(
-        'blast_ui_allow_target_upload',
-        FALSE
-      )
-  );
+  
 	$form['general']['blast_threads']= array(
     '#type' => 'textfield',
     '#title' => t('Enter the number of CPU threads to use in blast search.'),
     '#description' => t('You can increase the number to reduce the search time. Before you increase, please check your hardware configurations . A value of one(1) can result in a slower search for some programs eg. tblastn.'),
     '#default_value' => variable_get('blast_threads', 1),
+  );
+  
+  $form['file_upload'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Allow File Upload',
+    '#description' => 'The following options allow you to control whether your users can
+      upload files for the query or target respectively. The ability to upload files allows
+      them to more conviently BLAST large sets of sequences. However, the size of the
+      files could be problematic, storage-wise, on your server.<br />'
+  );
+  
+  $form['file_upload']['query_upload'] = array(
+    '#type' => 'checkbox',
+    '#title' => 'Enable Query Sequence Upload',
+    '#description' => 'When checked, a query file upload field will be available on BLAST request forms.',
+    '#default_value' => FALSE,
+    '#default_value' => variable_get('blast_ui_allow_query_upload', TRUE)
+  );
+
+  $form['file_upload']['target_upload'] = array(
+    '#type' => 'checkbox',
+    '#title' => 'Enable Taget Sequence Upload',
+    '#description' => 'When checked, a target file upload field will be available on BLAST request forms.',
+    '#default_value' => FALSE,
+    '#default_value' => variable_get('blast_ui_allow_target_upload', FALSE)
   );
 
   $form['example_sequence'] = array(
@@ -116,7 +125,7 @@ KRSLEEGLKTTGEGLDWGVLFGFGPGLTIETVVLRSVAI';
 }
 
 /**
- * Form validator for the blastdb node
+ * Validate the Admin/Settings form.
  */
 function blast_ui_admin_form_validate($form, &$form_state) {
 	$blast_path = $form_state['values']['blast_path'];
@@ -133,12 +142,16 @@ function blast_ui_admin_form_validate($form, &$form_state) {
 }
 
 /**
- *
+ * Submit the Admin/settings form.
  */
 function blast_ui_admin_form_submit($form, $form_state) {
+
   variable_set('blast_path', $form_state['values']['blast_path']);
+  variable_set('blast_threads', $form_state['values']['blast_threads']);
+  
+  variable_set('blast_ui_allow_query_upload', $form_state['values']['query_upload']);	
   variable_set('blast_ui_allow_target_upload', $form_state['values']['target_upload']);
-	variable_set('blast_threads', $form_state['values']['blast_threads']);
+  
   variable_set('blast_ui_nucleotide_example_sequence', $form_state['values']['nucleotide_example']);
   variable_set('blast_ui_protein_example_sequence', $form_state['values']['protein_example']);
 }

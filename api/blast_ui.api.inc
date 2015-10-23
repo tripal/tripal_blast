@@ -281,38 +281,61 @@ function get_blastdb_linkout_regex($node, $options = array()) {
   return $regex;
 }
 
-
-function get_recent_jobs() {
-  $html = '';
+/**
+ * Return a list of recent blast jobs to be displayed to the user.
+ *
+ * NOTE: The calling function will be expected to do the rendering.
+ *
+ * @return
+ *   An array of recent jobs.
+ */
+function get_recent_blast_jobs($programs = array()) {
   
+  $filter_jobs = !empty($programs);
+  
+  // Retrieve any recent jobs from the session variable.
   $sid = session_id();  
-  $jobs = $_SESSION['all_jobs'][$sid];
+  if (isset($_SESSION['all_jobs'][$sid])) {
 
-  // Remove jobs older than 48 hours
-  foreach ($jobs as $job_id => $job) {
-    if ($diff = abs(time() - strtotime($job['date'])) > 172800) {
-      unset($jobs[$job_id]);
-    }
-  }
-  $_SESSION['all_jobs'][$sid] = $jobs;
-  
-  if (count($jobs) > 0) {
-    $html = "
-    <h3><strong> Recent Jobs </h3>
-    <dl>";
+    $jobs = array();
+    foreach ($_SESSION['all_jobs'][$sid] as $job_id => $job) {
+      $add = TRUE;
+      
+      // @TODO: Check that the results are still available.
+      // This is meant to replace the arbitrary only show jobs executed less than 48 hrs ago.
+      
+      // Remove jobs from the list that are not of the correct program.
+      if ($filter_jobs AND !in_array($job['program'], $programs)) {
+        $add = FALSE;
+      }
+      
+      if ($add) {
 
-    foreach (array_reverse($jobs) as $job) {
-      $q_def = !isset($job['query_defs'][0]) ? "Query" : $job['query_defs'][0];
-      $html .= "
-        <dd>
-          <a href='" . "../../" . $job['job_output_url'] ."'>
-            $q_def X " . $job['target'] . ' (' . $job['program'] . ') - ' . $job['date'] . "
-          </a>
-        </dd>";
+        // Format the query information for display.
+        // Easiest case: if there is only one query header then show it.
+        if (sizeof($job['query_defs']) == 1 AND isset($job['query_defs'][0])) {
+          $job['query_info'] = $job['query_defs'][0];
+        }
+        // If we have at least one header then show that along with the count of queries.
+        elseif (isset($job['query_defs'][0])) {
+          $job['query_info'] = sizeof($job['query_defs']) . ' queries including "' . $job['query_defs'][0] . '"';
+        }
+        // If they provided a sequence with no header.
+        elseif (empty($job['query_defs'])) {
+          $job['query_info'] = 'Unnamed Query';
+        }
+        // At the very least show the count of queries.
+        else {
+          $job['query_info'] = sizeof($job['query_defs']) . ' queries';
+        }
+      
+        $jobs[$job_id] = $job;
+      }
     }
-     $html .= "
-    </dl>";
+      
+    return $jobs;
   }
-  
-  return $html;
+  else {
+    return array();
+  }
 }

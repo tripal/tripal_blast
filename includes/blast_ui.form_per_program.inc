@@ -20,6 +20,10 @@ function blast_ui_per_blast_program_form($form, $form_state) {
     drupal_get_path('module', 'blast_ui') . '/theme/css/form.css',
   );
   
+  // We are going to lay out this form as two choices: either look at a recent blast
+  // or execute a new one. We want to theme accordingly so set a class to aid us in such.
+  $form['#attributes'] = array('class' => array('blast-choice-form'));
+  
   // @deepaksomanadh - Code added for edit and resubmit funcitonality
   //   Approach: persist the form data and read it back using JobID
   $job_data = variable_get('job_data', '');
@@ -30,7 +34,7 @@ function blast_ui_per_blast_program_form($form, $form_state) {
     $job_data = array();
     $jid = 0;
   }
-  
+
   // Determine the BLAST program.
   $query_type = $form_state['build_info']['args'][0];
   $db_type = $form_state['build_info']['args'][1];
@@ -75,10 +79,57 @@ function blast_ui_per_blast_program_form($form, $form_state) {
     '#value' => $blast_program
   );
 
+  // CHOOSE RECENT BLAST RESULTS
+  //-----------------------------------
+  // Gets the list of recent jobs filtered to the current blast program (ie: blastn).
+  $recent_jobs = get_recent_blast_jobs(array($blast_program));
+  
+  // If there are recent jobs then show a table of them.
+  if ($recent_jobs) {
+
+    $form['A'] = array(
+      '#type' => 'fieldset',
+      '#title' => 'See Results from a Recent BLAST',
+      '#attributes' => array('class' => array('blast-choice')),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE
+    );
+    
+    $table = array(
+      'header' => array('Query Information', 'Search Target', 'Date Requested', ''),
+      'rows' => array(),
+      'attributes' => array('class' => array('tripal-blast', 'recent-jobs')),
+    );
+      
+    foreach ($recent_jobs as $job) {
+
+      // Define a row for the current job.
+      $table['rows'][] = array(
+        $job['query_info'],
+        $job['target'],
+        $job['date'],
+        l('See Results', $job['job_output_url'])
+      );
+    }
+
+    $form['A']['job_table'] = array(
+      '#type' => 'markup',
+      '#markup' => theme('table', $table),
+    );
+  }
+
+  // REQUEST A NEW BLAST
+  //-----------------------------------
+  $form['B'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Request a New BLAST',
+    '#attributes' => array('class' => array('blast-choice')),
+    '#collapsible' => TRUE,
+  );
+     
   // NUCLEOTIDE QUERY
   //.........................
-
-  $form['query'] = array(
+  $form['B']['query'] = array(
     '#type' => 'fieldset',
     '#title' => t('Enter %type Query Sequence',
       array('%type' => ucfirst($query_type))),
@@ -95,13 +146,13 @@ function blast_ui_per_blast_program_form($form, $form_state) {
   );
 
   // Checkbox to show an example.
-  $form['query']['example_sequence'] = array(
+  $form['B']['query']['example_sequence'] = array(
     '#type' => 'checkbox',
     '#title' => t('Show an Example Sequence'),
     '#prefix' => '<span style="float: right;">',
     '#suffix' => '</span>',
     '#ajax' => array(
-      'callback' => 'ajax_blast_ui_example_sequence_callback',
+      'callback' => 'ajax_blast_ui_perprogram_example_sequence_callback',
       'wrapper'  => 'fasta-textarea',
       'method'   => 'replace',
       'effect'   => 'fade',
@@ -109,7 +160,7 @@ function blast_ui_per_blast_program_form($form, $form_state) {
   );
 
   // Textfield for submitting a mult-FASTA query
-  $form['query']['FASTA'] = array(
+  $form['B']['query']['FASTA'] = array(
     '#type' => 'textarea',
     '#title' => t('Enter FASTA sequence(s)'),
     '#description'=>t('Enter query sequence(s) in the text area.'),
@@ -118,33 +169,33 @@ function blast_ui_per_blast_program_form($form, $form_state) {
     '#suffix' => '</div>',
   );
 
-/*TODO: FIX THIS! Shouldn't come up if not selected in configuration
-  // Upload a file as an alternative to enter a query sequence
-  $form['#attributes']['enctype'] = 'multipart/form-data';
-  $form['query']['UPLOAD'] = array(
-    '#title' => 'Or upload your own query FASTA:  ',
-    '#type' => 'managed_file',
-    '#description' => t('The file should be a plain-text FASTA
-(.fasta, .fna, .fa, .fas) file. In other words, it cannot have formatting as is the
-case with MS Word (.doc, .docx) or Rich Text Format (.rtf). It cannot be greater
-than %max_size in size. <strong>Don\'t forget to press the Upload button before
-attempting to submit your BLAST.</strong>',
-      array(
-        '%max_size' => round(file_upload_max_size() / 1024 / 1024,1) . 'MB'
-      )
-    ),
-    '#upload_validators' => array(
-      'file_validate_extensions' => array('fasta fna fa fas'),
-      'file_validate_size' => array(file_upload_max_size()),
-    ),
-  );
-*/
+  if (variable_get('blast_ui_allow_query_upload', TRUE)) {
+    // Upload a file as an alternative to enter a query sequence
+    $form['#attributes']['enctype'] = 'multipart/form-data';
+    $form['B']['query']['UPLOAD'] = array(
+      '#title' => 'Or upload your own query FASTA:  ',
+      '#type' => 'managed_file',
+      '#description' => t('The file should be a plain-text FASTA
+  (.fasta, .fna, .fa, .fas) file. In other words, it cannot have formatting as is the
+  case with MS Word (.doc, .docx) or Rich Text Format (.rtf). It cannot be greater
+  than %max_size in size. <strong>Don\'t forget to press the Upload button before
+  attempting to submit your BLAST.</strong>',
+        array(
+          '%max_size' => round(file_upload_max_size() / 1024 / 1024,1) . 'MB'
+        )
+      ),
+      '#upload_validators' => array(
+        'file_validate_extensions' => array('fasta fna fa fas'),
+        'file_validate_size' => array(file_upload_max_size()),
+      ),
+    );
+  }
 
 
   // BLAST DATABASE
   //.........................
 
-  $form['DB'] = array(
+  $form['B']['DB'] = array(
     '#type' => 'fieldset',
     '#title' => t('Choose Search Target'),
     '#description' => t('Choose from one of the %type BLAST databases listed '
@@ -157,7 +208,7 @@ attempting to submit your BLAST.</strong>',
   );
 
   $options = get_blast_database_options($db_type);
-  $form['DB']['SELECT_DB'] = array(
+  $form['B']['DB']['SELECT_DB'] = array(
     '#type' => 'select',
     '#title' => t('%type BLAST Databases:', array('%type' => ucfirst($db_type))),
     '#options' => $options,
@@ -167,7 +218,7 @@ attempting to submit your BLAST.</strong>',
   if (variable_get('blast_ui_allow_target_upload', FALSE)) {
     // Upload a file as an alternative to selecting an existing BLAST database
     $form['#attributes']['enctype'] = 'multipart/form-data';
-    $form['DB']['DBUPLOAD'] = array(
+    $form['B']['DB']['DBUPLOAD'] = array(
       '#title' => 'Or upload your own dataset:  ',
       '#type' => 'managed_file',
       '#description' => t('The file should be a plain-text FASTA
@@ -192,7 +243,7 @@ attempting to submit your BLAST.</strong>',
   // These options will be different depending upon the program selected.
   // Therefore, allow for program-specific callbacks to populate these options.
 
-  $form['ALG'] = array(
+  $form['B']['ALG'] = array(
    '#type' => 'fieldset',
    '#title' => t('Advanced Options'),
    '#collapsible' => TRUE,
@@ -203,19 +254,15 @@ attempting to submit your BLAST.</strong>',
   if (function_exists($advanced_options_form)) {
     call_user_func_array($advanced_options_form, array(&$form, $form_state));
   }
+  $form['B']['ALG'] = array_merge($form['B']['ALG'], $form['ALG']);
+  unset($form['ALG']);
 
   // Submit
   //.........................
-  $form['submit'] = array(
+  $form['B']['submit'] = array(
     '#type' => 'submit',
     '#default_value' => ' BLAST ',
   );
-
-  // Recent jobs list
-  $form['recentjobs'] = array(
-     '#type' => 'fieldset',
-     '#prefix' => get_recent_jobs(),
-   );
    
   return $form;
 }
@@ -507,4 +554,35 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
     $msg .= "Please contact the site administrator.";
     drupal_set_message($msg, 'error');
   }
-}//blast_ui_per_blast_program_form_submit
+}
+
+/**
+ * AJAX: Replace the sequence textarea with one containing an example.
+ */
+function ajax_blast_ui_perprogram_example_sequence_callback($form, $form_state) {
+  $sequence_type = $form_state['values']['query_type'];
+  
+  // Choose the example sequence based on the sequence type of the query.
+  if ($sequence_type == 'nucleotide') {
+    $example_sequence = variable_get('blast_ui_nucleotide_example_sequence', 'sample');
+  }
+  elseif ($sequence_type == 'protein') {
+    $example_sequence = variable_get('blast_ui_protein_example_sequence', 'sample');
+  }
+  else {
+    $example_sequence = 'unknown query type';
+  }
+
+  // If the Show Example checkbox is true then put the example in the textfield
+  if ($form_state['values']['example_sequence']) {
+
+    // Set the value to be the example sequence (set in the admin form).
+    $form['B']['query']['FASTA']['#value'] = $example_sequence;
+  }
+  // Otherwise we want to remove the already displayed example.
+  else {
+    $form['B']['query']['FASTA']['#value'] = '';
+  }
+
+  return $form['B']['query']['FASTA'];
+}
