@@ -331,7 +331,7 @@ else {
 
 <p><?php print l(
   'Edit this query and re-submit', 
-  '../../' . $blast_job->form_options['job_url'],
+  $blast_job->form_options['job_url'],
   array('query' => array('jid' => base64_encode($job_id))));
 ?></p>
 </div>
