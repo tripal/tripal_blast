@@ -128,13 +128,9 @@ function blast_ui_blastn_advanced_options_form_submit($form, $form_state) {
 
   $trgtKey = $form_state['values']['maxTarget'];
   $numAlign = $form['ALG']['GParam']['maxTarget']['#options'][$trgtKey];
-  ddl($form['ALG']['GParam']['maxTarget']['#options']);
-  ddl($trgtKey);
   
   $wsKey = $form_state['values']['wordSize'];
   $wordSize = $form['ALG']['GParam']['wordSize']['#options'][$wsKey];
-  ddl($form['ALG']['GParam']['wordSize']['#options']);
-  ddl($wsKey);
   
   // Expand Gap Cost key into open and extend penalties
   $gap = _set_gap($form_state['values']['gapCost']);
