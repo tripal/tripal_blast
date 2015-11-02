@@ -28,7 +28,7 @@ function blast_ui_per_blast_program_form($form, $form_state) {
   //   Approach: persist the form data and read it back using JobID
   $job_data = variable_get('job_data', '');
   if (isset($_GET['jid']) && isset($job_data)) {    
-    $jid = base64_decode($_GET['jid']);
+    $jid = blast_ui_reveal_secret($_GET['jid']);
   }  
   else {
     $job_data = array();
@@ -512,7 +512,7 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
        session_start();
     }
     $sid = session_id();
-    $job_encode_id = base64_encode($job_id);
+    $job_encode_id = blast_ui_make_secret($job_id);
     $job_url = "blast/report/$job_encode_id";
 
     $all_jobs = $_SESSION['all_jobs'];
@@ -534,7 +534,7 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
     tripal_jobs_launch(1, $job_id);
     
     //Encode the job_id
-    $job_encode_id = base64_encode($job_id);
+    $job_encode_id = blast_ui_make_secret($job_id);
     
     // Redirect to the BLAST results page
     drupal_goto("blast/report/$job_encode_id");

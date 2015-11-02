@@ -25,7 +25,7 @@
 function blast_ui_blastn_advanced_options_form(&$form, $form_state) {
   $all_job_data = variable_get('job_data', '');
   if (isset($_GET['jid']) && isset($all_job_data)) {    
-     $jid = base64_decode($_GET['jid']);
+     $jid = blast_ui_reveal_secret($_GET['jid']);
      $job_data = $all_job_data[$jid];
   }
   else {
@@ -173,7 +173,7 @@ function blast_ui_blastn_advanced_options_form_submit($form, $form_state) {
 function blast_ui_blastx_advanced_options_form(&$form, $form_state) {
   $all_job_data = variable_get('job_data', '');
   if (isset($_GET['jid']) && isset($all_job_data)) {    
-     $jid = base64_decode($_GET['jid']);
+     $jid = blast_ui_reveal_secret($_GET['jid']);
      $job_data = $all_job_data[$jid];
   }
   else {
@@ -308,7 +308,7 @@ function blast_ui_blastx_advanced_options_form_submit($form, $form_state) {
 function blast_ui_blastp_advanced_options_form(&$form, $form_state) {
   $all_job_data = variable_get('job_data', '');
   if (isset($_GET['jid']) && isset($all_job_data)) {    
-     $jid = base64_decode($_GET['jid']);
+     $jid = blast_ui_reveal_secret($_GET['jid']);
      $job_data = $all_job_data[$jid];
   }
   else {
@@ -970,7 +970,7 @@ function ajax_dependent_dropdown_callback($form, $form_state) {
 function blast_ui_tblastn_advanced_options_form(&$form, $form_state) {
   $all_job_data = variable_get('job_data', '');
   if (isset($_GET['jid']) && isset($all_job_data)) {    
-     $jid = base64_decode($_GET['jid']);
+     $jid = blast_ui_reveal_secret($_GET['jid']);
      $job_data = $all_job_data[$jid];
   }
   else {
