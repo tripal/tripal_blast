@@ -121,7 +121,7 @@ function blast_ui_reveal_secret($secret) {
   $job_id = str_replace(array_keys($mapping), $mapping, $secret);
   
   // Check that the job_id exists if it is an integer.
-  if (is_integer($job_id)) {
+  if (is_numeric($job_id)) {
 
     $exists = db_query('SELECT job_id FROM {tripal_jobs} WHERE job_id=:id', array(':id' => $job_id))->fetchField();
     if (!$exists) {
@@ -138,19 +138,29 @@ function blast_ui_reveal_secret($secret) {
   }  
   // Last ditch effort: maybe this job was encoded before the upgrade?
   else {
-  
+
     $job_id = base64_decode($secret);
-    $exists = db_query('SELECT job_id FROM {tripal_jobs} WHERE job_id=:id', array(':id' => $job_id))->fetchField();
-    if (!$exists) {
+    if (is_numeric($job_id)) {
+      $exists = db_query('SELECT job_id FROM {tripal_jobs} WHERE job_id=:id', array(':id' => $job_id))->fetchField();
+      if (!$exists) {
+        tripal_report_error(
+          'blast_ui',
+          TRIPAL_ERROR,
+          'Unable to decode the blast job_id from :id.',
+          array(':id' => $secret)
+        );
+      }
+      else {
+        return $job_id;
+      }
+    }
+    else {
       tripal_report_error(
         'blast_ui',
         TRIPAL_ERROR,
         'Unable to decode the blast job_id from :id.',
         array(':id' => $secret)
       );
-    }
-    else {
-      return $job_id;
     }
   }
   
