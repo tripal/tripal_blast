@@ -13,7 +13,6 @@
 
 // Set ourselves up to do link-out if our blast database is configured to do so.
 $linkout = FALSE;
-
 if ($blastdb->linkout->none === FALSE) {
   $linkout_type  = $blastdb->linkout->type;
   $linkout_regex = $blastdb->linkout->regex;
@@ -129,8 +128,8 @@ and click the <em>target name </em> to get more information about the target hit
   // significance and 2) additional information including the alignment
   foreach ($xml->{'BlastOutput_iterations'}->children() as $iteration) {
     $children_count = $iteration->{'Iteration_hits'}->children()->count();
-    //@deepaksomanadh: Code added for BLAST visualization
-    // parameters that need to be passed for BLAST image generation
+
+    // Save some information needed for the hit visualization.
     $target_name = '';
     $q_name = $xml->{'BlastOutput_query-def'};
     $query_size = $xml->{'BlastOutput_query-len'};
@@ -143,13 +142,20 @@ and click the <em>target name </em> to get more information about the target hit
           $zebra_class = ($count % 2 == 0) ? 'even' : 'odd';
           $no_hits = FALSE;
 
-          // RETRIEVE INFO
-          $hit_name = (preg_match('/BL_ORD_ID/', $hit->{'Hit_id'})) ? $hit->{'Hit_def'} : $hit->{'Hit_id'};  
+          // SUMMARY ROW
+          // -- Save additional information needed for the summary.
           $score = $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_score'};
           $evalue = $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_evalue'};
           $query_name = $iteration->{'Iteration_query-def'};
+          // If the id is of the form gnl|BL_ORD_ID|### then the parseids flag
+          // to makeblastdb did a really poor job. In thhis case we want to use
+          // the def to provide the original FASTA header.
+          // @todo Deepak changed this to use just the hit_def; inquire as to why.
+          $hit_name = (preg_match('/BL_ORD_ID/', $hit->{'Hit_id'})) ? $hit->{'Hit_def'} : $hit->{'Hit_id'};  
+          // Used for the hit visualization to ensure the name isn't truncated.
+          $hit_name_short = (preg_match('/^([^\s]+)/', $hit_name, $matches)) ? $matches[1] : $hit_name;
 
-          // Round e-val to two decimal values
+          // Round e-value to two decimal values.
           $rounded_evalue = '';
           if (strpos($evalue,'e') != false) {
             $evalue_split = explode('e', $evalue);
@@ -158,21 +164,36 @@ and click the <em>target name </em> to get more information about the target hit
           }
           else { 
             $rounded_evalue = $evalue;
-          }        
+          }
+          
+          // State what should be in the summary row for theme_table() later.
+          $summary_row = array(
+            'data' => array(
+              'arrow-col' => array('data' => '<div class="arrow"></div>', 'class' => array('arrow-col')),
+              'number' => array('data' => $count, 'class' => array('number')),
+              'query' => array('data' => $query_name, 'class' => array('query')),
+              'hit' => array('data' => $hit_name, 'class' => array('hit')),
+              'evalue' => array('data' => $rounded_evalue, 'class' => array('evalue')),
+            ),
+            'class' => array('result-summary')
+          );
         
           // ALIGNMENT ROW (collapsed by default)
           // Process HSPs
-          // @deepaksomanadh: Code added for BLAST visualization
-          // hit array and corresponding bit scores 
-          // hits=4263001_4262263_1_742;4260037_4259524_895_1411;&scores=722;473;
           $HSPs = array();
+
+          // We need to save some additional summary information in order to draw the
+          // hit visualization. First, initialize some variables...
           $track_start = INF;
           $track_end = -1;
           $hsps_range = '';
           $hit_hsps = '';
           $hit_hsp_score = '';
           $target_size = $hit->{'Hit_len'};
-    
+          $Hsp_bit_score = '';
+          
+          // Then for each hit hsp, keep track of the start of first hsp and the end of
+          // the last hsp. Keep in mind that hsps might not be recorded in order.
           foreach ($hit->{'Hit_hsps'}->children() as $hsp_xml) {
             $HSPs[] = (array) $hsp_xml;
     
@@ -182,45 +203,57 @@ and click the <em>target name </em> to get more information about the target hit
             if ($track_end < $hsp_xml->{'Hsp_hit-to'}) {
               $track_end = $hsp_xml->{'Hsp_hit-to'} . "";
             }
-          }  
-          $range_start = (int) $track_start - 50000;
-          $range_end = (int) $track_end + 50000;
-        
-          if ($range_start < 1) 
-            $range_start = 1;  
 
-          // For BLAST visualization 
-          $target_size = $hit->{'Hit_len'};
-          $Hsp_bit_score = '';
-          foreach ($hit->{'Hit_hsps'}->children() as $hsp_xml) {
+            // The BLAST visualization code requires the hsps to be formatted in a
+            // very specific manner. Here we build up the strings to be submitted.
+            // hits=4263001_4262263_1_742;4260037_4259524_895_1411;&scores=722;473;
             $hit_hsps .=  $hsp_xml->{'Hsp_hit-from'} . '_' . 
                           $hsp_xml->{'Hsp_hit-to'} . '_' . 
                           $hsp_xml->{'Hsp_query-from'} . '_' . $hsp_xml->{'Hsp_query-to'} . 
                           ';';  
-            $Hsp_bit_score .=   $hsp_xml->{'Hsp_bit-score'} .';';              
-          }      
+            $Hsp_bit_score .=   $hsp_xml->{'Hsp_bit-score'} .';';    
+          }
+          // Finally record the range.
+          // @todo figure out why we arbitrarily subtract 50,000 here...
+          // @more removing the 50,000 and using track start/end appears to cause no change...
+          $range_start = (int) $track_start;// - 50000;
+          $range_end = (int) $track_end;// + 50000;
+          if ($range_start < 1) $range_start = 1;  
+   
+
+          // Call the function to generate the hit image.
+          $hit_img = generate_blast_hit_image($target_name, $Hsp_bit_score, $hit_hsps, 
+                                   $target_size, $query_size, $q_name, $hit_name_short);
+
+
+          // State what should be in the alignment row for theme_table() later.
+          $alignment_row = array(
+            'data' => array(
+              'arrow' => array(
+                'data' => theme('blast_report_alignment_row', array('HSPs' => $HSPs, 'hit_visualization' => $hit_img)),
+                'colspan' => 5,
+              ),
+            ),
+            'class' => array('alignment-row', $zebra_class),
+            'no_striping' => TRUE
+          );
           
-          // SUMMARY ROW
-          // If the id is of the form gnl|BL_ORD_ID|### then the parseids flag
-          // to makeblastdb did a really poor job. In this case we want to use
-          // the def to provide the original FASTA header.
-          
-          // If our BLAST DB is configured to handle link-outs then use the
-          // regex & URL prefix provided to create one.
-          $hit_name = $hit->{'Hit_def'};
-          $hit_name_short = (preg_match('/^([^\s]+)/', $hit_name, $matches)) ? $matches[1] : $hit_name;
-          $query_name = $iteration->{'Iteration_query-def'};
- 
+          // LINK-OUTS.
+          // It was determined above whether link-outs were supported for the
+          // tripal blast database used as a search target. Thus we only want to 
+          // determine a link-out if it's actually supported... ;-)
           if ($linkout) {
-//echo "link out regex: $linkout_regex executed on [$hit_name]<br>";
-//preg_match($linkout_regex, $hit_name, $linkout_match);
-//echo "<br>matches:<pre>" . var_dump($linkout_match);echo "</pre>";
+          
+            // First extract the linkout text using the regex provided through
+            // the Tripal blast database node.
             if (preg_match($linkout_regex, $hit_name, $linkout_match)) {
               $linkout_id = $linkout_match[1];
               $hit->{'linkout_id'} = $linkout_id;
               $hit->{'hit_name'} = $hit_name;
             }
             
+            // Allow custom functions to determine the URL to support more complicated
+            // link-outs rather than just using the tripal database prefix.
             $hit_url = call_user_func(
               $url_function,
               $linkout_urlprefix,
@@ -239,54 +272,28 @@ and click the <em>target name </em> to get more information about the target hit
               $linkout_id = $hit->{'linkout_id'};
             }
 
-
+            // Create Link.
             if ($hit_url) {
-/* eksc- l() URL-encodes the URL path too, which is often not what we want.
+              /* eksc- l() URL-encodes the URL path too, which is often not what we want.
+               * I think this is because they are not using the query paramater for l().
                   $hit_name = l(
                     $linkout_id,
                     $hit_url,
                     array('attributes' => array('target' => '_blank'))
-                  );
-*/
+                  );*/
                $hit_name = "
                   <a href=\"$hit_url\" target=\"_blank\">
                     $linkout_id
                   </a>";
             }
-          }//handle linkout
-
-          //@deepaksomanadh: Code added for BLAST visualization
-          // get the image and display
-          $hit_img = generate_blast_hit_image($target_name, $Hsp_bit_score, $hit_hsps, 
-                                   $target_size, $query_size, $q_name, $hit_name_short);
+            
+            // Replace the target name with the link.
+            $summary_row['data']['hit']['data'] = $hit_name;
+          }
           
-          $row = array(
-            'data' => array(
-              'arrow-col' => array('data' => '<div class="arrow"></div>', 'class' => array('arrow-col')),
-              'number' => array('data' => $count, 'class' => array('number')),
-              'query' => array('data' => $query_name, 'class' => array('query')),
-              'hit' => array('data' => $hit_name, 'class' => array('hit')),
-              'evalue' => array('data' => $rounded_evalue, 'class' => array('evalue')),
-              'arrow-col' => array('data' => '<div class="arrow"></div>', 'class' => array('arrow-col'))
-            ),
-            'class' => array('result-summary')
-          );
-          $rows[] = $row;
-
-          // ALIGNMENT ROW (collapsed by default)
-          // Process HSPs
-
-          $row = array(
-            'data' => array(
-              'arrow' => array(
-                'data' => theme('blast_report_alignment_row', array('HSPs' => $HSPs, 'hit_visualization' => $hit_img)),
-                'colspan' => 5,
-              ),
-            ),
-            'class' => array('alignment-row', $zebra_class),
-            'no_striping' => TRUE
-          );
-          $rows[] = $row;
+          // ADD TO TABLE ROWS
+          $rows[] = $summary_row;
+          $rows[] = $alignment_row;
 
         }//end of if - checks $hit
       }//end of foreach - iteration_hits

@@ -200,7 +200,7 @@ function blastdb_form($node, &$form_state) {
     '#options' => $options,
     '#default_value' => (isset($node->linkout->type)) ? $node->linkout->type : 'link'
   );
-
+  
   return $form;
 }
 
@@ -322,7 +322,7 @@ function blastdb_delete($node) {
 }
 
 /**
- * Implements hook_load()   .
+ * Implements hook_load().
  */
 function blastdb_load($nodes) {
 
@@ -339,7 +339,7 @@ function blastdb_load($nodes) {
     $nodes[$record->nid]->title = $record->name;
     $nodes[$record->nid]->db_dbtype = $record->dbtype;
 
-    if ($record->dbxref_id_regex) {
+    if ($record->dbxref_id_regex AND $record->dbxref_db_id) {
       $nodes[$record->nid]->linkout = new stdClass();
 
       if (preg_match('/\/.*\//', $record->dbxref_id_regex)) {
