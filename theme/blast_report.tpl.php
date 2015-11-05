@@ -7,9 +7,6 @@
  *   $xml_filename: The full path & filename of XML file containing the BLAST results
  *    @deepaksomanadh: $job_data = meta data related to the current job
  */
- 
-// uncomment this to see the contents of the $blastdb object
-//echo "blastdb:<pre>";var_dump($blastdb);echo "</pre>";
 
 // Set ourselves up to do link-out if our blast database is configured to do so.
 $linkout = FALSE;
@@ -144,9 +141,10 @@ and click the <em>target name </em> to get more information about the target hit
 
           // SUMMARY ROW
           // -- Save additional information needed for the summary.
-          $score = $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_score'};
-          $evalue = $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_evalue'};
-          $query_name = $iteration->{'Iteration_query-def'};
+          $score = (float) $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_score'};
+          $evalue = (float) $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_evalue'};
+          $query_name = (string) $iteration->{'Iteration_query-def'};
+          
           // If the id is of the form gnl|BL_ORD_ID|### then the parseids flag
           // to makeblastdb did a really poor job. In thhis case we want to use
           // the def to provide the original FASTA header.
@@ -247,46 +245,37 @@ and click the <em>target name </em> to get more information about the target hit
             // First extract the linkout text using the regex provided through
             // the Tripal blast database node.
             if (preg_match($linkout_regex, $hit_name, $linkout_match)) {
-              $linkout_id = $linkout_match[1];
-              $hit->{'linkout_id'} = $linkout_id;
+              $hit->{'linkout_id'} = $linkout_match[1];
               $hit->{'hit_name'} = $hit_name;
-            }
             
-            // Allow custom functions to determine the URL to support more complicated
-            // link-outs rather than just using the tripal database prefix.
-            $hit_url = call_user_func(
-              $url_function,
-              $linkout_urlprefix,
-              $hit,
-              array(
-                'query_name' => $query_name,
-                'score'      => $score,
-                'e-value'    => $evalue,
-                'HSPs'       => $HSPs,
-                'Target'     => $blastdb->title,
-              )
-            );
-            
-            // The linkout id might have been set/changed by the custom linkout code.
-            if ($linkout_type == 'custom' && $hit->{'linkout_id'}) {
-              $linkout_id = $hit->{'linkout_id'};
-            }
+              // Allow custom functions to determine the URL to support more complicated
+              // link-outs rather than just using the tripal database prefix.
+              $hit_url = call_user_func(
+                $url_function,
+                $linkout_urlprefix,
+                $hit,
+                array(
+                  'query_name' => $query_name,
+                  'score'      => $score,
+                  'e-value'    => $evalue,
+                  'HSPs'       => $HSPs,
+                  'Target'     => $blastdb->title,
+                )
+              );
 
-            // Create Link.
-            if ($hit_url) {
-              /* eksc- l() URL-encodes the URL path too, which is often not what we want.
-               * I think this is because they are not using the query paramater for l().
-                  $hit_name = l(
-                    $linkout_id,
-                    $hit_url,
-                    array('attributes' => array('target' => '_blank'))
-                  );*/
-               $hit_name = "
-                  <a href=\"$hit_url\" target=\"_blank\">
-                    $linkout_id
-                  </a>";
+              // Create Link.
+              if ($hit_url) {
+                // It is important to url-encode links, especially in this case,
+                // since jbrowse links have double quotes in them which result in
+                // truncated links due to <a href="yoururl"></a> (notice the double quotes).
+                $hit_name = l(
+                  $hit->{'linkout_id'},
+                  $hit_url,
+                  array('attributes' => array('target' => '_blank'))
+                );
+              }
             }
-            
+                        
             // Replace the target name with the link.
             $summary_row['data']['hit']['data'] = $hit_name;
           }

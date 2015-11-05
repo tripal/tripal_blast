@@ -64,21 +64,42 @@ function blast_ui_blast_linkout_info() {
     // This function will have full access to the blast hit and database
     // prefix information and is expected to return a URL.
     'process function' => 'tripal_blast_generate_linkout_link',
+    // Help text to show in the BLAST Database create/edit form so that 
+    // users will know how to use this link-out type. Specifically, info
+    // about your assumptions for the URL prefix are very helpful.
+    // HTML is aloud but do not enclose in <p>.
+    'help' => 'The External Database choosen below provides its URL prefix when 
+      determining the URL to link-out to. If the link-out type is "Generic Link" then 
+      the hit identifier (determined using fasta header format or regular expression) is 
+      concatenated to the end of the url prefix. For example, if your hit is for "Chr01" 
+      and the URL prefix is "http://myfriendstripalsite.org/name/" then the complete URL 
+      is simply &#60;a href="http://myfriendstripalsite.org/name/Chr01"&#62;Chr01&#60;/a&#62;.',
   );
 
   $types['gbrowse'] = array(
     'name' => 'GBrowse',
     'process function' => 'tripal_blast_generate_linkout_gbrowse',
+    'help' => 'The link created will add a BLAST track to the GBrowse (specified by the 
+      External Database) that shows the HSPs as well as indicating the overall hit. 
+      <strong><em>It is assumed that the Reference of the GBrowse is the same as this BLAST 
+      database (even the names must be consistent).</em></strong> Furthermore, the URL prefix 
+      supplied is expected to have an empty query (?) or be properly ended (;). For
+      example, "http://mydomain.com/gb/gbrowse/tripalus_databasica/?" OR
+      "http://mydomain.com/gb/gbrowse/tripalus_databasica/?label=genes+markers;"',
   );
 
   $types['jbrowse'] = array(
     'name' => 'JBrowse',
     'process function' => 'tripal_blast_generate_linkout_jbrowse',
-  );
-
-  $types['custom'] = array(
-    'name' => 'Custom',
-    'process function' => 'tripal_custom_generate_linkout',
+    'help' => 'The link created will add a "Blast Result" track to the JBrowse (specified by the 
+      External Database) that shows the HSPs as well as indicating the overall hit. 
+      <strong><em>It is assumed that the Reference of the JBrowse is the same as this BLAST 
+      database (even the names must be consistent).</em></strong> Furthermore, the URL prefix 
+      supplied is expected to have an empty query (?) or be properly ended (&). For
+      example, "http://mydomain.com/jbrowse/tripalus_databasica/?" OR
+      "http://mydomain.com/jbrowse/tripalus_databasica/?tracks=genes,markers,blast&". 
+      Also <strong><em>the Blast Result track is NOT Displayed by default</em></strong>. Either include "blast" 
+      using the "tracks" directive in the URL prefix or specify it in your JBrowse.conf.',
   );
 
   return $types;
@@ -146,29 +167,54 @@ function tripal_blast_generate_linkout_link($url_prefix, $hit, $info, $options =
  */
 function tripal_blast_generate_linkout_gbrowse($url_prefix, $hit, $info, $options = array()) {
 
+  // First we need to collect the HSPs to define the ranges we want to
+  // display on the JBrowse.
   $ranges = array();
+  // We also keep track of all the coordinates in order to later
+  // calculate the smallest and largest coordinate.
   $coords = array();
   foreach($info['HSPs'] as $hsp) {
-     $start = min($hsp['Hsp_hit-from'], $hsp['Hsp_hit-to']);
-     $stop = max($hsp['Hsp_hit-from'], $hsp['Hsp_hit-to']);
-     array_push($ranges, "$start..$stop");
-     array_push($coords, $start, $stop);
-   }
-   $min = min($coords);
-   $max = max($coords);
-   $joined_ranges = join ("," , $ranges);
-//   $track_name = $hit->{'hit_name'} . '_' . $info['query_name'] . '_' . $info['e-value'];
-   $track_name = $hit->{'linkout_id'} . '_' . $info['query_name'] . '_' . $info['e-value'];
-   
-//   $url_postfix = 'query=';
-   $url_postfix = 'start=' . $min . ';stop=' . $max;
-//   $url_postfix .= ';ref=' . $hit->{'hit_name'};
-//   $url_postfix .= ';add=' . $hit->{'hit_name'} . '+BLAST+Query+' . $joined_ranges;
-   $url_postfix .= ';ref=' . $hit->{'linkout_id'};
-   $url_postfix .= ';add=' . $hit->{'linkout_id'} . '+BLAST+Query+' . $joined_ranges;
-   $url_postfix .= ';h_feat=Query';
+  
+    $start = min($hsp['Hsp_hit-from'], $hsp['Hsp_hit-to']);
+    $stop = max($hsp['Hsp_hit-from'], $hsp['Hsp_hit-to']);
+    
+    // Format the hsp for inclusion in the new track later.
+    array_push($ranges, "$start..$stop");
+    
+    // Add both the start & stop to the coordinate list.
+    array_push($coords, $start, $stop);
+  }
+  // Calculate the minimum & maximum coordinates.
+  $min = min($coords);
+  $max = max($coords);
 
-   return $url_prefix . $url_postfix;
+  // Now we are finally ready to build the URL.
+  // First lets set the location of the hit so the GBrowse focuses in on the correct region.
+  $query = array();
+  $query['ref'] = 'ref=' . $hit->{'linkout_id'};
+  $query['start'] = 'start=' . $min;
+  $query['stop'] = 'stop=' . $max;
+  
+  // Next we want to add our BLAST hit to the GBrowse.
+  $query['add'] = format_string(
+    'add=!ref+!trackname+!featurename+!hspcoords',
+    array(
+      '!ref' => $hit->{'linkout_id'},
+      '!trackname' => 'BLAST',
+      '!featurename' => 'BlastHit',
+      '!hspcoords' => join ("," , $ranges),
+    )
+  );
+  
+  // Highlight our newly added feature.
+  $query['highlight'] = format_string(
+    'h_feat=!featurename',
+    array('!featurename' => 'BlastHit')
+  );
+  
+  $url_postfix = implode(';', $query);
+
+  return $url_prefix . $url_postfix;
 }
 
 /**
@@ -176,9 +222,20 @@ function tripal_blast_generate_linkout_gbrowse($url_prefix, $hit, $info, $option
  *
  * NOTE: Assumes the hit is a backbone feature in the JBrowse linked to.
  *  Otherwise, the basic link can be used.
+ * NOTE: This linkout creates a "blast" track but doesn't make it visible. This is to
+ *  allow your default tracks to be visible and give contect to your blast hit. You
+ *  should include "blast" in your jbrowse.conf default track list to ensure your
+ *  users can always see their hits. If you don't have access to the jbrowse.conf,
+ *  you can place the tracks you want to see including 'blast' in the url prefix 
+ *  (see example below under @param $url_prefix).
  *
  * @param $url_prefix
- *   The URL prefix for the BLAST Database queried.
+ *   The URL prefix for the BLAST Database queried. It is assumed that the url prefix
+ *   includes the ? and if there are any key=vale pairs that the last symbol is &.
+ *   For example,
+ *     http://myserver.com/jbrowse/databasica/?
+ *     http://myserver.com/jbrowse/databasica/?tracks=myfavtrack,anoktrack,blast&
+ * 
  * @param $hit
  *   The blast XML hit object. This object has the following keys based on the
  *   XML: Hit_num, Hit_id, Hit_def, Hit_accession, Hit_len and Hit_hsps.
@@ -200,20 +257,81 @@ function tripal_blast_generate_linkout_gbrowse($url_prefix, $hit, $info, $option
  */
 function tripal_blast_generate_linkout_jbrowse($url_prefix, $hit, $info, $options = array()) {
 
+  // First we need to collect the HSPs to define the ranges we want to
+  // display on the JBrowse.
   $ranges = array();
+  // We also keep track of all the coordinates in order to later
+  // calculate the smallest and largest coordinate.
   $coords = array();
-  $hsps = array();
+  $count = 0;
   foreach($info['HSPs'] as $hsp) {
-   $hsp_start = $hsp['Hsp_hit-from'];
-   $hsp_end = $hsp['Hsp_hit-to'] ;
-   array_push($coords,$hsp['Hsp_hit-from'] , $hsp['Hsp_hit-to'] );
-   array_push($ranges, '{"start":'.$hsp_start.',"end":'.$hsp_end.',"type":"match_part"}');
+    $count++;
+    
+    $strand = '1';
+    $hsp_start = $hsp['Hsp_hit-from'];
+    $hsp_end = $hsp['Hsp_hit-to'];
+    
+    // Handle alignments on the negative strand.
+    if (($hsp_end - $hsp_start) < 0) {
+      $strand = '-1';
+      $hsp_start = $hsp['Hsp_hit-to'];
+      $hsp_end = $hsp['Hsp_hit-from'];
+    }
+    
+    // Add both the start & stop to the coordinate list.
+    array_push($coords,$hsp['Hsp_hit-from'] , $hsp['Hsp_hit-to'] );
+
+    // Format the hsp for inclusion in the subfeatures section of the track later.
+    $hsp_def = format_string(
+      '{"start":!start,"end":!end,"strand":"!strand","type":"!type"}',
+      array(
+        '!start' => $hsp_start,
+        '!end' => $hsp_end,
+        '!strand' => $strand,
+        '!type' => 'match_part'
+      )
+    );
+    array_push($ranges, $hsp_def);
   }
+  // Calculate the minimum & maximum coordinates.
   $min = min($coords);
   $max = max($coords);
-  $url_postfix = '&addFeatures=[{"seq_id":"'.$hit->{'hit_name'}.'","score":"'.$info['e-value'].'","start":'.$min.',"end":'.$max.',"type":"match","name":"MyBLASTHit","subfeatures":[';
-  $joined_ranges = join ("," , $ranges);
-  $url_postfix = $url_postfix . $joined_ranges . ']}]&addTracks=[{"label":"BLAST","type":"JBrowse/View/Track/HTMLFeatures","store":"url"}]&loc='.$hit->{'hit_name'}.'&tracks=DNA%2CBLAST&highlight=';
+  
+  // We also want some white-space on either side of out hit 
+  // when we show it in the JBrowse. To make this generic,
+  // we want our blast hit to take up 2/3 of the screen thus
+  // we have 1/6 per side for white-space.
+  $buffer = round(($max - $min) / 6);
+  $screen_start = $min - $buffer;
+  $screen_end = $max + $buffer;
+
+  // Now we are finally ready to build the URL.
+  // First lets set the location of the hit so the JBrowse focuses in on the correct region.
+  $jbrowse_query = array();
+  $jbrowse_query['loc'] = format_string(
+    'loc=!ref:!start..!stop',
+    array(
+      '!ref' => $hit->{'linkout_id'},
+      '!start' => $screen_start,
+      '!stop' => $screen_end,
+    )
+  );
+
+  // Next we want to add our BLAST hit to the JBrowse.
+  $jbrowse_query['addFeatures'] = format_string(
+    'addFeatures=[{"seq_id":"!id","start":!min,"end":!max,"name":"!name","subfeatures":[!hspcoords]}]',
+    array(
+      '!id' => $hit->{'linkout_id'},
+      '!name' => $info['query_name'] . ' Blast Hit',
+      '!min' => $min,
+      '!max' => $max,
+      '!hspcoords' => join ("," , $ranges)
+    ));
+
+  // Then add a track to display our new feature.
+  $jbrowse_query['addTracks'] = 'addTracks=[{"label":"blast","key":"BLAST Result","type":"JBrowse/View/Track/HTMLFeatures","store":"url"}]';
+
+  $url_postfix = implode('&', $jbrowse_query);
 
   return $url_prefix . $url_postfix;
 }

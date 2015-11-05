@@ -67,6 +67,10 @@ function blastdb_form($node, &$form_state) {
   $form = array();
 
   $form['#validate'] = array('blastdb_form_validate');
+  
+  $form['#attached']['css'] = array(
+    drupal_get_path('module', 'blast_ui') . '/theme/css/form.css',
+  );
 
   $form['core'] = array(
     '#type' => 'fieldset',
@@ -101,48 +105,70 @@ function blastdb_form($node, &$form_state) {
 
   $form['dbxref'] = array(
     '#type' => 'fieldset',
-    '#title' => 'Database References',
-    '#description' => 'These settings can be used to tell the BLAST UI that '
-      . 'information about the records in this BLAST database can be found '
-      . 'either in the current website or an external website.'
+    '#title' => 'Link-outs',
+    '#description' => 'These settings will be used to <em>transform the hit name into a 
+      link to additional information</em>.',
+    '#prefix' => '<div id="link-outs">',
+    '#suffix' => '</div>',
   );
 
-  $description = array(
-    'default' => 'A single word followed by a free-text definition. '
+  $regex = array(
+    'default' => array(
+      'title' => 'Generic',
+      'help' => 'A single word followed by a free-text definition. '
       . 'The first word contains only alphanumeric characters and optionally '
-      . 'underscores and will be used as the ID of the sequence.',
-    'genbank' => 'Follows the same format as the first option '
+      . 'underscores and will be used as the ID of the sequence.'
+    ),
+    'genbank' => array(
+      'title' => 'NCBI GenBank',
+      'help' => 'Follows the same format as the first option '
       . 'except that the first "word" is of the following form: '
-      . 'gb|accession|locus. The accession will be used as the ID of the sequence.',
-    'embl' => 'Follows the same format as the first option '
+      . 'gb|accession|locus. The accession will be used as the ID of the sequence.'
+    ),
+    'embl' => array(
+      'title' => 'EMBL Data Library',
+      'help' => 'Follows the same format as the first option '
       . 'except that the first "word" is of the following form: '
-      . 'emb|accession|locus. The accession will be used as the ID of the sequence.',
-    'swissprot' => 'Follows the same format as the first option '
+      . 'emb|accession|locus. The accession will be used as the ID of the sequence.'
+    ),
+    'swissprot' => array(
+      'title' => 'SWISS-PROT',
+      'help' => 'Follows the same format as the first option '
       . 'except that the first "word" is of the following form: '
-      . 'sp|accession|entry name. The accession will be used as the ID of the sequence.',
-    'custom' => 'Allows you to use a regular expression (define one below) to '
+      . 'sp|accession|entry name. The accession will be used as the ID of the sequence.'
+    ),
+    'custom' => array(
+      'title' => 'Custom Format',
+      'help' => 'Allows you to use a regular expression (define one below) to '
       . 'extract a specifc portion of the FASTA header to be used as the ID.'
+    ),
   );
+  $regex_type = (isset($node->linkout->regex_type)) ? $node->linkout->regex_type : 'default';
+  $regex_type = (isset($form_state['values'])) ? $form_state['values']['dbxref_id_type'] : $regex_type;
   $form['dbxref']['dbxref_id_type'] = array(
     '#type' => 'radios',
     '#title' => 'FASTA header format',
     '#description' => 'Choose the format that matches the format of the FASTA '
       . 'headers in this BLAST database or choose custom to define your own '
-      . 'using regular expressions. This ID will be appended to the URL Prefix '
-      . ' of the database selected below.',
+      . 'using regular expressions. This ID will be used to create the URL for the link-out.',
     '#options' => array(
-      'default' => '<span title="' . $description['default'] . '">Generic</span>',
-      'genbank' => '<span title="' . $description['genbank'] . '">NCBI GenBank</span>',
-      'embl' => '<span title="' . $description['embl'] . '">EMBL Data Library</span>',
-      'swissprot' => '<span title="' . $description['swissprot'] . '">SWISS-PROT</span>',
-      'custom' => '<span title="' . $description['custom'] . '">Custom Format</span>',
+      'default' => '<span title="' . $regex['default']['help'] . '">' . $regex['default']['title'] . '</span>',
+      'genbank' => '<span title="' . $regex['genbank']['help'] . '">' . $regex['genbank']['title'] . '</span>',
+      'embl' => '<span title="' . $regex['embl']['help'] . '">' . $regex['embl']['title'] . '</span>',
+      'swissprot' => '<span title="' . $regex['swissprot']['help'] . '">' . $regex['swissprot']['title'] . '</span>',
+      'custom' => '<span title="' . $regex['custom']['help'] . '">' . $regex['custom']['title'] . '</span>',
     ),
-    '#default_value' => (isset($node->linkout->regex_type)) ? $node->linkout->regex_type : 'default',
+    '#default_value' => $regex_type,
     '#ajax' => array(
       'callback' => 'ajax_blast_ui_node_linkout_custom_callback',
-      'wrapper' => 'link-regex',
+      'wrapper' => 'link-outs',
     )
   );
+  // Add information about each format to the description.
+  if ($regex_type) {
+    $form['dbxref']['dbxref_id_type']['#description'] .= '
+      <p class="blastdb-extra-info"><strong>'.$regex[$regex_type]['title'].'</strong>: '.$regex[$regex_type]['help'].'</p>';
+  }
 
   $hide_regex = TRUE;
   if (isset($form_state['values']['dbxref_id_type'])) {
@@ -161,8 +187,6 @@ function blastdb_form($node, &$form_state) {
       . 'available if custom was choosen for the FASTA header format above.',
       array('@url' => 'http://php.net/manual/en/reference.pcre.pattern.syntax.php')),
     '#disabled' => $hide_regex,
-    '#prefix' => '<div id="link-regex">',
-    '#suffix' => '</div>',
     '#default_value' => (isset($node->linkout->regex)) ? $node->linkout->regex : ''
   );
 
@@ -186,20 +210,26 @@ function blastdb_form($node, &$form_state) {
   foreach ($types as $machine_name => $details) {
     $options[$machine_name] = (isset($details['name'])) ? $details['name'] : $machine_name;
   }
+  $linkout_type = (isset($node->linkout->type)) ? $node->linkout->type : 'link';
+  $linkout_type = (isset($form_state['values'])) ? $form_state['values']['dbxref_linkout_type'] : $linkout_type;
   $form['dbxref']['dbxref_linkout_type'] = array(
-    '#type' => 'select',
+    '#type' => 'radios',
     '#title' => 'Link-out Type',
-    '#description' => 'This determines how the URL to be linked to is formed. '
-                    . 'NOTE: this is very dependant on the External Database '
-                    . 'chosen above since it needs to be able to support the '
-                    . 'type of linking choosen. For example, only External '
-                    . 'Databases which reference a GBrowse instance can use the '
-                    . 'GBrowse link type.  If a link requires customized code, '
-                    . 'select "custom" and add the code to the file ' 
-                    . 'includes/blast_ui.custom/inc.',
+    '#description' => 'This determines how the URL to be linked to is formed. <strong>Make 
+      sure the database chosen supports this type of link</strong> (ie: the database 
+      should point to a GBrowse instance if you choose GBrowse here).',
     '#options' => $options,
-    '#default_value' => (isset($node->linkout->type)) ? $node->linkout->type : 'link'
+    '#default_value' => $linkout_type,
+    '#ajax' => array(
+      'callback' => 'ajax_blast_ui_node_linkout_custom_callback',
+      'wrapper' => 'link-outs',
+    )
   );
+  // Add information about each format to the description.
+  if ($linkout_type) {
+    $form['dbxref']['dbxref_linkout_type']['#description'] .= '
+      <p class="blastdb-extra-info"><strong>'.$types[$linkout_type]['name'].'</strong>: '.$types[$linkout_type]['help'].'</p>';
+  }
   
   return $form;
 }
@@ -387,5 +417,5 @@ function blastdb_load($nodes) {
  * when someone selects custom.
  */
 function ajax_blast_ui_node_linkout_custom_callback($form, $form_state) {
-  return $form['dbxref']['regex'];
+  return $form['dbxref'];
 }
