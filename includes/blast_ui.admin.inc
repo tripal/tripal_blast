@@ -48,7 +48,7 @@ function blast_ui_admin_form($form, $form_state) {
 
   $form['file_upload']['target_upload'] = array(
     '#type' => 'checkbox',
-    '#title' => 'Enable Taget Sequence Upload',
+    '#title' => 'Enable Target Sequence Upload',
     '#description' => 'When checked, a target file upload field will be available on BLAST request forms.',
     '#default_value' => FALSE,
     '#default_value' => variable_get('blast_ui_allow_target_upload', FALSE)
