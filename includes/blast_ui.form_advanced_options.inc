@@ -1197,7 +1197,7 @@ function _get_word_size($which) {
     case 'blastp':
     case 'tblastn':
     	return array(
-        2 => t('2'),
+      //  2 => t('2'),
         3 => t('3'),
         6 => t('6'),
       );
