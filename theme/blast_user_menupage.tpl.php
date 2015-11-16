@@ -90,4 +90,3 @@ local alignment search tool. J. Mol. Biol., 215, 403–410.</blockquote>
     print theme('table', $table);
   }
 ?>
-
