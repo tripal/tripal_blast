@@ -168,7 +168,14 @@ function blast_ui_theme() {
     'variables' => array('hsps' => NULL),
     'path' => "$path/theme",
   );
-
+  
+  // Lists the recent blast jobs for a given user/session.
+  $items['blast_recent_jobs'] = array(
+    'template' => 'blast_recent_jobs',
+    'variables' => array('programs' => NULL),
+    'path' => "$path/theme",
+  );
+  
   // Module Help
   $items['blast_help'] = array(
     'template' => 'blast_help',

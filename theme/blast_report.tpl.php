@@ -1,28 +1,23 @@
 <?php
-
 /**
  * Display the results of a BLAST job execution
- *
- * Variables Available in this template:
- *   $xml_filename: The full path & filename of XML file containing the BLAST results
- *    @deepaksomanadh: $job_data = meta data related to the current job
  */
 
 // Set ourselves up to do link-out if our blast database is configured to do so.
 $linkout = FALSE;
-if ($blastdb->linkout->none === FALSE) {
-  $linkout_type  = $blastdb->linkout->type;
-  $linkout_regex = $blastdb->linkout->regex;
+if ($blast_job->blastdb->linkout->none === FALSE) {
+  $linkout_type  = $blast_job->blastdb->linkout->type;
+  $linkout_regex = $blast_job->blastdb->linkout->regex;
   
   // Note that URL prefix is not required if linkout type is 'custom'
-  if (isset($blastdb->linkout->db_id->urlprefix) && !empty($blastdb->linkout->db_id->urlprefix)) {
-    $linkout_urlprefix = $blastdb->linkout->db_id->urlprefix;
+  if (isset($blast_job->blastdb->linkout->db_id->urlprefix) && !empty($blast_job->blastdb->linkout->db_id->urlprefix)) {
+    $linkout_urlprefix = $blast_job->blastdb->linkout->db_id->urlprefix;
   }
 
   // Check that we can determine the linkout URL.
   // (ie: that the function specified to do so, exists).
-  if (function_exists($blastdb->linkout->url_function)) {
-    $url_function = $blastdb->linkout->url_function;
+  if (function_exists($blast_job->blastdb->linkout->url_function)) {
+    $url_function = $blast_job->blastdb->linkout->url_function;
     $linkout = TRUE;
   }
 }
@@ -76,20 +71,20 @@ $no_hits = TRUE;
 <div class="blast-job-info">
 <?php if($xml): ?>
   <div class="blast-download-info"><strong>Download</strong>:
-    <a href="<?php print '../../' . $html_filename; ?>">Alignment</a>,
-    <a href="<?php print '../../' . $tsv_filename; ?>">Tab-Delimited</a>,
-    <a href="<?php print '../../' . $xml_filename; ?>">XML</a>
+    <a href="<?php print '../../' . $blast_job->files->result->html; ?>">Alignment</a>,
+    <a href="<?php print '../../' . $blast_job->files->result->tsv; ?>">Tab-Delimited</a>,
+    <a href="<?php print '../../' . $blast_job->files->result->xml; ?>">XML</a>
   </div>
 <?php endif; ?>
   <br />
   <div class="blast-query-info"><strong>Query Information</strong>: 
-    <?php print $blast_job->display['query_info'];?></div>
+    <?php print $blast_job->files->query;?></div>
   <div class="blast-target-info"><strong>Search Target</strong>: 
-    <?php print $blast_job->display['target'];?></div>
+    <?php print $blast_job->blastdb->db_name;?></div>
   <div class="blast-date-info"><strong>Submission Date</strong>: 
-    <?php print $blast_job->display['date'];?></div>
+    <?php print format_date($blast_job->date_submitted, 'medium');?></div>
   <div class="blast-cmd-info"><strong>BLAST Command executed</strong>: 
-    <?php print $blast_job->display['blast_cmd'];?></div>
+    <?php print $blast_job->blast_cmd;?></div>
 </div>
 <br />
 
@@ -259,7 +254,7 @@ and click the <em>target name </em> to get more information about the target hit
                   'score'      => $score,
                   'e-value'    => $evalue,
                   'HSPs'       => $HSPs,
-                  'Target'     => $blastdb->title,
+                  'Target'     => $blast_job->blastdb->db_name,
                 )
               );
 
@@ -327,38 +322,9 @@ else {
 
 <p><?php print l(
   'Edit this query and re-submit', 
-  $blast_job->form_options['job_url'],
-  array('query' => array('jid' => blast_ui_make_secret($job_id))));
+  $blast_form_url,
+  array('query' => array('resubmit' => blast_ui_make_secret($job_id))));
 ?></p>
 </div>
 
-<!-- Recent Jobs -->
-<?php
-
-  // Gets the list of recent jobs filtered to the current blast program (ie: blastn).
-  
-  if ($recent_jobs) {
-  
-    print '<h2>Recent Jobs</h2>';
-    
-    $table = array(
-      'header' => array('Query Information', 'Search Target', 'Date Requested', ''),
-      'rows' => array(),
-      'attributes' => array('class' => array('tripal-blast', 'recent-jobs')),
-      'sticky' => FALSE
-    );
-  
-    foreach ($recent_jobs as $job) {
-
-      // Define a row for the current job.
-      $table['rows'][] = array(
-        $job['query_info'],
-        $job['target'],
-        $job['date'],
-        l('See Results', $job['job_output_url'])
-      );
-    }
-    
-    print theme('table', $table);
-  }
-?>
+<?php print theme('blast_recent_jobs', array()); ?>

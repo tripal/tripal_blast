@@ -21,44 +21,38 @@ function blast_ui_preprocess_show_blast_report(&$vars) {
   drupal_add_css($path . '/theme/css/blast_report.css');
   drupal_add_js('http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js');
 
-  // Get the filename of the BLAST results
-  $job = tripal_get_job($vars['job_id']);
-  $job_args = unserialize($job->arguments);
-  
-//eksc- could stand better use of module settings and fewer hardcoded paths.
-  $vars['xml_filename'] = variable_get('file_public_path', conf_path() . '/files') . '/tripal/tripal_blast/' . $job_args['output_filename'] . '.blast.xml';
-  $vars['tsv_filename'] = variable_get('file_public_path', conf_path() . '/files') . '/tripal/tripal_blast/' . $job_args['output_filename'] . '.blast.tsv';
-  $vars['html_filename'] = variable_get('file_public_path', conf_path() . '/files') . '/tripal/tripal_blast/' . $job_args['output_filename'] . '.blast.html';
-
-  // Add the blast database node.
-  // This is needed for link-out functionality.
-  $vars['blastdb'] = get_blast_database(array('path' => $job_args['database']));
-  
-  // Get the recent job information.
-  $vars['recent_jobs'] = get_recent_blast_jobs();
-  
-  // Make job information available in the template.
-  $vars['blast_job'] = $job;
-  $job_data = variable_get('job_data', '');
-  if (isset($job_data[ $vars['job_id'] ])) {
-    $vars['blast_job']->form_options = $job_data[ $vars['job_id'] ];
-  }
-  if (isset($vars['recent_jobs'][ $vars['job_id'] ])) {
-    $vars['blast_job']->display = $vars['recent_jobs'][ $vars['job_id'] ];
-  }
+  // Get blast job details.
+  $vars['blast_job'] = get_BLAST_job($vars['job_id']);
   
   // Determine the blast command for display.
-  $vars['blast_job']->display['blast_cmd'] = $vars['blast_job']->form_options['program'];
-  foreach($vars['blast_job']->form_options['options'] as $key => $value) {
-      $vars['blast_job']->display['blast_cmd'] .= ' -' . $key. ' ' . $value ;
+  $vars['blast_job']->blast_cmd = $vars['blast_job']->program;
+  foreach($vars['blast_job']->options as $key => $value) {
+      $vars['blast_job']->blast_cmd .= ' -' . $key. ' ' . $value ;
+  }
+  
+  // Determine the URL of the blast form.
+  $vars['blast_form_url'] = 'blast/nucleotide/nucleotide';
+  switch($vars['blast_job']->program) {
+    case 'blastn':
+      $vars['blast_form_url'] = 'blast/nucleotide/nucleotide';
+      break;
+    case 'blastx':
+      $vars['blast_form_url'] = 'blast/nucleotide/protein';
+      break;
+    case 'tblastn':
+      $vars['blast_form_url'] = 'blast/protein/nucleotide';
+      break;
+    case 'blastp':
+      $vars['blast_form_url'] = 'blast/protein/protein';
+      break;
   }
   
   // Load the XML file.
   $vars['xml'] = NULL;
-  if (is_readable($vars['xml_filename'])) {
-    $vars['xml'] = simplexml_load_file($vars['xml_filename']);
+  $full_path_xml = DRUPAL_ROOT . DIRECTORY_SEPARATOR . $vars['blast_job']->files->result->xml;
+  if (is_readable($full_path_xml)) {
+    $vars['xml'] = simplexml_load_file($full_path_xml);
   }
-
 }
 
 /**

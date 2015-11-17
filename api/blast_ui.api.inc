@@ -91,6 +91,61 @@ function get_blast_database_options($type) {
 }
 
 /**
+ * Retrieve all the information for a blast job in a standardized node-like format.
+ *
+ * @param $job_id
+ *   The non-encoded tripal job_id.
+ * @retun
+ *   An object describing the blast job.
+ */
+function get_BLAST_job($job_id) {
+
+  $blastjob = db_query('SELECT * FROM blastjob WHERE job_id=:id', array(':id' => $job_id))->fetchObject();
+  $tripal_job = tripal_get_job($job_id);
+  
+  $job = new stdClass();
+  $job->job_id = $job_id;
+  $job->program = $blastjob->blast_program;
+  $job->options = unserialize($blastjob->options);
+  $job->date_submitted = $tripal_job->submit_date;
+  $job->date_started = $tripal_job->start_time;
+  $job->date_completed = $tripal_job->end_time;
+  
+  // TARGET BLAST DATABASE.
+  // If a provided blast database was used then load details.
+  if ($blastjob->target_blastdb ) {
+    $job->blastdb = get_blast_database(array('nid' => $blastjob->target_blastdb));
+  }
+  // Otherwise the user uploaded their own database so provide what information we can.
+  else {
+    $job->blastdb = new stdClass();
+    $job->blastdb->db_name = 'User Uploaded';
+    $job->blastdb->db_path = $blastjob->target_file;
+    $job->blastdb->linkout = new stdClass();
+    $job->blastdb->linkout->none = TRUE;
+    
+    if ($job->program == 'blastp' OR $job->program == 'tblastn') {
+      $job->blastdb->db_dbtype = 'protein';
+    }
+    else {
+      $job->blastdb->db_dbtype = 'nucleotide';
+    }
+  }
+  
+  // FILES.
+  $job->files = new stdClass();
+  $job->files->query = $blastjob->query_file;
+  $job->files->target = $blastjob->target_file;
+  $job->files->result = new stdClass();
+  $job->files->result->archive = $blastjob->result_filestub . '.asn';
+  $job->files->result->xml = $blastjob->result_filestub . '.xml';
+  $job->files->result->tsv = $blastjob->result_filestub . '.tsv';
+  $job->files->result->html = $blastjob->result_filestub . '.html';
+  
+  return $job;
+}
+
+/**
  * Run BLAST (should be called from the command-line)
  *
  * @param $program
@@ -108,12 +163,10 @@ function get_blast_database_options($type) {
  */
 function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $options, $job_id = NULL) {
 
-  $output_file = file_directory_temp() .  DIRECTORY_SEPARATOR . $output_filestub . '.blast.asn';
-  $output_dir = variable_get('file_public_path', conf_path() . '/files') 
-              . DIRECTORY_SEPARATOR . 'tripal' . DIRECTORY_SEPARATOR . 'tripal_blast';
-  $output_file_xml = $output_dir . DIRECTORY_SEPARATOR . $output_filestub . '.blast.xml';
-  $output_file_tsv = $output_dir . DIRECTORY_SEPARATOR . $output_filestub . '.blast.tsv';
-  $output_file_html = $output_dir . DIRECTORY_SEPARATOR . $output_filestub . '.blast.html';
+  $output_file = $output_filestub . '.asn';
+  $output_file_xml = $output_filestub . '.xml';
+  $output_file_tsv = $output_filestub . '.tsv';
+  $output_file_html = $output_filestub . '.html';
 
   print "\nExecuting $program\n\n";
   print "Query: $query\n";
@@ -287,7 +340,8 @@ function get_blastdb_linkout_regex($node, $options = array()) {
 /**
  * Return a list of recent blast jobs to be displayed to the user.
  *
- * NOTE: The calling function will be expected to do the rendering.
+ * @param $programs
+ *   An array of blast programs you want jobs to be displayed for (ie: blastn, blastx, tblastn, blastp)
  *
  * @return
  *   An array of recent jobs.
@@ -297,43 +351,30 @@ function get_recent_blast_jobs($programs = array()) {
   $filter_jobs = !empty($programs);
   
   // Retrieve any recent jobs from the session variable.
-  $sid = session_id();  
-  if (isset($_SESSION['all_jobs'][$sid])) {
+  if (isset($_SESSION['blast_jobs'])) {
 
     $jobs = array();
-    foreach ($_SESSION['all_jobs'][$sid] as $job_id => $job) {
+    foreach ($_SESSION['blast_jobs'] as $job_secret) {
       $add = TRUE;
+      
+      $job_id = blast_ui_reveal_secret($job_secret);
+      $job = get_BLAST_job($job_id);
       
       // @TODO: Check that the results are still available.
       // This is meant to replace the arbitrary only show jobs executed less than 48 hrs ago.
-      
+
       // Remove jobs from the list that are not of the correct program.
-      if ($filter_jobs AND !in_array($job['program'], $programs)) {
+      if ($filter_jobs AND !in_array($job->program, $programs)) {
         $add = FALSE;
       }
-      
+
       if ($add) {
 
-        // Format the query information for display.
-        // Easiest case: if there is only one query header then show it.
-        if (sizeof($job['query_defs']) == 1 AND isset($job['query_defs'][0])) {
-          $job['query_info'] = $job['query_defs'][0];
-        }
-        // If we have at least one header then show that along with the count of queries.
-        elseif (isset($job['query_defs'][0])) {
-          $job['query_info'] = sizeof($job['query_defs']) . ' queries including "' . $job['query_defs'][0] . '"';
-        }
-        // If they provided a sequence with no header.
-        elseif (empty($job['query_defs'])) {
-          $job['query_info'] = 'Unnamed Query';
-        }
-        // At the very least show the count of queries.
-        else {
-          $job['query_info'] = sizeof($job['query_defs']) . ' queries';
-        }
-      
-        $jobs[$job_id] = $job;
+        $job->query_summary = format_query_headers($job->files->query);
+
+        $jobs[] = $job;
       }
+
     }
       
     return $jobs;
@@ -341,6 +382,49 @@ function get_recent_blast_jobs($programs = array()) {
   else {
     return array();
   }
+}
+
+/**
+ * Retrieve the number of recent jobs.
+ */
+function get_number_of_recent_jobs() {
+  if (isset($_SESSION['blast_jobs'])) {
+    return sizeof($_SESSION['blast_jobs']);
+  } 
+  return 0;
+}
+
+/** 
+ * Summarize a fasta file based on it's headers.
+ *
+ * @param $file
+ *   The full path to the FASTA file.
+ *
+ * @return
+ *   A string describing the number of sequences and often including the first query header.
+ */
+function format_query_headers($file) {
+
+  $headers = array();
+  exec('grep ">" '.$file, $headers);
+
+  // Easiest case: if there is only one query header then show it.
+  if (sizeof($headers) == 1 AND isset($headers[0])) {
+    return ltrim($headers[0], '>');
+  }
+  // If we have at least one header then show that along with the count of queries.
+  elseif (isset($headers[0])) {
+    return sizeof($headers) . ' queries including "' . ltrim($headers[0], '>') . '"';
+  }
+  // If they provided a sequence with no header.
+  elseif (empty($headers)) {
+    return 'Unnamed Query';
+  }
+  // At the very least show the count of queries.
+  else {
+    return sizeof($headers) . ' queries';
+  }
+
 }
 
 /**
