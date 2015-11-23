@@ -33,12 +33,6 @@ $no_hits = TRUE;
 ?>
 
 <script type="text/javascript">
-  window.onload = function() {
-    if (!window.location.hash) {
-      window.location = window.location + '#loaded';
-      window.location.reload();
-    }
-  }
 
   // JQuery controlling display of the alignment information (hidden by default)
   $(document).ready(function(){
