@@ -427,6 +427,26 @@ function format_query_headers($file) {
 
 }
 
+/** 
+ * Sort recent blast jobs by the date they were submitted. 
+ * Ascending is in order of submission.
+ *
+ * THIS FUNCTION SHOULD BY USED BY USORT().
+ */
+function sort_blast_jobs_by_date_submitted_asc($a, $b) {
+  return ($a->date_submitted - $b->date_submitted);
+}
+
+/** 
+ * Sort recent blast jobs by the date they were submitted. 
+ * Descending is most recent first.
+ *
+ * THIS FUNCTION SHOULD BY USED BY USORT().
+ */
+function sort_blast_jobs_by_date_submitted_desc($a, $b) {
+  return ($b->date_submitted - $a->date_submitted);
+}
+
 /**
  * Generate an image of HSPs for a given hit.
  *          

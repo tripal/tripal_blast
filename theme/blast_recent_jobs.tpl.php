@@ -7,6 +7,8 @@
 $recent_jobs = get_recent_blast_jobs($programs);
 if ($recent_jobs) {
 
+  usort($recent_jobs, 'sort_blast_jobs_by_date_submitted_desc');
+  
   print '<h2>Recent Jobs</h2>';
   
   $table = array(
