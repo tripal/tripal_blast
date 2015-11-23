@@ -43,8 +43,8 @@ local alignment search tool. J. Mol. Biol., 215, 403–410.</blockquote>
     <th>BLAST Program</th>
   </tr>
   <tr class= "blast-highlighted">
-    <td>Nucleotide</td>
     <td rowspan="2">Nucleotide</td>
+    <td>Nucleotide</td>
     <td><?php print l('blastn', './blast/nucleotide/nucleotide');?>:
       Search a nucleotide database using a nucleotide query.</td>
   </tr>
