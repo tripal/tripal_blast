@@ -1,10 +1,8 @@
 <?php
-
 /**
  * @file
  *
  */
-
 ?>
 
 <p>In bioinformatics, BLAST (Basic Local Alignment Search Tool) is an algorithm
@@ -37,7 +35,7 @@ local alignment search tool. J. Mol. Biol., 215, 403–410.</blockquote>
     <th>BLAST Program</th>
   </tr>
   <tr>
-    <td  rowspan="2"><?php print l('Nucleotide', './blast/nucleotide');?></td>
+    <td rowspan="2"><?php print l('Nucleotide', './blast/nucleotide');?></td>
     <td>Nucleotide</td>
     <td><?php print l('blastn', './blast/nucleotide/nucleotide');?>:
       Search a nucleotide database using a nucleotide query.</td>
@@ -48,7 +46,7 @@ local alignment search tool. J. Mol. Biol., 215, 403–410.</blockquote>
       Search protein database using a translated nucleotide query.</td>
   </tr>
   <tr>
-    <td  rowspan="2"><?php print l('Protein', './blast/protein');?></td>
+    <td rowspan="2"><?php print l('Protein', './blast/protein');?></td>
     <td>Nucleotide</td>
     <td><?php print l('tblastn', './blast/protein/nucleotide');?>:
       Search translated nucleotide database using a protein query.</td>
@@ -60,33 +58,4 @@ local alignment search tool. J. Mol. Biol., 215, 403–410.</blockquote>
   </tr>
 </table>
 
-<!-- Recent Jobs -->
-<?php
-
-  // Gets the list of recent jobs filtered to the current blast program (ie: blastn).
-  $recent_jobs = get_recent_blast_jobs();
-  if ($recent_jobs) {
-  
-    print '<h2>Recent Jobs</h2>';
-    
-    $table = array(
-      'header' => array('Query Information', 'Search Target', 'Date Requested', ''),
-      'rows' => array(),
-      'attributes' => array('class' => array('tripal-blast', 'recent-jobs')),
-      'sticky' => FALSE
-    );
-  
-    foreach ($recent_jobs as $job) {
-
-      // Define a row for the current job.
-      $table['rows'][] = array(
-        $job['query_info'],
-        $job['target'],
-        $job['date'],
-        l('See Results', $job['job_output_url'])
-      );
-    }
-    
-    print theme('table', $table);
-  }
-?>
+<?php print theme('blast_recent_jobs', array()); ?>

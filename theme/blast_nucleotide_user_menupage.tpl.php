@@ -43,8 +43,8 @@ local alignment search tool. J. Mol. Biol., 215, 403–410.</blockquote>
     <th>BLAST Program</th>
   </tr>
   <tr class= "blast-highlighted">
-    <td>Nucleotide</td>
     <td rowspan="2">Nucleotide</td>
+    <td>Nucleotide</td>
     <td><?php print l('blastn', './blast/nucleotide/nucleotide');?>:
       Search a nucleotide database using a nucleotide query.</td>
   </tr>
@@ -66,33 +66,4 @@ local alignment search tool. J. Mol. Biol., 215, 403–410.</blockquote>
   </tr>
 </table>
 
-<!-- Recent Jobs -->
-<?php
-
-  // Gets the list of recent jobs filtered to the current blast program (ie: blastn).
-  $recent_jobs = get_recent_blast_jobs(array('blastn','blastx'));
-  if ($recent_jobs) {
-  
-    print '<h2>Recent Jobs</h2>';
-    
-    $table = array(
-      'header' => array('Query Information', 'Search Target', 'Date Requested', ''),
-      'rows' => array(),
-      'attributes' => array('class' => array('tripal-blast', 'recent-jobs')),
-      'sticky' => FALSE
-    );
-  
-    foreach ($recent_jobs as $job) {
-
-      // Define a row for the current job.
-      $table['rows'][] = array(
-        $job['query_info'],
-        $job['target'],
-        $job['date'],
-        l('See Results', $job['job_output_url'])
-      );
-    }
-    
-    print theme('table', $table);
-  }
-?>
+<?php print theme('blast_recent_jobs', array('blastn','blastx')); ?>

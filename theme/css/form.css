@@ -3,3 +3,9 @@ div.center {
   margin-right: auto;
   width:70%
 } 
+
+.blastdb-extra-info {
+  padding: 10px;
+  border: 1px solid #be7;
+  background-color: #f8fff0;
+}

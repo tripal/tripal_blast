@@ -15,7 +15,7 @@
  */
 function blast_ui_per_blast_program_form($form, $form_state) {
 
-  //  CSS support to the form
+  // CSS support to the form
   $form['#attached']['css'] = array(
     drupal_get_path('module', 'blast_ui') . '/theme/css/form.css',
   );
@@ -23,16 +23,44 @@ function blast_ui_per_blast_program_form($form, $form_state) {
   // We are going to lay out this form as two choices: either look at a recent blast
   // or execute a new one. We want to theme accordingly so set a class to aid us in such.
   $form['#attributes'] = array('class' => array('blast-choice-form'));
-  
-  // @deepaksomanadh - Code added for edit and resubmit funcitonality
-  //   Approach: persist the form data and read it back using JobID
-  $job_data = variable_get('job_data', '');
-  if (isset($_GET['jid']) && isset($job_data)) {    
-    $jid = base64_decode($_GET['jid']);
-  }  
-  else {
-    $job_data = array();
-    $jid = 0;
+
+  // Determine some defaults.
+  $defaults = array(
+    'FASTA' => NULL,
+    'SELECT_DB' => NULL,
+  );
+    
+  // Edit and Resubmit functionality.
+  // We want to pull up the details from a previous blast and fill them in as defaults
+  // for this blast.
+  // @todo: handle file uploads better; currently for the query we put the file contents
+  // in the text area causing reupload and we simply do not support re-using of an uploaded target.
+  if (isset($_GET['resubmit'])) {    
+    $prev_blast = get_BLAST_job(blast_ui_reveal_secret($_GET['resubmit']));
+    
+    // First of all warn if the uploaded their search target last time 
+    // since we don't support that now.
+    if (!isset($prev_blast->blastdb->nid)) {
+      drupal_set_message('You will need to re-upload your <em>Search Target</em> database.','warning');
+    }
+    // Andi f they didn't upload a target then set a default for the select list.
+    else {
+      $defaults['SELECT_DB'] = $prev_blast->blastdb->nid;
+    }
+    
+    // Finally set a default for the query. Since we don't support defaults for file uploads,
+    // we need to get the contents of the file and put them in our textarea.
+    if (is_readable($prev_blast->files->query)) {
+      $defaults['FASTA'] = file_get_contents($prev_blast->files->query);
+    }
+    // There should always be a query file (both if uploaded or not) so if we cant find it
+    // then it must have been cleaned up :-( -- warn the user.
+    else {
+      drupal_set_message('Unable to retrieve previous query sequence; please re-upload it.', 'error');
+    }
+    
+    // Finally save the previous blast details for use by the advanced option forms.
+    $form_state['prev_blast'] = $prev_blast;
   }
 
   // Determine the BLAST program.
@@ -80,12 +108,9 @@ function blast_ui_per_blast_program_form($form, $form_state) {
   );
 
   // CHOOSE RECENT BLAST RESULTS
-  //-----------------------------------
-  // Gets the list of recent jobs filtered to the current blast program (ie: blastn).
-  $recent_jobs = get_recent_blast_jobs(array($blast_program));
-  
+  //-----------------------------------  
   // If there are recent jobs then show a table of them.
-  if ($recent_jobs) {
+  if (get_number_of_recent_jobs()) {
 
     $form['A'] = array(
       '#type' => 'fieldset',
@@ -94,28 +119,10 @@ function blast_ui_per_blast_program_form($form, $form_state) {
       '#collapsible' => TRUE,
       '#collapsed' => TRUE
     );
-    
-    $table = array(
-      'header' => array('Query Information', 'Search Target', 'Date Requested', ''),
-      'rows' => array(),
-      'attributes' => array('class' => array('tripal-blast', 'recent-jobs')),
-      'sticky' => TRUE,
-    );
-      
-    foreach ($recent_jobs as $job) {
-
-      // Define a row for the current job.
-      $table['rows'][] = array(
-        $job['query_info'],
-        $job['target'],
-        $job['date'],
-        l('See Results', $job['job_output_url'])
-      );
-    }
 
     $form['A']['job_table'] = array(
       '#type' => 'markup',
-      '#markup' => theme('table', $table),
+      '#markup' => theme('blast_recent_jobs', array($blast_program)),
     );
   }
 
@@ -165,7 +172,7 @@ function blast_ui_per_blast_program_form($form, $form_state) {
     '#type' => 'textarea',
     '#title' => t('Enter FASTA sequence(s)'),
     '#description'=>t('Enter query sequence(s) in the text area.'),
-    '#default_value' => isset($job_data[$jid]['fasta']) ? $job_data[$jid]['fasta'] : '',
+    '#default_value' => $defaults['FASTA'],
     '#prefix' => '<div id="fasta-textarea">',
     '#suffix' => '</div>',
   );
@@ -216,7 +223,7 @@ function blast_ui_per_blast_program_form($form, $form_state) {
     '#type' => 'select',
     '#title' => t('%type BLAST Databases:', array('%type' => ucfirst($db_type))),
     '#options' => $options,
-    '#default_value' => isset($job_data[$jid]['db_option']) ? $job_data[$jid]['db_option'] : 0,
+    '#default_value' => $defaults['SELECT_DB'],
   );
 
   if (variable_get('blast_ui_allow_target_upload', FALSE)) {
@@ -386,19 +393,38 @@ function blast_ui_per_blast_program_form_submit($form, &$form_state) {
     $mdb_type = 'prot';
   }
 
-  // If the query was submitted via the texrfield then create a file containing it
+  // We want to save information about the blast job to the database for recent jobs &
+  // edit and resubmit functionality.
+  // First set defaults.
+  $blastjob = array(
+    'job_id' => NULL, 
+    'blast_program' => $form_state['values']['blast_program'],
+    'target_blastdb' => (isset($form_state['values']['SELECT_DB'])) ? $form_state['values']['SELECT_DB'] : NULL,
+    'target_file' => NULL,
+    'query_file' => NULL,
+    'result_filestub' => NULL,
+    'options' => serialize(array())
+  );
+  
+  // QUERY
+  //-------------------------
+  // BLAST can only take the query as a file;
+  // therefore, if it was submitted via the textfield we need to create a file containing
+  // the submitted sequence.
   if (isset($form_state['qFlag'])) {
     if ($form_state['qFlag'] == 'seqQuery') {
       $seq_content = $form_state['values']['FASTA'];
-      $query = '/tmp/' . date('YMd_His') . '_query.fasta';
-      file_put_contents ($query , $seq_content);
+      $blastjob['query_file'] = '/tmp/' . date('YMd_His') . '_query.fasta';
+      file_put_contents ($blastjob['query_file'], $seq_content);
     }
     elseif ($form_state['qFlag'] == 'upQuery') {
-      $query = $form_state['upQuery_path'];
+      $blastjob['query_file'] = $form_state['upQuery_path'];
     }
   }
 
-  // If the BLAST database was uploaded then use it to run the BLAST
+  // TARGET
+  //-------------------------
+  // If the BLAST database was uploaded then we need to format it to make it compatible with blast.
   if ($form_state['dbFlag'] == 'upDB') {
 
     // Since we only support using the -db flag (not -subject) we need to create a
@@ -421,8 +447,8 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
 
       $error = TRUE;
     }
-  }//upload target db
-  
+    
+  }
   // Otherwise, we are using one of the website provided BLAST databases so form the
   // BLAST command accordingly
   elseif ($form_state['dbFlag'] == 'blastdb') {
@@ -431,21 +457,10 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
     $blastdb_name = $blastdb_node->db_name;
     $blastdb_with_path = $blastdb_node->db_path;
   }
+  
+  $blastjob['target_file'] = $blastdb_with_path;
 
-  // Now let each program process its own advanced options.
-  $advanced_options = array();
-  $advanced_options_form_submit = 'blast_ui_' . $blast_program . '_advanced_options_form_submit';
-  if (function_exists($advanced_options_form_submit)) {
-    $advanced_options = call_user_func_array(
-      $advanced_options_form_submit,
-      array($form['B'], $form_state)
-    );
-  }
-  else {
-  	$advanced_options = array('none' => 0);
-  }
-
-  // Set path to a BLAST target file to check for its existence
+  // Determine the path to the blast database with extension.
   if ($mdb_type == 'nucl' && (preg_match('/\.[pn]al/', $blastdb_with_path) == 0)) {  
     // Suffix may be .nsq or .nal
     if (is_readable("$blastdb_with_path.nsq")) {
@@ -466,85 +481,11 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
   }
   else {
     $blastdb_with_suffix = $blastdb_with_path;
-  }    
-
-  // Actually submit the BLAST Tripal Job
-  if (is_readable($blastdb_with_suffix)) {
-    // BLAST target exists.
-    global $user;
-
-    $output_filestub = date('YMd_His');
-    $job_args = array(
-      'program' => $blast_program,
-      'query' => $query,
-      'database' => $blastdb_with_path,
-      'output_filename' => $output_filestub,
-      'options' => $advanced_options
-    );
-    
-    $job_id = tripal_add_job(
-      t('BLAST (@program): @query', array('@program' => $blast_program, '@query' => $query)),
-      'blast_job',
-      'run_BLAST_tripal_job',
-      $job_args,
-      $user->uid
-    );
-    
-    $job_data = variable_get('job_data', '');
-    $seq_rows = explode(PHP_EOL, $seq_content);
-    foreach($seq_rows as $row) {
-      if (strpos($row, ">") !== FALSE) {
-       $query_def[] = trim($row, "> \t\n\r\0\x0B");
-      }
-    }
+  }
   
-    $job_data[$job_id] = 
-      array(
-        'program'   => $blast_program,
-        'job_url'   => current_path(),
-        'fasta'     => $seq_content,
-        'query_def' => $query_def,
-        'db_name'   => $blastdb_node->db_name,
-        'db_option' => $selected_db,
-        'options'   => $advanced_options,
-      );
+  if (!is_readable($blastdb_with_suffix)) {
+    $error = TRUE;
     
-    variable_set('job_data', $job_data);
-    //@deepaksomanadh create session and save the recent jobs in respective session
-    if (session_status() === PHP_SESSION_NONE) {
-       session_start();
-    }
-    $sid = session_id();
-    $job_encode_id = base64_encode($job_id);
-    $job_url = "blast/report/$job_encode_id";
-
-    $all_jobs = $_SESSION['all_jobs'];
-    
-    $session_jobs = $all_jobs[$sid];
-    $session_jobs[$job_id] = 
-      array(
-        'job_output_url'=> $job_url, 
-        'query_defs'    => $query_def,
-        'target'        => $blastdb_name,
-        'program'       => $blast_program,
-        'date'          => date('Y-M-d h:i:s'),
-       );
-    $all_jobs[$sid] = $session_jobs;
-    $_SESSION['all_jobs'] = $all_jobs;
-  
-// Comment out this line to run BLAST by hand via the command:
-//   drush trp-run-jobs --username=admin 
-    tripal_jobs_launch(1, $job_id);
-    
-    //Encode the job_id
-    $job_encode_id = base64_encode($job_id);
-    
-    // Redirect to the BLAST results page
-    drupal_goto("blast/report/$job_encode_id");
-  }//BLAST target is readable
-  
-  // BLAST target is unreadable
-  else {
     $dbfile_uploaded_msg = ($form_state['dbFlag'] == 'upDB') 
         ? 'The BLAST database was submitted via user upload.' 
         : 'Existing BLAST Database was chosen.';
@@ -558,6 +499,81 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
     $msg .= "Please contact the site administrator.";
     drupal_set_message($msg, 'error');
   }
+  
+  // ADVANCED OPTIONS
+  //-------------------------
+  // Now let each program process its own advanced options.
+  $advanced_options = array();
+  $advanced_options_form_submit = 'blast_ui_' . $blast_program . '_advanced_options_form_submit';
+  if (function_exists($advanced_options_form_submit)) {
+    $advanced_options = call_user_func_array(
+      $advanced_options_form_submit,
+      array($form['B'], $form_state)
+    );
+  }
+  else {
+  	$advanced_options = array('none' => 0);
+  }
+  
+  $blastjob['options'] = serialize($advanced_options);
+
+  // SUBMIT JOB TO TRIPAL
+  //-------------------------
+  // Actually submit the BLAST Tripal Job
+  if (!$error) {
+    // BLAST target exists.
+    global $user;
+
+    // We want to save all result files (.asn, .xml, .tsv, .html) in the public files directory.
+    // Usually [drupal root]/sites/default/files.
+    $output_dir = variable_get('file_public_path', conf_path() . '/files') 
+      . DIRECTORY_SEPARATOR . 'tripal' . DIRECTORY_SEPARATOR . 'tripal_blast';
+    $output_filestub = $output_dir . DIRECTORY_SEPARATOR . date('YMd_His') . '.blast';
+    
+    $job_args = array(
+      'program' => $blast_program,
+      'query' => $blastjob['query_file'],
+      'database' => $blastdb_with_path,
+      'output_filename' => $output_filestub,
+      'options' => $advanced_options
+    );
+
+    $job_id = tripal_add_job(
+      t('BLAST (@program): @query', array('@program' => $blast_program, '@query' => $blastjob['query_file'])),
+      'blast_job',
+      'run_BLAST_tripal_job',
+      $job_args,
+      $user->uid
+    );
+    
+    $blastjob['result_filestub'] = $output_filestub;
+    $blastjob['job_id'] = $job_id;
+
+    // SAVE JOB INFO
+    //-------------------------
+    drupal_write_record('blastjob', $blastjob);
+
+    //Encode the job_id
+    $job_encode_id = blast_ui_make_secret($job_id);
+    
+    // RECENT JOBS
+    //-------------------------
+    if (!isset($_SESSION['blast_jobs'])) {
+      $_SESSION['blast_jobs'] = array();
+    }
+    $_SESSION['blast_jobs'][] = $job_encode_id;
+
+    // NOTE: Originally there was a call to tripal_launch_jobs() here. That should
+    // NEVER be done since it runs possibly long jobs in the page load causing time-out
+    // issues. If you do not want to run tripal jobs manually, look into installing
+    // Tripal daemon which will run jobs as they're submitted or set up a cron job to
+    // launch the tripal jobs on a specified schedule.
+    
+    // Redirect to the BLAST results page
+    drupal_goto("blast/report/$job_encode_id");
+  }
+
+
 }
 
 /**

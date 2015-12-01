@@ -23,17 +23,17 @@
  *   The current state fo the form passed in as $form.
  */
 function blast_ui_blastn_advanced_options_form(&$form, $form_state) {
-  $all_job_data = variable_get('job_data', '');
-  if (isset($_GET['jid']) && isset($all_job_data)) {    
-     $jid = base64_decode($_GET['jid']);
-     $job_data = $all_job_data[$jid];
+  
+  // Edit and Resubmit functionality.
+  // We want to pull up the details from a previous blast and fill them in as defaults
+  // for this blast.
+  if (isset($form_state['prev_blast'])) {
+    $defaults = _get_default_values($form_state['prev_blast']->options, 'blastn');
   }
   else {
-    $job_data = array();
-    $jid = 0;
+    $defaults = _get_default_values(array(), 'blastn');
   }
-  $defaults = _get_default_values($job_data, 'blastn');
-
+  
   // General parameters
   //.........................
 
@@ -171,16 +171,16 @@ function blast_ui_blastn_advanced_options_form_submit($form, $form_state) {
  *   The current state fo the form passed in as $form.
  */
 function blast_ui_blastx_advanced_options_form(&$form, $form_state) {
-  $all_job_data = variable_get('job_data', '');
-  if (isset($_GET['jid']) && isset($all_job_data)) {    
-     $jid = base64_decode($_GET['jid']);
-     $job_data = $all_job_data[$jid];
+
+  // Edit and Resubmit functionality.
+  // We want to pull up the details from a previous blast and fill them in as defaults
+  // for this blast.
+  if (isset($form_state['prev_blast'])) {
+    $defaults = _get_default_values($form_state['prev_blast']->options, 'blastn');
   }
   else {
-    $job_data = array();
-    $jid = 0;
+    $defaults = _get_default_values(array(), 'blastx');
   }
-  $defaults = _get_default_values($job_data, 'blastx');
 
    $form['ALG']['GParam'] = array(
    '#type' => 'fieldset',
@@ -306,16 +306,16 @@ function blast_ui_blastx_advanced_options_form_submit($form, $form_state) {
  *   The current state fo the form passed in as $form.
  */
 function blast_ui_blastp_advanced_options_form(&$form, $form_state) {
-  $all_job_data = variable_get('job_data', '');
-  if (isset($_GET['jid']) && isset($all_job_data)) {    
-     $jid = base64_decode($_GET['jid']);
-     $job_data = $all_job_data[$jid];
+
+  // Edit and Resubmit functionality.
+  // We want to pull up the details from a previous blast and fill them in as defaults
+  // for this blast.
+  if (isset($form_state['prev_blast'])) {
+    $defaults = _get_default_values($form_state['prev_blast']->options, 'blastn');
   }
   else {
-    $job_data = array();
-    $jid = 0;
+    $defaults = _get_default_values(array(), 'blastp');
   }
-  $defaults = _get_default_values($job_data, 'blastp');
 
   //General parameters
 
@@ -968,16 +968,16 @@ function ajax_dependent_dropdown_callback($form, $form_state) {
  *   The current state fo the form passed in as $form.
  */
 function blast_ui_tblastn_advanced_options_form(&$form, $form_state) {
-  $all_job_data = variable_get('job_data', '');
-  if (isset($_GET['jid']) && isset($all_job_data)) {    
-     $jid = base64_decode($_GET['jid']);
-     $job_data = $all_job_data[$jid];
+
+  // Edit and Resubmit functionality.
+  // We want to pull up the details from a previous blast and fill them in as defaults
+  // for this blast.
+  if (isset($form_state['prev_blast'])) {
+    $defaults = _get_default_values($form_state['prev_blast']->options, 'blastn');
   }
   else {
-    $job_data = array();
-    $jid = 0;
+    $defaults = _get_default_values(array(), 'tblastn');
   }
-  $defaults = _get_default_values($job_data, 'tblastn');
 
   $form['ALG']['GParam'] = array(
    '#type' => 'fieldset',
@@ -1078,28 +1078,28 @@ function blast_ui_tblastn_advanced_options_form_submit($form, $form_state) {
 
 }
 
-/*
+/**
  * Get default form values; may come from saved job data if user is re-running
  *   a previous job.
  */
-function _get_default_values($job_data) {
+function _get_default_values($options) {
   // restore previous values or set to default
-  $max_target = (isset($job_data['options']['max_target_seqs'])) 
-  					? $job_data['options']['max_target_seqs'] : 10;
-  $short_queries = (isset($job_data['options']['shortQueries'])) 
-  					? $job_data['options']['shortQueries'] : true;
-  $evalue = (isset($job_data['options']['evalue'])) 
-  					? $job_data['options']['evalue'] : .001;
-  $word_size = (isset($job_data['options']['word_size'])) 
-  					? $job_data['options']['word_size'] : 11;
-  $qRange = (isset($job_data['options']['culling_limit'])) 
-  					? $job_data['options']['culling_limit'] : 0;
+  $max_target = (isset($options['max_target_seqs'])) 
+  					? $options['max_target_seqs'] : 10;
+  $short_queries = (isset($options['shortQueries'])) 
+  					? $options['shortQueries'] : true;
+  $evalue = (isset($options['evalue'])) 
+  					? $options['evalue'] : .001;
+  $word_size = (isset($options['word_size'])) 
+  					? $options['word_size'] : 11;
+  $qRange = (isset($options['culling_limit'])) 
+  					? $options['culling_limit'] : 0;
 
   $matchmiss = 0;
-  $reward = (isset($job_data['options']['reward'])) 
-  					? $job_data['options']['reward'] : 1;
-  $penalty = (isset($job_data['options']['penalty'])) 
-  					? $job_data['options']['penalty'] : -2;
+  $reward = (isset($options['reward'])) 
+  					? $options['reward'] : 1;
+  $penalty = (isset($options['penalty'])) 
+  					? $options['penalty'] : -2;
   if ($reward == 1) {
   	switch ($penalty) {
   		case -1: $matchmiss = 5; break;
@@ -1119,10 +1119,10 @@ function _get_default_values($job_data) {
   }
   
   $gap = 0;
-  $gapopen = (isset($job_data['options']['gapopen'])) 
-  					? $job_data['options']['gapopen'] : 5;
-  $gapextend = (isset($job_data['options']['gapextend'])) 
-  					? $job_data['options']['gapextend'] : 2;
+  $gapopen = (isset($options['gapopen'])) 
+  					? $options['gapopen'] : 5;
+  $gapextend = (isset($options['gapextend'])) 
+  					? $options['gapextend'] : 2;
   if ($gapextend == 2) {
   	switch ($gapopen) {
   		case 5: $gap = 0; break;
@@ -1142,8 +1142,8 @@ function _get_default_values($job_data) {
 // eksc- need to implement query range limit
 //  $q_range = 0;
   
-  $matrix = (isset($job_data['options']['matrix'])) 
-  					? $job_data['options']['matrix'] : 'PAM30';
+  $matrix = (isset($options['matrix'])) 
+  					? $options['matrix'] : 'PAM30';
   return array(
   	'max_target_seqs' => $max_target,
   	'short_queries'   => $short_queries,
@@ -1156,6 +1156,12 @@ function _get_default_values($job_data) {
   );
 }//_get_default_values
 
+/**
+ * Get a list of options for the max_target_seq blast option.
+ *
+ * The options are the same for all programs
+ * and describe the maximum number of aligned sequences to keep.
+ */
 function _get_max_target($which) {
 	switch ($which) {
 	  case 'blastn':
@@ -1176,6 +1182,9 @@ function _get_max_target($which) {
 	}//switch
 }
 
+/**
+ * Get a list of options for work size.
+ */
 function _get_word_size($which) {
 	switch ($which) {
 		case 'blastn':
@@ -1204,6 +1213,9 @@ function _get_word_size($which) {
 	}//switch
 }
 
+/**
+ * Get a list of options for match/mismatch ratio.
+ */
 function _get_match_mismatch($which) {
 	switch ($which) {
 		case 'blastn':
@@ -1218,6 +1230,9 @@ function _get_match_mismatch($which) {
   }//switch
 }
 
+/**
+ * Get a list of options for gaps.
+ */
 function _get_gap($which) {
 	switch ($which) {
 		case 'blastn':
@@ -1233,6 +1248,9 @@ function _get_gap($which) {
    }//switch
 }
 
+/**
+ * Translate above gap options into blast gap open and extend costs.
+ */
 function _set_gap($gap_key) {
  switch ($gap_key) {
    case 0:
@@ -1268,6 +1286,9 @@ function _set_gap($gap_key) {
   return array('gapOpen' => $gapOpen, 'gapExtend' => $gapExtend);
 }
 
+/**
+ * Translate mismatch/match ratio option into blast penalty/reward options.
+ */
 function _set_match_mismatch($m_m) {
   switch ($m_m) {
    case 0:

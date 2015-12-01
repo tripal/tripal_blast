@@ -16,7 +16,6 @@ require_once 'includes/blast_ui.node.inc';
 
 // BLAST Link-out functionality.
 require_once 'includes/blast_ui.linkouts.inc';
-include_once('includes/blast_ui.custom.inc');
 
 // Functions specific to themeing (ie: preprocess)
 require_once 'theme/blast_ui.theme.inc';
@@ -169,7 +168,14 @@ function blast_ui_theme() {
     'variables' => array('hsps' => NULL),
     'path' => "$path/theme",
   );
-
+  
+  // Lists the recent blast jobs for a given user/session.
+  $items['blast_recent_jobs'] = array(
+    'template' => 'blast_recent_jobs',
+    'variables' => array('programs' => NULL),
+    'path' => "$path/theme",
+  );
+  
   // Module Help
   $items['blast_help'] = array(
     'template' => 'blast_help',
@@ -214,12 +220,12 @@ function blast_ui_help($path, $arg) {
  *  Return HTML output of the BLAST results to be displayed to the user
  *
  */
-function show_blast_output($job_id) {
+function show_blast_output($job_string) {
 
   // BLASTs are run as a Tripal job. As such we need to determine whether the current
   // BLAST is in the queue, running or complete in order to determine what to show the user
   //decode the job_id
-  $job_id = base64_decode($job_id);
+  $job_id = blast_ui_reveal_secret($job_string);
   $job = tripal_get_job($job_id);
 
   // 1) Job is in the Queue
