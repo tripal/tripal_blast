@@ -197,6 +197,9 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
     }
   }
 
+ // Setting the value of threads by admin page
+ $blast_cmd .= " -num_threads ".$blast_threads;
+
   print "\nExecuting the following BLAST command:\n" . $blast_cmd . "\n";
 
   system($blast_cmd);
