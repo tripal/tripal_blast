@@ -364,12 +364,23 @@ function blastdb_load($nodes) {
   $result = db_query($sql, array(':nids' => array_keys($nodes)));
 
   foreach ($result as $record) {
+    // Does this BLAST node have a custom linkout? 
+    //   (Is there a better way to determine this?)
+    $custom_linkout = ($record->dbxref_linkout_type != '' 
+                         && $record->dbxref_linkout_type != 'link' 
+                         && $record->dbxref_linkout_type != 'gbrowse'
+                         && $record->dbxref_linkout_type != 'jbrowse');
+
     $nodes[$record->nid]->db_name = $record->name;
     $nodes[$record->nid]->db_path = $record->path;
     $nodes[$record->nid]->title = $record->name;
     $nodes[$record->nid]->db_dbtype = $record->dbtype;
 
-    if ($record->dbxref_id_regex AND $record->dbxref_db_id) {
+    // There will be a hit linkout if there is a regex pattern for the id
+    //   and a database (db record) to generate a URL
+    //   OR if a custom linkout has been set, which may or may not require a 
+    //   regex and/or database.
+    if ($record->dbxref_id_regex AND $record->dbxref_db_id || $custom_linkout) {
       $nodes[$record->nid]->linkout = new stdClass();
 
       if (preg_match('/\/.*\//', $record->dbxref_id_regex)) {
@@ -400,6 +411,7 @@ function blastdb_load($nodes) {
       }
     }
     else {
+      // No linkout
       $nodes[$record->nid]->linkout = new stdClass();
       $nodes[$record->nid]->linkout->regex = '';
       $nodes[$record->nid]->linkout->db_id = 0;

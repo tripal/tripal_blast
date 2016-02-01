@@ -202,14 +202,17 @@ function blast_ui_per_blast_program_form($form, $form_state) {
 
   // BLAST DATABASE
   //.........................
-
+  $target_upload_text = '';
+  if (variable_get('blast_ui_allow_target_upload', FALSE)) {
+    $target_upload_text = 'You can also use the browse button to upload a '
+                        . 'file from your local disk. The file may contain '
+                        . 'a single sequence or a list of sequences. ';
+  }
   $form['B']['DB'] = array(
     '#type' => 'fieldset',
     '#title' => t('Choose Search Target'),
     '#description' => t('Choose from one of the %type BLAST databases listed '
-      . 'below. You can also use the browse button to upload a file from your '
-      . 'local disk. The file may contain a single sequence or a list of '
-      . 'sequences. ',
+                        . 'below. ' . $target_upload_text,
       array('%type' => $db_type)),
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,

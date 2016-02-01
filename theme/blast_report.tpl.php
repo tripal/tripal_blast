@@ -22,6 +22,7 @@ if ($blast_job->blastdb->linkout->none === FALSE) {
   }
 }
 
+
 // Handle no hits. This following array will hold the names of all query
 // sequences which didn't have any hits.
 $query_with_no_hits = array();
@@ -262,6 +263,9 @@ and click the <em>target name </em> to get more information about the target hit
                   $hit_url,
                   array('attributes' => array('target' => '_blank'))
                 );
+                
+                //HACK: change '%3F' to '?' to work around a Drupal bug"
+                $hit_name = str_replace('%3F', '?', $hit_name);
               }
             }
                         
