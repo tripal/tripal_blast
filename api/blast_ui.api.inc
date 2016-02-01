@@ -178,7 +178,7 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
   // Allow administrators to use an absolute path for these commands.
   // Defaults to using $PATH.
 	$blast_path    = variable_get('blast_path', '');
-	$blast_threads = variable_get('blast_threads', '');
+	$blast_threads = variable_get('blast_threads', 1);
 	
 	// Strip the extension off the BLAST target
 	$database = preg_replace("/(.*)\.[pn]\w\w/", '$1', $database);
