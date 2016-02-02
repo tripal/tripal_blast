@@ -56,6 +56,15 @@
 function blast_ui_blast_linkout_info() {
   $types = array();
 
+  // A default link-out type requiring no information.
+  $types['none'] = array(
+    'name' => 'None',
+    'process function' => 'tripal_blast_generate_linkout_none',
+    'help' => 'This will leave the blast results hits as plain text.',
+    'require_regex' => FALSE,
+    'require_db' => FALSE,
+  );
+  
   $types['link'] = array(
     // Human-readable Type name to display to users in the BLAST Database
     // create/edit form.
@@ -74,6 +83,9 @@ function blast_ui_blast_linkout_info() {
       concatenated to the end of the url prefix. For example, if your hit is for "Chr01" 
       and the URL prefix is "http://myfriendstripalsite.org/name/" then the complete URL 
       is simply &#60;a href="http://myfriendstripalsite.org/name/Chr01"&#62;Chr01&#60;/a&#62;.',
+    // Whether or not the link-out requires additional fields from the nodes.
+    'require_regex' => TRUE,
+    'require_db' => TRUE,
   );
 
   $types['gbrowse'] = array(
@@ -86,6 +98,9 @@ function blast_ui_blast_linkout_info() {
       supplied is expected to have an empty query (?) or be properly ended (;). For
       example, "http://mydomain.com/gb/gbrowse/tripalus_databasica/?" OR
       "http://mydomain.com/gb/gbrowse/tripalus_databasica/?label=genes+markers;"',
+    // Whether or not the link-out requires additional fields from the nodes.
+    'require_regex' => TRUE,
+    'require_db' => TRUE,
   );
 
   $types['jbrowse'] = array(
@@ -100,6 +115,9 @@ function blast_ui_blast_linkout_info() {
       "http://mydomain.com/jbrowse/tripalus_databasica/?tracks=genes,markers,blast&". 
       Also <strong><em>the Blast Result track is NOT Displayed by default</em></strong>. Either include "blast" 
       using the "tracks" directive in the URL prefix or specify it in your JBrowse.conf.',
+    // Whether or not the link-out requires additional fields from the nodes.
+    'require_regex' => TRUE,
+    'require_db' => TRUE,
   );
 
   return $types;
