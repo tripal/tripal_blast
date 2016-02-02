@@ -32,7 +32,7 @@
 
     // Do some simple steps to generate the suffix based on the $hit.
 
-    return $url_prefix . $url_postfix;
+    return l('url name', $url_prefix . $url_postfix);
   }
  * @endcode
  *
@@ -146,12 +146,17 @@ function blast_ui_blast_linkout_info() {
  *   supported by this particular link-out type.
  *
  * @return
- *   The URL string to be linked to.
+ *   An html link.
  */
 function tripal_blast_generate_linkout_link($url_prefix, $hit, $info, $options = array()) {
 
   if (isset($hit->{'linkout_id'})) {
-    return $url_prefix . $hit->{'linkout_id'};
+    $hit_url = $url_prefix . $hit->{'linkout_id'};
+    return l(
+      $hit->{'linkout_id'},
+      $hit_url,
+      array('attributes' => array('target' => '_blank'))
+    );
   }
   else {
     return FALSE;
@@ -181,7 +186,7 @@ function tripal_blast_generate_linkout_link($url_prefix, $hit, $info, $options =
  *   supported by this particular link-out type.
  *
  * @return
- *   The URL string to be linked to.
+ *   An html link.
  */
 function tripal_blast_generate_linkout_gbrowse($url_prefix, $hit, $info, $options = array()) {
 
@@ -209,13 +214,13 @@ function tripal_blast_generate_linkout_gbrowse($url_prefix, $hit, $info, $option
   // Now we are finally ready to build the URL.
   // First lets set the location of the hit so the GBrowse focuses in on the correct region.
   $query = array();
-  $query['ref'] = 'ref=' . $hit->{'linkout_id'};
-  $query['start'] = 'start=' . $min;
-  $query['stop'] = 'stop=' . $max;
-  
+  $query['ref'] = $hit->{'linkout_id'};
+  $query['start'] = $min;
+  $query['stop'] = $max;
+
   // Next we want to add our BLAST hit to the GBrowse.
   $query['add'] = format_string(
-    'add=!ref+!trackname+!featurename+!hspcoords',
+    '!ref !trackname !featurename !hspcoords',
     array(
       '!ref' => $hit->{'linkout_id'},
       '!trackname' => 'BLAST',
@@ -225,14 +230,24 @@ function tripal_blast_generate_linkout_gbrowse($url_prefix, $hit, $info, $option
   );
   
   // Highlight our newly added feature.
-  $query['highlight'] = format_string(
-    'h_feat=!featurename',
-    array('!featurename' => 'BlastHit')
+  $query['h_feat'] = 'BlastHit';
+
+  $hit_url = $url_prefix; //. $url_postfix;
+  $url = l(
+    $hit->{'linkout_id'},
+    $hit_url,
+    array( 
+      'query' => $query,
+      'attributes' => array('target' => '_blank')
+    )
   );
   
-  $url_postfix = implode(';', $query);
+  // For some reason GBrowse expects semi-colons (;) to delineate query paramters 
+  // whereas Drupal throws ampherstands (&) in. This is to fix that.
+  $url = str_replace('&',';', $url);
+  
+  return $url;
 
-  return $url_prefix . $url_postfix;
 }
 
 /**
@@ -271,7 +286,7 @@ function tripal_blast_generate_linkout_gbrowse($url_prefix, $hit, $info, $option
  *   supported by this particular link-out type.
  *
  * @return
- *   The URL string to be linked to.
+ *   An html link.
  */
 function tripal_blast_generate_linkout_jbrowse($url_prefix, $hit, $info, $options = array()) {
 
@@ -351,5 +366,10 @@ function tripal_blast_generate_linkout_jbrowse($url_prefix, $hit, $info, $option
 
   $url_postfix = implode('&', $jbrowse_query);
 
-  return $url_prefix . $url_postfix;
+  $hit_url = $url_prefix . $url_postfix;
+  return l(
+    $hit->{'linkout_id'},
+    $hit_url,
+    array('attributes' => array('target' => '_blank'))
+  );
 }
