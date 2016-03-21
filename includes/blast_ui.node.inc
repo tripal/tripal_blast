@@ -112,105 +112,12 @@ function blastdb_form($node, &$form_state) {
     '#suffix' => '</div>',
   );
 
-  $regex = array(
-    'default' => array(
-      'title' => 'Generic',
-      'help' => 'A single word followed by a free-text definition. '
-      . 'The first word contains only alphanumeric characters and optionally '
-      . 'underscores and will be used as the ID of the sequence.'
-    ),
-    'genbank' => array(
-      'title' => 'NCBI GenBank',
-      'help' => 'Follows the same format as the first option '
-      . 'except that the first "word" is of the following form: '
-      . 'gb|accession|locus. The accession will be used as the ID of the sequence.'
-    ),
-    'embl' => array(
-      'title' => 'EMBL Data Library',
-      'help' => 'Follows the same format as the first option '
-      . 'except that the first "word" is of the following form: '
-      . 'emb|accession|locus. The accession will be used as the ID of the sequence.'
-    ),
-    'swissprot' => array(
-      'title' => 'SWISS-PROT',
-      'help' => 'Follows the same format as the first option '
-      . 'except that the first "word" is of the following form: '
-      . 'sp|accession|entry name. The accession will be used as the ID of the sequence.'
-    ),
-    'custom' => array(
-      'title' => 'Custom Format',
-      'help' => 'Allows you to use a regular expression (define one below) to '
-      . 'extract a specifc portion of the FASTA header to be used as the ID.'
-    ),
-  );
-  $regex_type = (isset($node->linkout->regex_type)) ? $node->linkout->regex_type : 'default';
-  $regex_type = (isset($form_state['values'])) ? $form_state['values']['dbxref_id_type'] : $regex_type;
-  $form['dbxref']['dbxref_id_type'] = array(
-    '#type' => 'radios',
-    '#title' => 'FASTA header format',
-    '#description' => 'Choose the format that matches the format of the FASTA '
-      . 'headers in this BLAST database or choose custom to define your own '
-      . 'using regular expressions. This ID will be used to create the URL for the link-out.',
-    '#options' => array(
-      'default' => '<span title="' . $regex['default']['help'] . '">' . $regex['default']['title'] . '</span>',
-      'genbank' => '<span title="' . $regex['genbank']['help'] . '">' . $regex['genbank']['title'] . '</span>',
-      'embl' => '<span title="' . $regex['embl']['help'] . '">' . $regex['embl']['title'] . '</span>',
-      'swissprot' => '<span title="' . $regex['swissprot']['help'] . '">' . $regex['swissprot']['title'] . '</span>',
-      'custom' => '<span title="' . $regex['custom']['help'] . '">' . $regex['custom']['title'] . '</span>',
-    ),
-    '#default_value' => $regex_type,
-    '#ajax' => array(
-      'callback' => 'ajax_blast_ui_node_linkout_custom_callback',
-      'wrapper' => 'link-outs',
-    )
-  );
-  // Add information about each format to the description.
-  if ($regex_type) {
-    $form['dbxref']['dbxref_id_type']['#description'] .= '
-      <p class="blastdb-extra-info"><strong>'.$regex[$regex_type]['title'].'</strong>: '.$regex[$regex_type]['help'].'</p>';
-  }
-
-  $hide_regex = TRUE;
-  if (isset($form_state['values']['dbxref_id_type'])) {
-    if ($form_state['values']['dbxref_id_type'] == 'custom') {
-      $hide_regex = FALSE;
-    }
-  }
-  $form['dbxref']['regex'] = array(
-    '#type' => 'textfield',
-    '#title' => 'Regular Expression',
-    '#description' => t('A PHP Regular expression with curved brackets '
-      . 'surrounding the ID that should be used in the URL to provide a link-'
-      . 'out to additional information. See <a href="@url" target="_blank">PHP.net Regular '
-      . 'Expression Documentation</a> for more information. <strong>Be sure '
-      . 'to include the opening and closing slashes</strong>. This is only '
-      . 'available if custom was choosen for the FASTA header format above.',
-      array('@url' => 'http://php.net/manual/en/reference.pcre.pattern.syntax.php')),
-    '#disabled' => $hide_regex,
-    '#default_value' => (isset($node->linkout->regex)) ? $node->linkout->regex : ''
-  );
-
-  $db_options = tripal_get_db_select_options();
-  $db_options[0] = '';
-  asort($db_options);
-  $form['dbxref']['db_id'] = array(
-    '#type' => 'select',
-    '#title' => 'External Database',
-    '#description' => 'The external database you would like to link-out to. '
-      . 'Note that this list includes all Tripal Databases and if the database '
-      . 'you would like to link-out to is not included you can add it through '
-      . l('Administration > Tripal > Chado Modules > Databases','admin/tripal/chado/tripal_db/add', array('attributes' => array('target' => '_blank')))
-      . '.',
-    '#options' => $db_options,
-    '#default_value' => (isset($node->linkout->db_id->db_id)) ? $node->linkout->db_id->db_id : 0
-  );
-
   $types = module_invoke_all('blast_linkout_info');
   $options = array();
   foreach ($types as $machine_name => $details) {
     $options[$machine_name] = (isset($details['name'])) ? $details['name'] : $machine_name;
   }
-  $linkout_type = (isset($node->linkout->type)) ? $node->linkout->type : 'link';
+  $linkout_type = (isset($node->linkout->type)) ? $node->linkout->type : 'none';
   $linkout_type = (isset($form_state['values'])) ? $form_state['values']['dbxref_linkout_type'] : $linkout_type;
   $form['dbxref']['dbxref_linkout_type'] = array(
     '#type' => 'radios',
@@ -230,13 +137,108 @@ function blastdb_form($node, &$form_state) {
     $form['dbxref']['dbxref_linkout_type']['#description'] .= '
       <p class="blastdb-extra-info"><strong>'.$types[$linkout_type]['name'].'</strong>: '.$types[$linkout_type]['help'].'</p>';
   }
-  
+
+  if ($types[$linkout_type]['require_regex']) {
+    $regex = array(
+      'default' => array(
+        'title' => 'Generic',
+        'help' => 'A single word followed by a free-text definition. '
+        . 'The first word contains only alphanumeric characters and optionally '
+        . 'underscores and will be used as the ID of the sequence.'
+      ),
+      'genbank' => array(
+        'title' => 'NCBI GenBank',
+        'help' => 'Follows the same format as the first option '
+        . 'except that the first "word" is of the following form: '
+        . 'gb|accession|locus. The accession will be used as the ID of the sequence.'
+      ),
+      'embl' => array(
+        'title' => 'EMBL Data Library',
+        'help' => 'Follows the same format as the first option '
+        . 'except that the first "word" is of the following form: '
+        . 'emb|accession|locus. The accession will be used as the ID of the sequence.'
+      ),
+      'swissprot' => array(
+        'title' => 'SWISS-PROT',
+        'help' => 'Follows the same format as the first option '
+        . 'except that the first "word" is of the following form: '
+        . 'sp|accession|entry name. The accession will be used as the ID of the sequence.'
+      ),
+      'custom' => array(
+        'title' => 'Custom Format',
+        'help' => 'Allows you to use a regular expression (define one below) to '
+        . 'extract a specifc portion of the FASTA header to be used as the ID.'
+      ),
+    );
+    $regex_type = (isset($node->linkout->regex_type)) ? $node->linkout->regex_type : 'default';
+    $regex_type = (isset($form_state['values'])) ? $form_state['values']['dbxref_id_type'] : $regex_type;
+    $form['dbxref']['dbxref_id_type'] = array(
+      '#type' => 'radios',
+      '#title' => 'FASTA header format',
+      '#description' => 'Choose the format that matches the format of the FASTA '
+        . 'headers in this BLAST database or choose custom to define your own '
+        . 'using regular expressions. This ID will be used to create the URL for the link-out.',
+      '#options' => array(
+        'default' => '<span title="' . $regex['default']['help'] . '">' . $regex['default']['title'] . '</span>',
+        'genbank' => '<span title="' . $regex['genbank']['help'] . '">' . $regex['genbank']['title'] . '</span>',
+        'embl' => '<span title="' . $regex['embl']['help'] . '">' . $regex['embl']['title'] . '</span>',
+        'swissprot' => '<span title="' . $regex['swissprot']['help'] . '">' . $regex['swissprot']['title'] . '</span>',
+        'custom' => '<span title="' . $regex['custom']['help'] . '">' . $regex['custom']['title'] . '</span>',
+      ),
+      '#default_value' => $regex_type,
+      '#required' => TRUE,
+      '#ajax' => array(
+        'callback' => 'ajax_blast_ui_node_linkout_custom_callback',
+        'wrapper' => 'link-outs',
+      )
+    );
+    // Add information about each format to the description.
+    if ($regex_type) {
+      $form['dbxref']['dbxref_id_type']['#description'] .= '
+        <p class="blastdb-extra-info"><strong>'.$regex[$regex_type]['title'].'</strong>: '.$regex[$regex_type]['help'].'</p>';
+    }
+
+    if ($regex_type == 'custom') {
+      $form['dbxref']['regex'] = array(
+        '#type' => 'textfield',
+        '#title' => 'Regular Expression',
+        '#description' => t('A PHP Regular expression with curved brackets '
+          . 'surrounding the ID that should be used in the URL to provide a link-'
+          . 'out to additional information. See <a href="@url" target="_blank">PHP.net Regular '
+          . 'Expression Documentation</a> for more information. <strong>Be sure '
+          . 'to include the opening and closing slashes</strong>. This is only '
+          . 'available if custom was choosen for the FASTA header format above.',
+          array('@url' => 'http://php.net/manual/en/reference.pcre.pattern.syntax.php')),
+        '#required' => TRUE,
+        '#default_value' => (isset($node->linkout->regex)) ? $node->linkout->regex : ''
+      );
+    }
+  }
+
+  if ($types[$linkout_type]['require_db']) {
+    $db_options = tripal_get_db_select_options();
+    $db_options[0] = '';
+    asort($db_options);
+    $form['dbxref']['db_id'] = array(
+      '#type' => 'select',
+      '#title' => 'External Database',
+      '#description' => 'The external database you would like to link-out to. '
+        . 'Note that this list includes all Tripal Databases and if the database '
+        . 'you would like to link-out to is not included you can add it through '
+        . l('Administration > Tripal > Chado Modules > Databases','admin/tripal/chado/tripal_db/add', array('attributes' => array('target' => '_blank')))
+        . '.',
+      '#options' => $db_options,
+      '#required' => TRUE,
+      '#default_value' => (isset($node->linkout->db_id->db_id)) ? $node->linkout->db_id->db_id : 0
+    );
+  }
+    
   return $form;
 }
 
 function blastdb_form_validate($form, $form_state) {
 
-  if (!empty($form_state['values']['regex'])) {
+  if (isset($form_state['values']['regex']) AND !empty($form_state['values']['regex'])) {
     // Check that any supplied regex includes //.
     if (!preg_match('/\/.*\//', $form_state['values']['regex'])) {
       form_set_error('regex', 'Regular Expressions require opening and closing slashes to delinate them. For example, <em>/^(\s+) .*/</em>');
@@ -250,7 +252,7 @@ function blastdb_form_validate($form, $form_state) {
   }
 
   // Check that the supplied db actually contains a URL prefix.
-  if ($form_state['values']['db_id']) {
+  if (isset($form_state['values']['db_id'])) {
     $db = tripal_get_db(array('db_id' => $form_state['values']['db_id']));
     if (empty($db)) {
       form_set_error('db_id', 'The database chosen no longer exists.');
@@ -273,15 +275,23 @@ function blastdb_form_validate($form, $form_state) {
 function blastdb_insert($node) {
 
   // Handle Link-out Rules.
-  if ($node->dbxref_id_type == 'custom') {
-    $regex = $node->regex;
+  $regex = '';
+  if (isset($node->dbxref_id_type)) {
+    if ($node->dbxref_id_type == 'custom') {
+      $regex = $node->regex;
+    }
+    else {
+      $regex = $node->dbxref_id_type;
+    }
   }
-  else {
-    $regex = $node->dbxref_id_type;
+  
+  $db_id = 0;
+  if (isset($node->db_id)) {
+    $db_id = $node->db_id;
   }
 
   if (!$node->dbxref_linkout_type) {
-    $node->dbxref_linkout_type = 'link';
+    $node->dbxref_linkout_type = 'none';
   }
   
   // Actually insert the record.
@@ -291,7 +301,7 @@ function blastdb_insert($node) {
     'path'                => $node->db_path,
     'dbtype'              => $node->db_dbtype,
     'dbxref_id_regex'     => $regex,
-    'dbxref_db_id'        => $node->db_id,
+    'dbxref_db_id'        => $db_id,
     'dbxref_linkout_type' => $node->dbxref_linkout_type,
   ))->execute();
 }
@@ -312,15 +322,23 @@ function blast_ui_node_insert($node) {
 function blastdb_update($node) {
 
   // Handle Link-out Rules.
-  if ($node->dbxref_id_type == 'custom') {
-    $regex = $node->regex;
+  $regex = '';
+  if (isset($node->dbxref_id_type)) {
+    if ($node->dbxref_id_type == 'custom') {
+      $regex = $node->regex;
+    }
+    else {
+      $regex = $node->dbxref_id_type;
+    }
   }
-  else {
-    $regex = $node->dbxref_id_type;
+  
+  $db_id = 0;
+  if (isset($node->db_id)) {
+    $db_id = $node->db_id;
   }
 
   if (!$node->dbxref_linkout_type) {
-    $node->dbxref_linkout_type = 'link';
+    $node->dbxref_linkout_type = 'none';
   }
   
   // Update the record.
@@ -329,7 +347,7 @@ function blastdb_update($node) {
     'path'                => $node->db_path,
     'dbtype'              => $node->db_dbtype,
     'dbxref_id_regex'     => $regex,
-    'dbxref_db_id'        => $node->db_id,
+    'dbxref_db_id'        => $db_id,
     'dbxref_linkout_type' => $node->dbxref_linkout_type,
   ))->condition('nid', $node->nid)->execute();
 }
@@ -364,54 +382,80 @@ function blastdb_load($nodes) {
   $result = db_query($sql, array(':nids' => array_keys($nodes)));
 
   foreach ($result as $record) {
-    // Does this BLAST node have a custom linkout? 
-    //   (Is there a better way to determine this?)
-    $custom_linkout = ($record->dbxref_linkout_type != '' 
-                         && $record->dbxref_linkout_type != 'link' 
-                         && $record->dbxref_linkout_type != 'gbrowse'
-                         && $record->dbxref_linkout_type != 'jbrowse');
 
+    // Add basic blast node information.
     $nodes[$record->nid]->db_name = $record->name;
     $nodes[$record->nid]->db_path = $record->path;
     $nodes[$record->nid]->title = $record->name;
     $nodes[$record->nid]->db_dbtype = $record->dbtype;
 
-    // There will be a hit linkout if there is a regex pattern for the id
-    //   and a database (db record) to generate a URL
-    //   OR if a custom linkout has been set, which may or may not require a 
-    //   regex and/or database.
-    if ($record->dbxref_id_regex AND $record->dbxref_db_id || $custom_linkout) {
+    // Determine the type of link-out chosen.
+    $types = module_invoke_all('blast_linkout_info');
+    $type = NULL;
+    if (isset($types[ $record->dbxref_linkout_type ])) {
+      $type = $types[ $record->dbxref_linkout_type ];
+    }
+    else {
+      tripal_report_error(
+        'blast_ui',
+        TRIPAL_ERROR,
+        'Unable to find details on the type of link-out choosen (%type). Have you defined hook_blast_linkout_info()? Make sure to clear the cache once you do so.',       
+        array('%type' => $record->dbxref_linkout_type)
+      );
+    }
+
+    // Now determine if this node meets the requirements for the linkout
+    // chosen before adding linkout information.
+    $add_linkout = TRUE;
+    if (!$type OR $record->dbxref_linkout_type == 'none') {
+      $add_linkout = FALSE;
+    }
+    else {
+      if ($type['require_regex'] AND !$record->dbxref_id_regex) {
+        $add_linkout = FALSE;
+      }
+      if ($type['require_db'] AND !$record->dbxref_db_id) {
+        $add_linkout = FALSE;
+      }
+    }
+
+    // finally add information related to link-outs to the node.
+    if ($add_linkout) {
       $nodes[$record->nid]->linkout = new stdClass();
 
-      if (preg_match('/\/.*\//', $record->dbxref_id_regex)) {
-        $nodes[$record->nid]->linkout->regex_type = 'custom';
-        $nodes[$record->nid]->linkout->regex = $record->dbxref_id_regex;
+      // If the link-out type requires a regex then provide one.
+      if ($type['require_regex']) {
+        if (preg_match('/\/.*\//', $record->dbxref_id_regex)) {
+          $nodes[$record->nid]->linkout->regex_type = 'custom';
+          $nodes[$record->nid]->linkout->regex = $record->dbxref_id_regex;
+        }
+        else {
+          $nodes[$record->nid]->linkout->regex_type = $record->dbxref_id_regex;
+          $nodes[$record->nid]->linkout->regex = get_blastdb_linkout_regex($nodes[$record->nid]);
+        }
       }
       else {
-        $nodes[$record->nid]->linkout->regex_type = $record->dbxref_id_regex;
-        $nodes[$record->nid]->linkout->regex = get_blastdb_linkout_regex($nodes[$record->nid]);
+          $nodes[$record->nid]->linkout->regex_type = 'none';
+          $nodes[$record->nid]->linkout->regex = NULL;
       }
-      $nodes[$record->nid]->linkout->db_id = tripal_get_db(array('db_id' => $record->dbxref_db_id));
+
+      // If the link-out type requires a db then provide one.
+      if ($type['require_db']) {
+        $nodes[$record->nid]->linkout->db_id = tripal_get_db(array('db_id' => $record->dbxref_db_id));
+      }
+      else {
+        $nodes[$record->nid]->linkout->db_id = NULL;
+      }
+
       $nodes[$record->nid]->linkout->none = FALSE;
 
       // Support complex link-outs.
       $nodes[$record->nid]->linkout->type = $record->dbxref_linkout_type;
-      $types = module_invoke_all('blast_linkout_info');
-      if (isset($types[$record->dbxref_linkout_type])) {
-        $nodes[$record->nid]->linkout->url_function = $types[$record->dbxref_linkout_type]['process function'];
-      }
-      else {
-        $nodes[$record->nid]->linkout->url_function = '';
-        tripal_report_error(
-          'blast_ui',
-          TRIPAL_ERROR,
-          'Unable to find details on the type of link-out choosen (%type). Have you defined hook_blast_linkout_info()? Make sure to clear the cache once you do so.',
-          array('%type' => $record->dbxref_linkout_type)
-        );
-      }
+      $nodes[$record->nid]->linkout->url_function = $type['process function'];
+   
     }
+    // If there is no linkout then provide some defaults.
     else {
-      // No linkout
       $nodes[$record->nid]->linkout = new stdClass();
       $nodes[$record->nid]->linkout->regex = '';
       $nodes[$record->nid]->linkout->db_id = 0;

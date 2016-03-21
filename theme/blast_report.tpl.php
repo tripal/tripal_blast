@@ -240,7 +240,7 @@ and click the <em>target name </em> to get more information about the target hit
             
               // Allow custom functions to determine the URL to support more complicated
               // link-outs rather than just using the tripal database prefix.
-              $hit_url = call_user_func(
+              $hit_name = call_user_func(
                 $url_function,
                 $linkout_urlprefix,
                 $hit,
@@ -252,21 +252,6 @@ and click the <em>target name </em> to get more information about the target hit
                   'Target'     => $blast_job->blastdb->db_name,
                 )
               );
-
-              // Create Link.
-              if ($hit_url) {
-                // It is important to url-encode links, especially in this case,
-                // since jbrowse links have double quotes in them which result in
-                // truncated links due to <a href="yoururl"></a> (notice the double quotes).
-                $hit_name = l(
-                  $hit->{'linkout_id'},
-                  $hit_url,
-                  array('attributes' => array('target' => '_blank'))
-                );
-                
-                //HACK: change '%3F' to '?' to work around a Drupal bug"
-                $hit_name = str_replace('%3F', '?', $hit_name);
-              }
             }
                         
             // Replace the target name with the link.
