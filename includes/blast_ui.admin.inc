@@ -31,15 +31,15 @@ function blast_ui_admin_form($form, $form_state) {
   
    $form['general']['eVal']= array(
     '#type' => 'textfield',
-    '#title' => t('e-Value (Expected Threshold)'),
-    '#description' => t('Expected number of chance matches in a random model. This number should be give in a decimal format.'),
+    '#title' => t('Default e-value (Expected Threshold)'),
+    '#description' => t('Expected number of chance matches in a random model. This number should be given in a decimal format.'),
      '#default_value' => variable_get('eVal', 0.001),
     //'#default_value' => variable_get('blast_threads', 1),
   );
   
   $form['general']['qRange']= array(
     '#type' => 'textfield',
-    '#title' => t('Max matches in a query range'),
+    '#title' => t('Default max matches in a query range'),
     '#description' => t('Limit the number of matches to a query range. This option is useful if many strong matches to one part of a query may prevent BLAST from presenting weaker matches to another part of the query.'),
     '#default_value' => variable_get('qRange', 0),
   );
