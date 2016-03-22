@@ -149,12 +149,16 @@ function blast_ui_blast_linkout_info() {
  *   An html link.
  */
 function tripal_blast_generate_linkout_link($url_prefix, $hit, $info, $options = array()) {
+//echo "url_prefix=[$url_prefix=, hit=<pre>";var_dump($hit);echo"</pre>info=<pre>";var_dump($info);echo "</pre>";
   if (isset($hit->{'linkout_id'})) {
     $hit_url = $url_prefix . $hit->{'linkout_id'};
     
     // Split out the CGI params, if any
     $params = array();
-    if ($paramstr=strstr($hit_url, '?')) {
+    if (!$paramstr=strstr($hit_url, '?')) {
+      $url_prefix = $hit_url;
+    }
+    else {
       $url_parts = preg_split("/\?/", $hit_url);
       $url_prefix = $url_parts[0];
       $param_list = preg_split("/\&/", $url_parts[1]);
