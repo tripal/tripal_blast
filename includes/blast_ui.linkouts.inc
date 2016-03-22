@@ -157,8 +157,13 @@ function tripal_blast_generate_linkout_link($url_prefix, $hit, $info, $options =
     if ($paramstr=strstr($hit_url, '?')) {
       $url_parts = preg_split("/\?/", $hit_url);
       $url_prefix = $url_parts[0];
-      $params = preg_split("/\&/", $url_parts[1]);
-    }
+      $param_list = preg_split("/\&/", $url_parts[1]);
+
+      foreach ($param_list as $param) {
+        $param_parts = preg_split("/=/", $param, 2);
+        $params[$param_parts[0]] = $param_parts[1];
+      }
+    }//URL contains CGI parameters
     
     return l(
       $hit->{'linkout_id'},
