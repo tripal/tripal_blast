@@ -1,6 +1,102 @@
 <?php
 
 /**
+ * This program is used for services module specifically.
+ * Run BLAST (should be called from the command-line)
+ *
+ * @param $program
+ *   Which BLAST program to run (ie: 'blastn', 'tblastn', tblastx', 'blastp','blastx')
+ * @param $query
+ *   The full path and filename of the query FASTA file
+ * @param $database
+ *   The full path and filename prefix (excluding .nhr, .nin, .nsq, etc.)
+ * @param $output_filestub
+ *   The filename (not including path) to give the results. Should not include file type suffix
+ * @param $options
+ *   An array of additional option where the key is the name of the option used by
+ *   BLAST (ie: 'num_alignments') and the value is relates to this particular
+ *   BLAST job (ie: 250)
+ * @param $format 
+ *   Which specifies Json or asn format of file or program
+ * @param  $format_type 
+ * which specify the number of format used by BLAST e.g json has 11 and json as 12. 
+ */
+
+
+function run_BLAST_tripal_job_services($program, $query, $database, $output_filestub, $options, $format, $format_type,  $job_id = NULL) {
+
+
+  
+  $output_file = file_directory_temp() .  DIRECTORY_SEPARATOR . $output_filestub . '.blast.' . $format_type;
+
+  
+ // $output_file = file_directory_temp() .  DIRECTORY_SEPARATOR . $output_filestub . '.blast.json';
+  
+  $output_dir = variable_get('file_public_path', conf_path() . '/files') 
+              . DIRECTORY_SEPARATOR . 'tripal' . DIRECTORY_SEPARATOR . 'tripal_blast';
+
+  print "\nExecuting $program\n\n";
+  print "Query: $query\n";
+  print "Database: $database\n";
+  print "Results File: $output_file\n";
+
+  print "Options:\n";
+
+  // Allow administrators to use an absolute path for these commands.
+  // Defaults to using $PATH.
+	$blast_path    = variable_get('blast_path', '');
+	$blast_threads = variable_get('blast_threads', '');
+	
+	// Strip the extension off the BLAST target
+	$database = preg_replace("/(.*)\.[pn]\w\w/", '$1', $database);
+	
+	// The executables:
+	$program       = $blast_path . $program;
+	$blast_formatter_command = $blast_path . 'blast_formatter';
+
+  //$blast_cmd = "$program -query '$query' -db '$database' -out '$output_file' -outfmt=11";
+  $blast_cmd = "$program -query '$query' -db '$database' -out '$output_file' -outfmt=".$format;
+  
+   if (!empty($options)) {
+    foreach ($options as $opt => $val) {
+      if ($val) {
+        print "\t$opt: $val\n";
+        $blast_cmd .= " -$opt $val";
+      }
+    }
+  }
+
+  // Setting the value of threads by admin page
+ $blast_cmd .= " -num_threads ".$blast_threads;
+
+  print "\nExecuting the following BLAST command:\n" . $blast_cmd . "\n";
+
+  system($blast_cmd);
+
+  if (!file_exists($output_file)) {
+    tripal_report_error(
+      'blast_ui',
+      TRIPAL_ERROR,
+      "BLAST did not complete successfully as is implied by the lack of output file (%file). The command run was @command",
+      array('%file' => $output_file, '@command' => $blast_cmd),
+      array('print' => TRUE)
+    );
+    return FALSE;
+ }
+  print "\nDone!\n";
+
+}
+
+
+
+
+
+
+
+
+
+
+/**
  * @file
  * Contains more generally applicable functions as well as some meant to help developers
  * Plug-in to the BLAST UI functionality
