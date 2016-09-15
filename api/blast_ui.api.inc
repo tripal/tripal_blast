@@ -102,7 +102,7 @@ function get_BLAST_job($job_id) {
 
   $blastjob = db_query('SELECT * FROM blastjob WHERE job_id=:id', array(':id' => $job_id))->fetchObject();
   $tripal_job = tripal_get_job($job_id);
-  
+
   $job = new stdClass();
   $job->job_id = $job_id;
   $job->program = $blastjob->blast_program;
@@ -110,7 +110,7 @@ function get_BLAST_job($job_id) {
   $job->date_submitted = $tripal_job->submit_date;
   $job->date_started = $tripal_job->start_time;
   $job->date_completed = $tripal_job->end_time;
-  
+
   // TARGET BLAST DATABASE.
   // If a provided blast database was used then load details.
   if ($blastjob->target_blastdb ) {
@@ -123,7 +123,7 @@ function get_BLAST_job($job_id) {
     $job->blastdb->db_path = $blastjob->target_file;
     $job->blastdb->linkout = new stdClass();
     $job->blastdb->linkout->none = TRUE;
-    
+
     if ($job->program == 'blastp' OR $job->program == 'tblastn') {
       $job->blastdb->db_dbtype = 'protein';
     }
@@ -131,7 +131,7 @@ function get_BLAST_job($job_id) {
       $job->blastdb->db_dbtype = 'nucleotide';
     }
   }
-  
+
   // FILES.
   $job->files = new stdClass();
   $job->files->query = $blastjob->query_file;
@@ -141,7 +141,7 @@ function get_BLAST_job($job_id) {
   $job->files->result->xml = $blastjob->result_filestub . '.xml';
   $job->files->result->tsv = $blastjob->result_filestub . '.tsv';
   $job->files->result->html = $blastjob->result_filestub . '.html';
-  
+
   return $job;
 }
 
@@ -179,10 +179,10 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
   // Defaults to using $PATH.
 	$blast_path    = variable_get('blast_path', '');
 	$blast_threads = variable_get('blast_threads', 1);
-	
+
 	// Strip the extension off the BLAST target
 	$database = preg_replace("/(.*)\.[pn]\w\w/", '$1', $database);
-	
+
 	// The executables:
 	$program       = $blast_path . $program;
 	$blast_formatter_command = $blast_path . 'blast_formatter';
@@ -284,7 +284,7 @@ function validate_fasta_sequence($type, $sequence) {
 
   if ($type == 'nucleotide') {
     $fastaIdRegEx = '/^>.*(\\n|\\r)/';
-    $fastaSeqRegEx = '/[^acgntuACGNTU\n\r]/';
+    $fastaSeqRegEx = '/[^ATCGNUKMBVSWDYRHatcgnukmbvswdyrh\n\r]/'; //Includes IUPAC codes.
     if ( preg_match($fastaSeqRegEx,$sequence) && !(preg_match($fastaIdRegEx,$sequence)) ) {
       return TRUE;
     } else {
@@ -292,7 +292,7 @@ function validate_fasta_sequence($type, $sequence) {
     }
   } elseif ($type == 'protein') {
     $fastaIdRegEx = '/^>.*(\\n|\\r)/';
-    $fastaSeqRegEx = '/[^acgturykmswbdhvnxACGTURYKMSWBDHVNX\*\-\n\r]/';
+    $fastaSeqRegEx = '/[^ABCDEFGHIKLMNPQRSTUVWYZXabcdefghiklmnpqrstuvwyzx\*\-\n\r]/';
     if ( preg_match($fastaSeqRegEx,$sequence) && !(preg_match($fastaIdRegEx,$sequence)) ) {
       return TRUE;
     } else {
@@ -350,19 +350,19 @@ function get_blastdb_linkout_regex($node, $options = array()) {
  *   An array of recent jobs.
  */
 function get_recent_blast_jobs($programs = array()) {
-  
+
   $filter_jobs = !empty($programs);
-  
+
   // Retrieve any recent jobs from the session variable.
   if (isset($_SESSION['blast_jobs'])) {
 
     $jobs = array();
     foreach ($_SESSION['blast_jobs'] as $job_secret) {
       $add = TRUE;
-      
+
       $job_id = blast_ui_reveal_secret($job_secret);
       $job = get_BLAST_job($job_id);
-      
+
       // @TODO: Check that the results are still available.
       // This is meant to replace the arbitrary only show jobs executed less than 48 hrs ago.
 
@@ -379,7 +379,7 @@ function get_recent_blast_jobs($programs = array()) {
       }
 
     }
-      
+
     return $jobs;
   }
   else {
@@ -393,11 +393,11 @@ function get_recent_blast_jobs($programs = array()) {
 function get_number_of_recent_jobs() {
   if (isset($_SESSION['blast_jobs'])) {
     return sizeof($_SESSION['blast_jobs']);
-  } 
+  }
   return 0;
 }
 
-/** 
+/**
  * Summarize a fasta file based on it's headers.
  *
  * @param $file
@@ -430,8 +430,8 @@ function format_query_headers($file) {
 
 }
 
-/** 
- * Sort recent blast jobs by the date they were submitted. 
+/**
+ * Sort recent blast jobs by the date they were submitted.
  * Ascending is in order of submission.
  *
  * THIS FUNCTION SHOULD BY USED BY USORT().
@@ -440,8 +440,8 @@ function sort_blast_jobs_by_date_submitted_asc($a, $b) {
   return ($a->date_submitted - $b->date_submitted);
 }
 
-/** 
- * Sort recent blast jobs by the date they were submitted. 
+/**
+ * Sort recent blast jobs by the date they were submitted.
  * Descending is most recent first.
  *
  * THIS FUNCTION SHOULD BY USED BY USORT().
@@ -452,7 +452,7 @@ function sort_blast_jobs_by_date_submitted_desc($a, $b) {
 
 /**
  * Generate an image of HSPs for a given hit.
- *          
+ *
  * history:
  *    09/23/10  Carson  created
  *    04/16/12  eksc    adapted into POPcorn code
@@ -511,13 +511,13 @@ function generate_blast_hit_image($acc = '', $scores, $hits, $tsize, $qsize, $na
 
   // Target coordinates
   $maxlength = 300;
-  $t_length = ($tsize > $qsize) 
+  $t_length = ($tsize > $qsize)
                 ? $maxlength : $maxlength - 50;
-  $q_length = ($qsize > $tsize) 
+  $q_length = ($qsize > $tsize)
                 ? $maxlength : $maxlength - 50;
-              
+
   $tnormal = $t_length / $tsize;
-  $qnormal = $q_length / $qsize; 
+  $qnormal = $q_length / $qsize;
 
   $t_ystart = 30;
   $t_yend   = $t_ystart + 20;
@@ -559,32 +559,32 @@ function generate_blast_hit_image($acc = '', $scores, $hits, $tsize, $qsize, $na
 
   // Draw solids for HSP alignments
   for ($ii=count($b_hits)-1; $ii>=0; $ii--) {
-    // alignment 
+    // alignment
 
    $cur_hit = $b_hits[$ii];
    $cur_score = intval($b_scores[$ii]);
- 
+
    // set color according to score
    $cur_color = $darkgray;
-   if ($cur_score > 200) { 
+   if ($cur_score > 200) {
      $cur_color = $strong;
-   } 
-   else if ($cur_score > 80 && $cur_score <= 200) { 
+   }
+   else if ($cur_score > 80 && $cur_score <= 200) {
      $cur_color = $moderate;
-   } 
-   else if ($cur_score > 50 && $cur_score <= 80) { 
+   }
+   else if ($cur_score > 50 && $cur_score <= 80) {
      $cur_color = $present;
-   } 
-   else if ($cur_score > 40 && $cur_score <= 50) { 
+   }
+   else if ($cur_score > 40 && $cur_score <= 50) {
      $cur_color = $weak;
-   } 
+   }
 
    $t_start = $tnormal *  intval(strtok($cur_hit, "_")) + $t_xstart;
     $t_end = $tnormal *  intval(strtok("_")) + $t_xstart;
     $q_start = $qnormal * intval(strtok("_")) + $q_xstart;
     $q_end = $qnormal *  intval(strtok("_")) + $q_xstart;
 
-    $hit1_array = array($t_start, $t_yend, $t_end, $t_yend, $q_end, 
+    $hit1_array = array($t_start, $t_yend, $t_end, $t_yend, $q_end,
                         $q_ystart, $q_start, $q_ystart);
 
    // HSP coords
@@ -594,14 +594,14 @@ function generate_blast_hit_image($acc = '', $scores, $hits, $tsize, $qsize, $na
 
   // Draw lines over fills for HSP alignments
   for ($ii=0; $ii<count($b_hits); $ii++) {
-   // alignment 
- 
+   // alignment
+
    $cur_hit = $b_hits[$ii];
    $t_start = $tnormal *  intval(strtok($cur_hit, "_")) + $t_xstart;
     $t_end = $tnormal *  intval(strtok("_")) + $t_xstart;
     $q_start = $qnormal * intval(strtok("_")) + $q_xstart;
     $q_end = $qnormal *  intval(strtok("_")) + $q_xstart;
-   
+
    $hit1_array = array($t_start, $t_yend, $t_end, $t_yend, $q_end, $q_ystart,
                        $q_start, $q_ystart,);
 
@@ -610,26 +610,26 @@ function generate_blast_hit_image($acc = '', $scores, $hits, $tsize, $qsize, $na
    imagepolygon ($img, $hit1_array, 4, $black);
 
     // show HSP
-  
+
    imagestring($img, 3, 2, $hsp_bary, ($acc ."HSP" . ($ii + 1)), $black);
 
    $cur_score = intval($b_scores[$ii]);
- 
+
    // set color according to score
    $cur_color = $darkgray;
-   if ($cur_score > 200) { 
+   if ($cur_score > 200) {
      $cur_color = $strong;
-   } 
-   else if ($cur_score > 80 && $cur_score <= 200) { 
+   }
+   else if ($cur_score > 80 && $cur_score <= 200) {
      $cur_color = $moderate;
-   } 
-   else if ($cur_score > 50 && $cur_score <= 80) { 
+   }
+   else if ($cur_score > 50 && $cur_score <= 80) {
      $cur_color = $present;
-   } 
-   else if ($cur_score > 40 && $cur_score <= 50) { 
+   }
+   else if ($cur_score > 40 && $cur_score <= 50) {
      $cur_color = $weak;
    }
- 
+
    imagefilledrectangle($img, $q_start, $hsp_bary, $q_end, $hsp_bary+10, $cur_color);
     $hsp_bary += 15;
   }//each hit
@@ -658,7 +658,7 @@ function generate_blast_hit_image($acc = '', $scores, $hits, $tsize, $qsize, $na
   imagefilledRectangle($img, $xchart, $ychart + ($yinc * 5) + $xinc, $xchart + $yinc, $ychart + ($yinc * 6), $darkgray);
 
   // Now, we have a completed image resource and need to change it to an actual image
-  // that can be displayed. This is done using imagepng() but unfortuatly that function 
+  // that can be displayed. This is done using imagepng() but unfortuatly that function
   // either saves the image to a file or outputs it directly to the screen. Thus, we use
   // the following code to capture it and base64 encode it.
   ob_start(); // Start buffering the output
@@ -666,6 +666,6 @@ function generate_blast_hit_image($acc = '', $scores, $hits, $tsize, $qsize, $na
   $b64_img = base64_encode(ob_get_contents()); // Get what we've just outputted and base64 it
   imagedestroy($img);
   ob_end_clean();
-   
+
   return $b64_img;
 }
