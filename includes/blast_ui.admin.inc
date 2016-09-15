@@ -31,17 +31,24 @@ function blast_ui_admin_form($form, $form_state) {
   
    $form['general']['eVal']= array(
     '#type' => 'textfield',
-    '#title' => t('e-Value (Expected Threshold)'),
-    '#description' => t('Expected number of chance matches in a random model. This number should be give in a decimal format.'),
+    '#title' => t('Default e-value (Expected Threshold)'),
+    '#description' => t('Expected number of chance matches in a random model. This number should be given in a decimal format.'),
      '#default_value' => variable_get('eVal', 0.001),
     //'#default_value' => variable_get('blast_threads', 1),
   );
   
   $form['general']['qRange']= array(
     '#type' => 'textfield',
-    '#title' => t('Max matches in a query range'),
+    '#title' => t('Default max matches in a query range'),
     '#description' => t('Limit the number of matches to a query range. This option is useful if many strong matches to one part of a query may prevent BLAST from presenting weaker matches to another part of the query.'),
     '#default_value' => variable_get('qRange', 0),
+  );
+  
+   $form['general']['Enable_webservices'] = array(
+    '#type' => 'checkbox',
+    '#title' => 'Enable webservices of blast',
+    '#description' => 'When checked, a blast webservices gets enabled.',
+    '#default_value' => variable_get('Enable_webservices', true),
   );
   
   $form['file_upload'] = array(
@@ -156,6 +163,99 @@ function blast_ui_admin_form_validate($form, &$form_state) {
 
 }
 
+/*
+**
+** custom method disabled the web services 
+**
+*/
+
+function disable_web_services()
+{
+    $ar=array('services', 'rest_server');
+  	$result = module_disable($ar,true);
+  	try{
+  	$eid = 1;
+    $num_deleted = db_delete('services_endpoint')->condition('eid', $eid)->execute();  
+    } catch(Exception $e){
+    //drupal_set_message(t("Web-Services of blast are already disabled"), 'error');
+   }
+  
+}
+
+/*
+** custom method enable the web services 
+**
+*/
+
+function enable_web_services()
+{
+    $ar=array('services', 'rest_server');
+    $result = module_enable($ar, true);
+    if (empty($result)) {
+     throw new DrupalUpdateException(implode(', ', $ar) . ' or dependencies could not be enabled, please install services ');
+   }
+   
+   $server_settings = array(
+  'formatters' => array(
+    'bencode' => TRUE,
+    'json' => TRUE,
+    'jsonp' => TRUE,
+    'php' => TRUE,
+    'xml' => TRUE,
+  ),
+  'parsers' => array(
+    'application/json' => TRUE,
+    'application/vnd.php.serialized' => TRUE,
+    'application/x-www-form-urlencoded' => TRUE,
+    'application/xml' => TRUE,
+    'multipart/form-data' => TRUE,
+    'text/xml' => TRUE,
+  ),
+);
+
+$resources = array(
+  'blast' => array(
+    'operations' => array(
+      'retrieve' => array(
+        'enabled' => '1',
+      ),
+      'index' => array(
+        'enabled' => '1',
+      ),
+    ),
+    'actions' => array(
+      'getJobId' => array(
+        'enabled' => '1',
+      ),
+      'getBlastStatus' => array(
+        'enabled' => '1',
+      ),
+      'getDatabaseOptions' => array(
+        'enabled' => '1',
+      ),
+    ),
+  ),
+);
+
+  try{
+   $nid = db_insert('services_endpoint')->fields(
+    array(
+    'eid' => 1,
+    'debug'  => 1,
+    'name' => 'restapi',
+    'server' => 'rest_server',
+    'path' => 'restapi',
+    'resources' =>  serialize($resources),   //'a:1:{s:5:"blast";a:2:{s:10:"operations";a:2:{s:8:"retrieve";a:1:{s:7:"enabled";s:1:"1";}s:5:"index";a:1:{s:7:"enabled";s:1:"1";}}s:7:"actions";a:2:{s:8:"getJobId";a:1:{s:7:"enabled";s:1:"1";}s:18:"getDatabaseOptions";a:1:{s:7:"enabled";s:1:"1";}}}}',
+     'server_settings' => serialize($server_settings),
+    'authentication' => 'a:0:{}',
+  ))->execute();
+}
+ catch(Exception $e){
+    //drupal_set_message(t("Web-Services of blast are already Enabled"), 'error');
+   }
+  
+}
+
 /**
  * Submit the Admin/settings form.
  */
@@ -167,9 +267,17 @@ function blast_ui_admin_form_submit($form, $form_state) {
   variable_set('eVal', $form_state['values']['eVal']);
   variable_set('qRange', $form_state['values']['qRange']);
   
+  // Logic to enable web services on single click
+  variable_set('Enable_webservices', $form_state['values']['Enable_webservices']);
   variable_set('blast_ui_allow_query_upload', $form_state['values']['query_upload']);	
   variable_set('blast_ui_allow_target_upload', $form_state['values']['target_upload']);
   
   variable_set('blast_ui_nucleotide_example_sequence', $form_state['values']['nucleotide_example']);
   variable_set('blast_ui_protein_example_sequence', $form_state['values']['protein_example']);
+  
+  if($form_state['values']['Enable_webservices'] == 1){
+  	enable_web_services();
+  }else{
+    disable_web_services();
+  }
 }

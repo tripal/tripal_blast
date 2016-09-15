@@ -149,13 +149,30 @@ function blast_ui_blast_linkout_info() {
  *   An html link.
  */
 function tripal_blast_generate_linkout_link($url_prefix, $hit, $info, $options = array()) {
-
+//echo "url_prefix=[$url_prefix=, hit=<pre>";var_dump($hit);echo"</pre>info=<pre>";var_dump($info);echo "</pre>";
   if (isset($hit->{'linkout_id'})) {
     $hit_url = $url_prefix . $hit->{'linkout_id'};
+    
+    // Split out the CGI params, if any
+    $params = array();
+    if (!$paramstr=strstr($hit_url, '?')) {
+      $url_prefix = $hit_url;
+    }
+    else {
+      $url_parts = preg_split("/\?/", $hit_url);
+      $url_prefix = $url_parts[0];
+      $param_list = preg_split("/\&/", $url_parts[1]);
+
+      foreach ($param_list as $param) {
+        $param_parts = preg_split("/=/", $param, 2);
+        $params[$param_parts[0]] = $param_parts[1];
+      }
+    }//URL contains CGI parameters
+    
     return l(
       $hit->{'linkout_id'},
-      $hit_url,
-      array('attributes' => array('target' => '_blank'))
+      $url_prefix,
+      array('attributes' => array('target' => '_blank'), 'query' => $params)
     );
   }
   else {
@@ -211,8 +228,16 @@ function tripal_blast_generate_linkout_gbrowse($url_prefix, $hit, $info, $option
   $min = min($coords);
   $max = max($coords);
 
+/*eksc: l() is the proper way to build a link in Drupal, but it doesn't appear
+ *      to be possible to build a correct GBrowse link here. The main parameter
+ *      in this case is 'query', then there are many sub-parameters contained in
+ *      the value for 'query'. It doesn't appear to be possible to teach l() how
+ *      to handle nested CGI parameters. Blame GBrowse.
+ *      Any attempts to make l() build this URL correctly are very welcome.
+ 
   // Now we are finally ready to build the URL.
-  // First lets set the location of the hit so the GBrowse focuses in on the correct region.
+  // First let's set the location of the hit so the GBrowse focuses in on the correct region.
+
   $query = array();
   $query['ref'] = $hit->{'linkout_id'};
   $query['start'] = $min;
@@ -244,11 +269,19 @@ function tripal_blast_generate_linkout_gbrowse($url_prefix, $hit, $info, $option
   
   // For some reason GBrowse expects semi-colons (;) to delineate query paramters 
   // whereas Drupal throws ampherstands (&) in. This is to fix that.
-  $url = str_replace('&',';', $url);
+  $url = str_replace('&', ';', $url);
+*/
+
+  // Build the link brute force until/unless someone figures out how to prevent
+  //   l() from URL-encoding the sub-parameters to "query=".
+  $query = "query=ref=".$hit->{'linkout_id'}.";start=$min;stop=$max";
+  $query .= ";add=".$hit->{'linkout_id'}."+BLAST+BlastHit=" . join ("," , $ranges);
+  $query .= ";h_feat=BlastHit";
+  $url = "<a href=\"$url_prefix?$query\">" . $hit->{'linkout_id'} . "</a>";
   
   return $url;
-
 }
+
 
 /**
  * Generate a JBrowse link-out with location information for a given hit.
@@ -289,7 +322,7 @@ function tripal_blast_generate_linkout_gbrowse($url_prefix, $hit, $info, $option
  *   An html link.
  */
 function tripal_blast_generate_linkout_jbrowse($url_prefix, $hit, $info, $options = array()) {
-
+  
   // First we need to collect the HSPs to define the ranges we want to
   // display on the JBrowse.
   $ranges = array();
@@ -373,3 +406,5 @@ function tripal_blast_generate_linkout_jbrowse($url_prefix, $hit, $info, $option
     array('attributes' => array('target' => '_blank'))
   );
 }
+
+
