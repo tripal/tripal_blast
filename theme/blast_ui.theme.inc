@@ -19,7 +19,7 @@ function blast_ui_preprocess_show_blast_report(&$vars) {
   // Add CSS and Javascript files
   $path = drupal_get_path('module', 'blast_ui');
   drupal_add_css($path . '/theme/css/blast_report.css');
-  drupal_add_js('http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js');
+  drupal_add_js('https://code.jquery.com/jquery-1.12.4.min.js');
 
   // Get blast job details.
   $vars['blast_job'] = get_BLAST_job($vars['job_id']);
