@@ -23,7 +23,7 @@
  *   The current state fo the form passed in as $form.
  */
 function blast_ui_blastn_advanced_options_form(&$form, $form_state) {
-  
+
   // Edit and Resubmit functionality.
   // We want to pull up the details from a previous blast and fill them in as defaults
   // for this blast.
@@ -33,7 +33,7 @@ function blast_ui_blastn_advanced_options_form(&$form, $form_state) {
   else {
     $defaults = _get_default_values(array(), 'blastn');
   }
-  
+
   // General parameters
   //.........................
 
@@ -128,10 +128,10 @@ function blast_ui_blastn_advanced_options_form_submit($form, $form_state) {
 
   $trgtKey = $form_state['values']['maxTarget'];
   $numAlign = $form['ALG']['GParam']['maxTarget']['#options'][$trgtKey];
-  
+
   $wsKey = $form_state['values']['wordSize'];
   $wordSize = $form['ALG']['GParam']['wordSize']['#options'][$wsKey];
-  
+
   // Expand Gap Cost key into open and extend penalties
   $gap = _set_gap($form_state['values']['gapCost']);
 
@@ -252,7 +252,7 @@ function blast_ui_blastx_advanced_options_form(&$form, $form_state) {
     '#description' => t('Limit the number of matches to a query range. This option is useful if many strong matches to one part of a query may prevent BLAST from presenting weaker matches to another part of the query.'),
   );
 
-/*eksc- NOT match/mismatch but instead computational adjustments; 
+/*eksc- NOT match/mismatch but instead computational adjustments;
         need to learn how there are implemented for blastx
   $form['ALG']['SParam']['M&MScores'] = array(
     '#type' => 'select',
@@ -400,7 +400,7 @@ function blast_ui_blastp_advanced_options_form(&$form, $form_state) {
   );
 */
 
-/*eksc- NOT match/mismatch but instead computational adjustments; 
+/*eksc- NOT match/mismatch but instead computational adjustments;
         need to learn how there are implemented for blastp
   $form['ALG']['SParam']['M&MScores'] = array(
     '#type' => 'select',
@@ -440,7 +440,7 @@ function blast_ui_blastp_advanced_options_form_submit($form, $form_state) {
   $wordSize = $form['ALG']['GParam']['wordSize']['#options'][$wsKey];
 
   $qRange = $form_state['values']['qRange'];
-  
+
   // Expand Gap Cost key into open and extend penalties
   $matrix = $form_state['values']['Matrix'];
   switch ($matrix) {
@@ -797,7 +797,7 @@ function blast_ui_blastp_advanced_options_form_submit($form, $form_state) {
      }
      break;
   }
-  
+
 //eksc- need to implement query range limit
 //  q_range
 
@@ -934,10 +934,10 @@ function _get_gap_for_matrix($key = '') {
       t('Existence: 9 Extension: 1'),
     )),
   );
-  
+
 	if (isset($options[$key])) {
 		return $options[$key];
-	} 
+	}
 	else {
 		return array();
 	}
@@ -1084,21 +1084,21 @@ function blast_ui_tblastn_advanced_options_form_submit($form, $form_state) {
  */
 function _get_default_values($options) {
   // restore previous values or set to default
-  $max_target = (isset($options['max_target_seqs'])) 
+  $max_target = (isset($options['max_target_seqs']))
   					? $options['max_target_seqs'] : 10;
-  $short_queries = (isset($options['shortQueries'])) 
+  $short_queries = (isset($options['shortQueries']))
   					? $options['shortQueries'] : true;
-  $evalue = (isset($options['evalue'])) 
-  					? $options['evalue'] : .001;
-  $word_size = (isset($options['word_size'])) 
+  $evalue = (isset($options['evalue']))
+  					? $options['evalue'] : variable_get('eVal', 0.001);
+  $word_size = (isset($options['word_size']))
   					? $options['word_size'] : 11;
-  $qRange = (isset($options['culling_limit'])) 
-  					? $options['culling_limit'] : 0;
+  $qRange = (isset($options['culling_limit']))
+  					? $options['culling_limit'] : variable_get('qRange',0);
 
   $matchmiss = 0;
-  $reward = (isset($options['reward'])) 
+  $reward = (isset($options['reward']))
   					? $options['reward'] : 1;
-  $penalty = (isset($options['penalty'])) 
+  $penalty = (isset($options['penalty']))
   					? $options['penalty'] : -2;
   if ($reward == 1) {
   	switch ($penalty) {
@@ -1117,11 +1117,11 @@ function _get_default_values($options) {
   else if ($eward == 4) {
   	 $matchmiss = 5;
   }
-  
+
   $gap = 0;
-  $gapopen = (isset($options['gapopen'])) 
+  $gapopen = (isset($options['gapopen']))
   					? $options['gapopen'] : 5;
-  $gapextend = (isset($options['gapextend'])) 
+  $gapextend = (isset($options['gapextend']))
   					? $options['gapextend'] : 2;
   if ($gapextend == 2) {
   	switch ($gapopen) {
@@ -1138,11 +1138,11 @@ function _get_default_values($options) {
   		case 1: $gap = 6;
   	}
   }
-  
+
 // eksc- need to implement query range limit
 //  $q_range = 0;
-  
-  $matrix = (isset($options['matrix'])) 
+
+  $matrix = (isset($options['matrix']))
   					? $options['matrix'] : 'PAM30';
   return array(
   	'max_target_seqs' => $max_target,
@@ -1189,7 +1189,7 @@ function _get_word_size($which) {
 	switch ($which) {
 		case 'blastn':
 			 return array(
-				 7 => t('7'),  
+				 7 => t('7'),
 				 11 => t('11'),
 				 15 => t('15'),
 				 16 => t('16'),
@@ -1282,7 +1282,7 @@ function _set_gap($gap_key) {
       $gapExtend = 1;
       break;
   }//switch
-  
+
   return array('gapOpen' => $gapOpen, 'gapExtend' => $gapExtend);
 }
 
@@ -1316,6 +1316,6 @@ function _set_match_mismatch($m_m) {
       $reward = 1;
       break;
   }//switch
-  
+
   return array('penalty' => $penalty, 'reward' => $reward);
 }
