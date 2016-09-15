@@ -68,7 +68,8 @@ $no_hits = TRUE;
   <div class="blast-download-info"><strong>Download</strong>:
     <a href="<?php print '../../' . $blast_job->files->result->html; ?>">Alignment</a>,
     <a href="<?php print '../../' . $blast_job->files->result->tsv; ?>">Tab-Delimited</a>,
-    <a href="<?php print '../../' . $blast_job->files->result->xml; ?>">XML</a>
+    <a href="<?php print '../../' . $blast_job->files->result->xml; ?>">XML</a>,
+    <a href="<?php print '../../' . $blast_job->files->result->gff; ?>">GFF</a>
   </div>
 <?php endif; ?>
   <br />
