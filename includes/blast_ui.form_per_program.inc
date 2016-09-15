@@ -19,7 +19,7 @@ function blast_ui_per_blast_program_form($form, $form_state) {
   $form['#attached']['css'] = array(
     drupal_get_path('module', 'blast_ui') . '/theme/css/form.css',
   );
-  
+
   // We are going to lay out this form as two choices: either look at a recent blast
   // or execute a new one. We want to theme accordingly so set a class to aid us in such.
   $form['#attributes'] = array('class' => array('blast-choice-form'));
@@ -29,16 +29,16 @@ function blast_ui_per_blast_program_form($form, $form_state) {
     'FASTA' => NULL,
     'SELECT_DB' => NULL,
   );
-    
+
   // Edit and Resubmit functionality.
   // We want to pull up the details from a previous blast and fill them in as defaults
   // for this blast.
   // @todo: handle file uploads better; currently for the query we put the file contents
   // in the text area causing reupload and we simply do not support re-using of an uploaded target.
-  if (isset($_GET['resubmit'])) {    
+  if (isset($_GET['resubmit'])) {
     $prev_blast = get_BLAST_job(blast_ui_reveal_secret($_GET['resubmit']));
-    
-    // First of all warn if the uploaded their search target last time 
+
+    // First of all warn if the uploaded their search target last time
     // since we don't support that now.
     if (!isset($prev_blast->blastdb->nid)) {
       drupal_set_message('You will need to re-upload your <em>Search Target</em> database.','warning');
@@ -47,7 +47,7 @@ function blast_ui_per_blast_program_form($form, $form_state) {
     else {
       $defaults['SELECT_DB'] = $prev_blast->blastdb->nid;
     }
-    
+
     // Finally set a default for the query. Since we don't support defaults for file uploads,
     // we need to get the contents of the file and put them in our textarea.
     if (is_readable($prev_blast->files->query)) {
@@ -58,7 +58,7 @@ function blast_ui_per_blast_program_form($form, $form_state) {
     else {
       drupal_set_message('Unable to retrieve previous query sequence; please re-upload it.', 'error');
     }
-    
+
     // Finally save the previous blast details for use by the advanced option forms.
     $form_state['prev_blast'] = $prev_blast;
   }
@@ -108,7 +108,7 @@ function blast_ui_per_blast_program_form($form, $form_state) {
   );
 
   // CHOOSE RECENT BLAST RESULTS
-  //-----------------------------------  
+  //-----------------------------------
   // If there are recent jobs then show a table of them.
   if (get_number_of_recent_jobs()) {
 
@@ -134,7 +134,7 @@ function blast_ui_per_blast_program_form($form, $form_state) {
     '#attributes' => array('class' => array('blast-choice')),
     '#collapsible' => TRUE,
   );
-     
+
   // NUCLEOTIDE QUERY
   //.........................
   $form['B']['query'] = array(
@@ -274,7 +274,7 @@ function blast_ui_per_blast_program_form($form, $form_state) {
     '#type' => 'submit',
     '#default_value' => ' BLAST ',
   );
-   
+
   return $form;
 }
 
@@ -397,7 +397,7 @@ function blast_ui_per_blast_program_form_submit($form, &$form_state) {
   // edit and resubmit functionality.
   // First set defaults.
   $blastjob = array(
-    'job_id' => NULL, 
+    'job_id' => NULL,
     'blast_program' => $form_state['values']['blast_program'],
     'target_blastdb' => (isset($form_state['values']['SELECT_DB'])) ? $form_state['values']['SELECT_DB'] : NULL,
     'target_file' => NULL,
@@ -405,7 +405,7 @@ function blast_ui_per_blast_program_form_submit($form, &$form_state) {
     'result_filestub' => NULL,
     'options' => serialize(array())
   );
-  
+
   // QUERY
   //-------------------------
   // BLAST can only take the query as a file;
@@ -447,7 +447,7 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
 
       $error = TRUE;
     }
-    
+
   }
   // Otherwise, we are using one of the website provided BLAST databases so form the
   // BLAST command accordingly
@@ -457,11 +457,11 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
     $blastdb_name = $blastdb_node->db_name;
     $blastdb_with_path = $blastdb_node->db_path;
   }
-  
+
   $blastjob['target_file'] = $blastdb_with_path;
 
   // Determine the path to the blast database with extension.
-  if ($mdb_type == 'nucl' && (preg_match('/\.[pn]al/', $blastdb_with_path) == 0)) {  
+  if ($mdb_type == 'nucl' && (preg_match('/\.[pn]al/', $blastdb_with_path) == 0)) {
     // Suffix may be .nsq or .nal
     if (is_readable("$blastdb_with_path.nsq")) {
       $blastdb_with_suffix = "$blastdb_with_path.nsq";
@@ -469,7 +469,7 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
     else if (is_readable("$blastdb_with_path.nal")) {
       $blastdb_with_suffix = "$blastdb_with_path.nal";
     }
-  }  
+  }
   else if ($mdb_type == 'prot' && (preg_match('/\.[pn]al/', $blastdb_with_path) == 0)) {
     // Suffix may be .psq or .pal
     if (is_readable("$blastdb_with_path.psq")) {
@@ -482,12 +482,12 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
   else {
     $blastdb_with_suffix = $blastdb_with_path;
   }
-  
+
   if (!is_readable($blastdb_with_suffix)) {
     $error = TRUE;
-    
-    $dbfile_uploaded_msg = ($form_state['dbFlag'] == 'upDB') 
-        ? 'The BLAST database was submitted via user upload.' 
+
+    $dbfile_uploaded_msg = ($form_state['dbFlag'] == 'upDB')
+        ? 'The BLAST database was submitted via user upload.'
         : 'Existing BLAST Database was chosen.';
     tripal_report_error(
       'blast_ui',
@@ -499,7 +499,7 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
     $msg .= "Please contact the site administrator.";
     drupal_set_message($msg, 'error');
   }
-  
+
   // ADVANCED OPTIONS
   //-------------------------
   // Now let each program process its own advanced options.
@@ -514,7 +514,7 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
   else {
   	$advanced_options = array('none' => 0);
   }
-  
+
   $blastjob['options'] = serialize($advanced_options);
 
   // SUBMIT JOB TO TRIPAL
@@ -526,10 +526,10 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
 
     // We want to save all result files (.asn, .xml, .tsv, .html) in the public files directory.
     // Usually [drupal root]/sites/default/files.
-    $output_dir = variable_get('file_public_path', conf_path() . '/files') 
+    $output_dir = variable_get('file_public_path', conf_path() . '/files')
       . DIRECTORY_SEPARATOR . 'tripal' . DIRECTORY_SEPARATOR . 'tripal_blast';
     $output_filestub = $output_dir . DIRECTORY_SEPARATOR . date('YMd_His') . '.blast';
-    
+
     $job_args = array(
       'program' => $blast_program,
       'query' => $blastjob['query_file'],
@@ -545,7 +545,7 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
       $job_args,
       $user->uid
     );
-    
+
     $blastjob['result_filestub'] = $output_filestub;
     $blastjob['job_id'] = $job_id;
 
@@ -555,7 +555,7 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
 
     //Encode the job_id
     $job_encode_id = blast_ui_make_secret($job_id);
-    
+
     // RECENT JOBS
     //-------------------------
     if (!isset($_SESSION['blast_jobs'])) {
@@ -568,7 +568,7 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
     // issues. If you do not want to run tripal jobs manually, look into installing
     // Tripal daemon which will run jobs as they're submitted or set up a cron job to
     // launch the tripal jobs on a specified schedule.
-    
+
     // Redirect to the BLAST results page
     drupal_goto("blast/report/$job_encode_id");
   }
@@ -581,13 +581,23 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
  */
 function ajax_blast_ui_perprogram_example_sequence_callback($form, $form_state) {
   $sequence_type = $form_state['values']['query_type'];
-  
+
   // Choose the example sequence based on the sequence type of the query.
   if ($sequence_type == 'nucleotide') {
     $example_sequence = variable_get('blast_ui_nucleotide_example_sequence', 'sample');
+    if ($example_sequence == 'sample') {
+      $example_sequence = 'ggtaagtcctctagtacaaacacccccaatattgtgatataattaaaattatggtaagtcctctagtacaaacacccccaatattgtgatataattaaaattatattcatattctgttgggtaagtcctctagtacaaacacccccaatattgtgatataattaaaattatattcatattctgttgccagaaaaaacacttttaggctatattagagccatcttctttgaagcgttgtcccagaaaaaacacttttaggctatattagagccatcttctttgaagcgttgtcattcatattctgttgccagaaaaaacacttttaggctatattagagccatcttctttgaagcgttgtc';
+      tripal_set_message(t('You can set the example sequence through the administrative interface: <a href="@url" target="_blank">Admin Toolbar > Tripal > Extensions > Tripal BLAST User Interface</a>',
+        array('@url' => url('admin/tripal/extension/tripal_blast'))));
+    }
   }
   elseif ($sequence_type == 'protein') {
     $example_sequence = variable_get('blast_ui_protein_example_sequence', 'sample');
+    if ($example_sequence == 'sample') {
+      $example_sequence = 'MDSKGSSQKGSRLLLLLVVSNLLLCQGVVSTPVCPNGPGNCQVSLRDLFDRAVMVSHYIHDLSSEMFNEFDKRYAQGKGFITMALNSCHTSSLPTPEDKEQAQQTHHEVLMSLILGLLRSWNDPLYHLVTEVRGMKGAPDAILSRAIEIEEENKRLLEGMEMIFGQVIPGAKETEPYPVWSGLPSLQTKDEDARYSAFYNLLHCLRRDSSKIDTYLKLLNCRIIYNNNC';
+      tripal_set_message(t('You can set the example sequence through the administrative interface: <a href="@url" target="_blank">Admin Toolbar > Tripal > Extensions > Tripal BLAST User Interface</a>',
+        array('@url' => url('admin/tripal/extension/tripal_blast'))));
+    }
   }
   else {
     $example_sequence = 'unknown query type';
