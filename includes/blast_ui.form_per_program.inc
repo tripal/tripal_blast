@@ -512,7 +512,7 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
     );
   }
   else {
-  	$advanced_options = array('none' => 0);
+    $advanced_options = array('none' => 0);
   }
 
   $blastjob['options'] = serialize($advanced_options);

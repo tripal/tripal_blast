@@ -13,7 +13,7 @@ function blast_ui_services_resources()
             'callback' => 'getBlastData',
             'access callback' => 'user_access',
             'access arguments' => array(
-                'access content' 
+                'access content'
             ),
             'access arguments append' => FALSE,
             'args' => array(
@@ -22,30 +22,30 @@ function blast_ui_services_resources()
                   'type' => 'int',
                   'description' => 'The information needed',
                   'source' => array(
-                      'path' => '0' 
+                      'path' => '0'
                   ),
-                  'optional' => FALSE 
-               ) 
-            ) 
+                  'optional' => FALSE
+               )
+            )
          ),
          'index' => array(
              'help' => 'Retrieves a listing of blast_ui',
             'callback' => '_blast_ui_index',
             'access callback' => 'user_access',
             'access arguments' => array(
-                'access content' 
+                'access content'
             ),
             'access arguments append' => FALSE,
             'args' => array ()
          ),
-         
+
          'actions' => array(
              'getJobId' => array(
                 'help' => 'Retrieves a listing of database',
                'callback' => '_blast_ui_getJobId',
                'access callback' => 'user_access',
                'access arguments' => array(
-                   'access content' 
+                   'access content'
                ),
                'args' => array(
                    array(
@@ -53,18 +53,18 @@ function blast_ui_services_resources()
                      'type' => 'array',
                      'description' => 'Retrieve blast job id',
                      'source' => 'data',
-                     'optional' => FALSE 
-                  ) 
+                     'optional' => FALSE
+                  )
                ),
-               'access arguments append' => FALSE 
+               'access arguments append' => FALSE
             ),
-            
+
             'getDatabaseOptions' => array(
                 'help' => 'Retrieves a listing of database',
                'callback' => '_blast_ui_getDatabaseOption',
                'access callback' => 'user_access',
                'access arguments' => array(
-                   'access content' 
+                   'access content'
                ),
                'args' => array(
                    array(
@@ -72,13 +72,13 @@ function blast_ui_services_resources()
                      'type' => 'array',
                      'description' => 'The set database_type information',
                      'source' => 'data',
-                     'optional' => FALSE 
-                  ) 
+                     'optional' => FALSE
+                  )
                ),
-               'access arguments append' => false 
-            ) 
-         ) 
-      ) 
+               'access arguments append' => false
+            )
+         )
+      )
    );
  }
 
@@ -103,21 +103,21 @@ function _blast_ui_retrieve( $id )
 function _blast_ui_index()
  {
    return array(
-      
+
        'query_type' => array(
           '1' => 'nucleotide',
-         '2' => 'protein' 
+         '2' => 'protein'
       ),
       'db_type' => array(
           '1' => 'nucleotide',
-         '2' => 'protein' 
+         '2' => 'protein'
       ),
       'blast_program' => array(
           '1' => 'blastn',
          '2' => 'blastx',
          '3' => 'tblastn',
-         '4' => 'blastp' 
-      ) 
+         '4' => 'blastp'
+      )
    );
  }
 
@@ -129,7 +129,7 @@ function _blast_ui_index()
 
 function _blast_ui_getDatabaseOption( $data )
  {
-   
+
    if ( !isset( $data[ query_type ] ) )
     {
       return services_error( 'Missing blast attribute $query_type [ set necleotide or protein in post request of query_type ]', 406 );
@@ -142,12 +142,12 @@ function _blast_ui_getDatabaseOption( $data )
     {
       return services_error( 'Missing blast attribute $blast_program [ set blastn, blastx, tblastn, blastp in post request of blast_program ]', 406 );
     }
-   
+
    $query_type       = $data[ db_type ];
    $db_type          = $data[ db_type ];
    $blast_program    = $data[ blast_program ];
    $options_database = get_blast_database_options( $db_type );
-   
+
    // Data Set send to user for selection of Blastn
    if ( $blast_program == 'blastn' )
     {
@@ -156,7 +156,7 @@ function _blast_ui_getDatabaseOption( $data )
          'Max_target_sequences' => _get_max_target( $blast_program ),
          'Word_size' => _get_word_size( $blast_program ),
          'Match_Mismatch_Scores' => _get_match_mismatch( $blast_program ),
-         'Gap_Costs' => _get_gap( $blast_program ) 
+         'Gap_Costs' => _get_gap( $blast_program )
       );
     }
    // Data Set send to user for selection of Blastx
@@ -166,8 +166,8 @@ function _blast_ui_getDatabaseOption( $data )
           'Select_Database' => $options_database,
          'Max_target_sequences' => _get_max_target( $blast_program ),
          'Word_size' => _get_word_size( $blast_program ),
-         'Matrix_options' => _get_matrix_options() 
-         
+         'Matrix_options' => _get_matrix_options()
+
       );
     }
    //Data Set send to user for selection of tblastn
@@ -178,7 +178,7 @@ function _blast_ui_getDatabaseOption( $data )
          'Max_target_sequences' => _get_max_target( $blast_program ),
          'Word_size' => _get_word_size( $blast_program ),
          'Matrix_options' => _get_matrix_options(),
-         'Gap_Costs' => getGap_cost() 
+         'Gap_Costs' => getGap_cost()
       );
     }
    //Data Set send to user for selection of blastp
@@ -189,13 +189,13 @@ function _blast_ui_getDatabaseOption( $data )
          'Max_target_sequences' => _get_max_target( $blast_program ),
          'Word_size' => _get_word_size( $blast_program ),
          'Matrix_options' => _get_matrix_options(),
-         'Gap_Costs' => getGap_cost() 
+         'Gap_Costs' => getGap_cost()
       );
     }
  }
 
 /*
- ** validate the data  			           
+ ** validate the data
  */
 
 function blast_validation( $query_type, $db_type, $data )
@@ -204,7 +204,7 @@ function blast_validation( $query_type, $db_type, $data )
     {
       if ( $db_type == 'nucleotide' )
        {
-         
+
          if ( !isset( $data[ Select_Database ] ) )
           {
             return services_error( 'Missing blast attribute $Select_Database [ query blast/getDatabaseOptions for options :- Add database you need to use]', 406 );
@@ -239,7 +239,7 @@ function blast_validation( $query_type, $db_type, $data )
        }
       else
        {
-         
+
          if ( !isset( $data[ Select_Database ] ) )
           {
             return services_error( 'Missing blast attribute $Select_Database [ query blast/getDatabaseOptions for options :- Add database used by you]', 406 );
@@ -267,7 +267,7 @@ function blast_validation( $query_type, $db_type, $data )
           {
             return services_error( 'Missing blast attribute data[seqQuery]', 406 );
           }
-         
+
        }
     }
    else
@@ -294,7 +294,7 @@ function blast_validation( $query_type, $db_type, $data )
           {
             return services_error( 'Missing blast attribute [ query blast/getDatabaseOptions for options ]', 406 );
           }
-         
+
          if ( isset( $data[ seqQuery ] ) )
           {
             if ( validate_fasta_sequence( $query_type, $data[ seqQuery ] ) == 1 )
@@ -309,9 +309,9 @@ function blast_validation( $query_type, $db_type, $data )
        }
       else
        {
-         
+
          //return $data;
-         
+
          if ( !isset( $data[ Select_Database ] ) )
           {
             return services_error( 'Missing blast attribute $Select_Database [ query blast/getDatabaseOptions for options :- Add database used by you]', 406 );
@@ -352,15 +352,15 @@ function blast_validation( $query_type, $db_type, $data )
 
 function _blast_ui_getJobId( $data )
  {
-   
+
    $query_type;
    $db_type;
    // Setting the default value of qRange and eValue from blast_ui.admin
    $eVal   = variable_get( 'eVal', '' );
    $qRange = variable_get( 'qRange', '' );
-   
+
    /* check values in post query */
-   
+
    if ( !isset( $data[ query_type ] ) )
     {
       return services_error( 'Missing blast attribute $query_type [ set necleotide or protein in post request of query_type ]', 406 );
@@ -369,14 +369,14 @@ function _blast_ui_getJobId( $data )
     {
       return services_error( 'Missing blast attribute $db_type [ set necleotide or protein in post request of db_type ]', 406 );
     }
-   
+
    $query_type = $data[ query_type ];
    $db_type    = $data[ db_type ];
-   
+
    // check the user input in $data
    blast_validation( $query_type, $db_type, $data );
-   
-   
+
+
    if ( isset( $data[ $eVal ] ) )
     {
       $eVal = $data[ $eVal ];
@@ -385,7 +385,7 @@ function _blast_ui_getJobId( $data )
     {
       $qRange = $data[ $culling_limit ];
     }
-   
+
    if ( $query_type == 'nucleotide' )
     {
       if ( $db_type == 'nucleotide' )
@@ -395,7 +395,7 @@ function _blast_ui_getJobId( $data )
          $options_database = get_blast_database_options( $data[ db_type ] );
          $Databasekey      = array_search( $data[ Select_Database ], $options_database );
          $advanced_options = advanced_options( $blast_program, $eVal, $qRange, $data );
-         
+
        }
       elseif ( $db_type == 'protein' )
        {
@@ -414,7 +414,7 @@ function _blast_ui_getJobId( $data )
          $options_database = get_blast_database_options( $data[ db_type ] );
          $Databasekey      = array_search( $data[ Select_Database ], $options_database );
          $advanced_options = advanced_options( $blast_program, $eVal, $qRange, $data );
-         
+
        }
       elseif ( $db_type == 'protein' )
        {
@@ -424,33 +424,33 @@ function _blast_ui_getJobId( $data )
          $advanced_options = advanced_options( $blast_program, $eVal, $qRange, $data );
        }
     }
-   
-   
+
+
    return blast_ui_getblastJobId( $data[ query_type ], $data[ db_type ], $data[ seqQuery ], $Databasekey, $advanced_options );
-   
-   
+
+
  }
 /*
- ** Define the advanced Options for Blast 
+ ** Define the advanced Options for Blast
  ** @return : advanced_options according to blast_program
  */
 function advanced_options( $blast_program, $eVal, $qRange, $data )
  {
-   
+
    if ( $blast_program == 'blastn' )
     {
       $wordvalue = intval( $data[ Word_size ] );
       $numAlign  = intval( $data[ Max_target_sequences ] );
-      
+
       $Data_GapCost = _get_gap( $blast_program );
       $gapkey       = array_search( $data[ Gap_Costs ], $Data_GapCost );
-      
+
       $gap                  = _set_gap( $gapkey );
       $Data_Mismatch_Scores = _get_match_mismatch( $blast_program );
-      
+
       $Mismatch_Scores_key = array_search( $data[ Match_Mismatch_Scores ], $Data_Mismatch_Scores );
       $m_m                 = _set_match_mismatch( $Mismatch_Scores_key );
-      
+
       return array(
           'max_target_seqs' => $numAlign,
          'evalue' => $eVal,
@@ -459,9 +459,9 @@ function advanced_options( $blast_program, $eVal, $qRange, $data )
          'gapextend' => $gap[ 'gapExtend' ],
          'penalty' => $m_m[ 'penalty' ],
          'reward' => $m_m[ 'reward' ],
-         'culling_limit' => $qRange 
+         'culling_limit' => $qRange
       );
-      
+
     }
    elseif ( $blast_program == 'blastx' )
     {
@@ -469,7 +469,7 @@ function advanced_options( $blast_program, $eVal, $qRange, $data )
       $numAlign = intval( $data[ Max_target_sequences ] );
       $matrix   = $data[ Matrix_options ];
       $gap      = getGap( $matrix, 1 );
-      
+
       return array(
           'max_target_seqs' => $numAlign,
          'evalue' => $eVal,
@@ -477,7 +477,7 @@ function advanced_options( $blast_program, $eVal, $qRange, $data )
          'gapopen' => $gap[ 'gapOpen' ],
          'gapextend' => $gap[ 'gapExtend' ],
          'culling_limit' => $qRange,
-         'matrix' => $matrix 
+         'matrix' => $matrix
       );
     }
    elseif ( $blast_program == 'tblastn' )
@@ -486,7 +486,7 @@ function advanced_options( $blast_program, $eVal, $qRange, $data )
       $numAlign = intval( $data[ Max_target_sequences ] );
       $matrix   = $data[ Matrix_options ];
       $gap      = getGap( $matrix, 1 );
-      
+
       return array(
           'max_target_seqs' => $numAlign,
          'evalue' => $eVal,
@@ -494,7 +494,7 @@ function advanced_options( $blast_program, $eVal, $qRange, $data )
          'gapopen' => $gap[ 'gapOpen' ],
          'gapextend' => $gap[ 'gapExtend' ],
          'culling_limit' => $qRange,
-         'matrix' => $matrix 
+         'matrix' => $matrix
       );
     }
    elseif ( $blast_program == 'blastp' )
@@ -503,7 +503,7 @@ function advanced_options( $blast_program, $eVal, $qRange, $data )
       $numAlign = intval( $data[ Max_target_sequences ] );
       $matrix   = $data[ Matrix_options ];
       $gap      = getGap( $matrix, 1 );
-      
+
       return array(
           'max_target_seqs' => $numAlign,
          'evalue' => $eVal,
@@ -511,7 +511,7 @@ function advanced_options( $blast_program, $eVal, $qRange, $data )
          'gapopen' => $gap[ 'gapOpen' ],
          'gapextend' => $gap[ 'gapExtend' ],
          'culling_limit' => $qRange,
-         'matrix' => $matrix 
+         'matrix' => $matrix
       );
     }
  }
@@ -519,7 +519,7 @@ function advanced_options( $blast_program, $eVal, $qRange, $data )
 
 /*
  ** Call the core API of Triple
- ** @return :  Job_ID 
+ ** @return :  Job_ID
  */
 
 function blast_ui_getblastJobId( $query_type, $db_type, $seqQuery, $Databasekey, $adv_options )
@@ -546,33 +546,33 @@ function blast_ui_getblastJobId( $query_type, $db_type, $seqQuery, $Databasekey,
          $blast_program = 'blastp';
        }
     }
-   
+
    $query = '/tmp/' . date( 'YMd_His' ) . '_query.fasta';
    file_put_contents( $query, $seqQuery );
    $blastdb_node      = node_load( $Databasekey );
    $blastdb_name      = $blastdb_node->db_name;
    $blastdb_with_path = $blastdb_node->db_path;
-   
+
    // Now let each program process its own advanced options.
-   
-   
+
+
    $advanced_options = $adv_options;
    global $user;
-   
+
    $output_filestub = date( 'YMd_His' );
    $job_args        = array(
        'program' => $blast_program,
       'query' => $query,
       'database' => $blastdb_with_path,
       'output_filename' => $output_filestub,
-      'options' => $advanced_options 
+      'options' => $advanced_options
    );
-   
+
    $job_id = tripal_add_job( t( 'BLAST (@program): @query', array(
        '@program' => $blast_program,
-      '@query' => $query 
+      '@query' => $query
    ) ), 'blast_job', 'run_BLAST_tripal_job', $job_args, $user->uid );
-   
+
    ob_start();
    tripal_launch_job( 1, $job_id );
    ob_end_clean();
@@ -595,7 +595,7 @@ function getBlaststatus( $job_id )
 
 
 /*
- **Method returns file output data 
+ **Method returns file output data
  **  @param int $job_id
  **  web service url :  http://localhost:8080/restapi/blast/job_id
  */
@@ -605,12 +605,12 @@ function getBlastData( $job_id )
    $result;
    $sql     = "SELECT job_name FROM tripal_jobs WHERE job_id = :job_id ";
    $job_res = db_query( $sql, array(
-       ':job_id' => $job_id 
+       ':job_id' => $job_id
    ) )->fetchField();
-   
+
    $file_path = str_replace( '_query.fasta', '.blast.asn', $job_res );
-   
-   
+
+
    if ( stristr( $file_path, "tblastn" ) )
     {
       $file_path = str_replace( 'BLAST (tblastn): /', '/', $file_path );
@@ -627,8 +627,8 @@ function getBlastData( $job_id )
     {
       $file_path = str_replace( 'BLAST (blastp): /', '/', $file_path );
     }
-   
-   
+
+
    if ( file_exists( $file_path ) )
     {
       $result = file_get_contents( $file_path );
@@ -1001,11 +1001,11 @@ function getGap( $matrix, $gapkey )
                break;
          }
          break;
-         
+
    }
    return array(
        'gapOpen' => $gapOpen,
-      'gapExtend' => $gapExtend 
+      'gapExtend' => $gapExtend
    );
  }
 
@@ -1022,6 +1022,6 @@ function getGap_cost()
       'BLOSUM62' => _get_gap_for_matrix( 'BLOSUM62' ),
       'BLOSUM45' => _get_gap_for_matrix( 'BLOSUM45' ),
       'BLOSUM50' => _get_gap_for_matrix( 'BLOSUM50' ),
-      'BLOSUM90' => _get_gap_for_matrix( 'BLOSUM90' ) 
+      'BLOSUM90' => _get_gap_for_matrix( 'BLOSUM90' )
    );
  }

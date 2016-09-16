@@ -78,9 +78,9 @@ function get_blast_database_options($type) {
   $options = array();
   foreach ($nodes as $node) {
     if ( isset($node) && isset($node->db_dbtype) ) {
-	    if ( ($node->db_dbtype == $type) OR ($node->db_dbtype == $obs_type) ) {
+      if ( ($node->db_dbtype == $type) OR ($node->db_dbtype == $obs_type) ) {
         $options[$node->nid] = $node->db_name;
-	    }
+      }
     }
   }
 
@@ -142,7 +142,7 @@ function get_BLAST_job($job_id) {
   $job->files->result->tsv = $blastjob->result_filestub . '.tsv';
   $job->files->result->html = $blastjob->result_filestub . '.html';
   $job->files->result->gff = $blastjob->result_filestub . '.gff';
-  
+
   return $job;
 }
 
@@ -179,15 +179,15 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
 
   // Allow administrators to use an absolute path for these commands.
   // Defaults to using $PATH.
-	$blast_path    = variable_get('blast_path', '');
-	$blast_threads = variable_get('blast_threads', 1);
+  $blast_path    = variable_get('blast_path', '');
+  $blast_threads = variable_get('blast_threads', 1);
 
-	// Strip the extension off the BLAST target
-	$database = preg_replace("/(.*)\.[pn]\w\w/", '$1', $database);
+  // Strip the extension off the BLAST target
+  $database = preg_replace("/(.*)\.[pn]\w\w/", '$1', $database);
 
-	// The executables:
-	$program       = $blast_path . $program;
-	$blast_formatter_command = $blast_path . 'blast_formatter';
+  // The executables:
+  $program       = $blast_path . $program;
+  $blast_formatter_command = $blast_path . 'blast_formatter';
 
   $blast_cmd = "$program -query '$query' -db '$database' -out '$output_file' -outfmt=11";
   if (!empty($options)) {

@@ -22,7 +22,7 @@ function blast_ui_admin_form($form, $form_state) {
     '#default_value' => variable_get('blast_path', ''),
   );
 
-	$form['general']['blast_threads']= array(
+  $form['general']['blast_threads']= array(
     '#type' => 'textfield',
     '#title' => t('Enter the number of CPU threads to use in blast search.'),
     '#description' => t('You can increase the number to reduce the search time. Before you increase, please check your hardware configurations . A value of one(1) can result in a slower search for some programs eg. tblastn.'),
@@ -143,16 +143,16 @@ KRSLEEGLKTTGEGLDWGVLFGFGPGLTIETVVLRSVAI';
  * Validate the Admin/Settings form.
  */
 function blast_ui_admin_form_validate($form, &$form_state) {
-	$blast_path = $form_state['values']['blast_path'];
-	$blast_path .= 'blastn';
-	if(!empty($form_state['values']['blast_path'])) {
-		if(file_exists($blast_path) ) {
-			variable_set('blast_path', $form_state['values']['blast_path']);
-		}
-		else {
-			form_set_error('blast_path', t('Please enter a valid path not including the name of the blast program (ie: /urs/bin/). You can leave this blank if you have your $PATH variable set appropriately.'));
-		}
-	}
+  $blast_path = $form_state['values']['blast_path'];
+  $blast_path .= 'blastn';
+  if(!empty($form_state['values']['blast_path'])) {
+    if(file_exists($blast_path) ) {
+      variable_set('blast_path', $form_state['values']['blast_path']);
+    }
+    else {
+      form_set_error('blast_path', t('Please enter a valid path not including the name of the blast program (ie: /urs/bin/). You can leave this blank if you have your $PATH variable set appropriately.'));
+    }
+  }
 
 }
 
