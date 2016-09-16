@@ -67,13 +67,13 @@ $no_hits = TRUE;
 <?php if($xml):
   $output_files = array();
   if (file_exists($blast_job->files->result->html))
-    $output_files['html'] = array('path' => url($blast_job->files->result->html), 'title' => 'Alignment');
+    $output_files['html'] = array('path' => $blast_job->files->result->html, 'title' => 'Alignment');
   if (file_exists($blast_job->files->result->tsv))
-    $output_files['tsv'] = array('path' => url($blast_job->files->result->tsv), 'title' => 'Tab-Delimited');
+    $output_files['tsv'] = array('path' => $blast_job->files->result->tsv, 'title' => 'Tab-Delimited');
   if (file_exists($blast_job->files->result->gff))
-    $output_files['gff'] = array('path' => url($blast_job->files->result->gff), 'title' => 'GFF3');
+    $output_files['gff'] = array('path' => $blast_job->files->result->gff, 'title' => 'GFF3');
   if (file_exists($blast_job->files->result->xml))
-    $output_files['xml'] = array('path' => url($blast_job->files->result->xml), 'title' => 'XML');
+    $output_files['xml'] = array('path' => $blast_job->files->result->xml, 'title' => 'XML');
 ?>
   <div class="blast-download-info"><strong>Download</strong>:
     <?php
