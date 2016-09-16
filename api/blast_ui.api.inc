@@ -722,8 +722,7 @@ function convert_tsv2gff3($blast_tsv,$blast_gff){
       continue;
     }
 
-    // Assign the important parts of the time to readable variables.
-    // Each line has the following Fields:
+    // Each line has the following parts:
     //  0: query id,
     //  1: subject id,
     //  2: % identity,
@@ -736,10 +735,14 @@ function convert_tsv2gff3($blast_tsv,$blast_gff){
     //  9: s. end,
     // 10: evalue,
     // 11: bit score
+    $parts = preg_split('/\t/', $line);
+
+    // Assign the important parts of the time to readable variables.
     $hitname = $parts[1];
     $hspInfo = "$parts[0],$parts[8],$parts[9],$parts[6],$parts[7]";
     $eval = $parts[10];
     $results[$hitname][$hspInfo] = $eval;
+
     $IDs = array();
     $count = 0;
     $last_q = NULL;
@@ -779,7 +782,7 @@ function convert_tsv2gff3($blast_tsv,$blast_gff){
         $last_q = $q;
       }
     }
-  }//end of tsv file while
+  }
 
   // Now can print a parent gff line and all the children.
   // Note: the evalues seem to be sorted properly without actually sorting them.
