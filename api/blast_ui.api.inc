@@ -685,85 +685,106 @@ function generate_blast_hit_image($acc = '', $scores, $hits, $tsize, $qsize, $na
   return $b64_img;
 }
 
-/** convert tsv blast output to gff output file
+/**
+ * Convert tsv blast output to gff output file.
  *
  * Created by Sofia Robb
  * 09/15/2016
  *
- * the subject (hit) will be the source feature
- * the query will be the target
+ * The subject (hit) will be the source feature.
+ * The query will be the target.
  *
- * @param $blast_tsv, $blast_gff
- *  the name of the blast tsv output file
- *  the name of the blast gff output file
+ * @todo: find a more efficient way since currently the first loop stores all the blast
+ *   results into an array and then the second loop prints them.
  *
- * @return
- *   returns nothing but creates the gff file in the same dir as the tsv with gff extension
+ * @param $blast_tsv
+ *  The name of the blast tsv output file.
+ * @param $blast_gff
+ *  The name of the blast gff output file.
  */
-
 function convert_tsv2gff3($blast_tsv,$blast_gff){
+
+  // Open a new file for writting the gff.
   $gff = fopen($blast_gff,"w");
   fwrite($gff,"##gff-version 3\n");
 
-  $results = array();
-
+  // Open the TSV file to read from.
   $tsv = fopen($blast_tsv, "r") or die("Unable to open tsv file!");
+
+  // For each line in the TSV file...
+  $results = array();
   while(!feof($tsv)) {
     $line = fgets($tsv);
     $line = rtrim($line);
+
+    // Skip the line if it's empty.
     if (preg_match('/^#/',$line) or preg_match('/^\s*$/',$line)){
       continue;
     }
-    //$line has these parts: $queryId, $subjectId, $percIdentity, $alnLength, $mismatchCount,$gapOpenCount, $queryStart, $queryEnd, $subjectStart,$subjectEnd, $eVal, $bitScore
-   $parts = preg_split('/\t/', $line);
-   $hitname = $parts[1];
-   $hspInfo =  "$parts[0],$parts[8],$parts[9],$parts[6],$parts[7]";
-   $eval = $parts[10];
-   $results[$hitname][$hspInfo]=$eval;
-   $IDs = array();
-   $count;
-   $last_q;
-   //need to go thru each line of tsv to find the first and last hsp of a hit.
-   //need to get the smallest and largest coordinate for the parent feature
-   foreach ($results as $s => $hspInfoArray) {
-     $hsp = 0;
-     foreach ($hspInfoArray as $hspInfoStr => $e){
-       list($q,$ss,$se,$qs,$qe) = preg_split('/,/',$hspInfoStr);
-       if (!$last_q or  $q != $last_q){
+
+    // Assign the important parts of the time to readable variables.
+    // Each line has the following Fields:
+    //  0: query id,
+    //  1: subject id,
+    //  2: % identity,
+    //  3: alignment length,
+    //  4: mismatches,
+    //  5: gap opens,
+    //  6: q. start,
+    //  7: q. end,
+    //  8: s. start,
+    //  9: s. end,
+    // 10: evalue,
+    // 11: bit score
+    $hitname = $parts[1];
+    $hspInfo = "$parts[0],$parts[8],$parts[9],$parts[6],$parts[7]";
+    $eval = $parts[10];
+    $results[$hitname][$hspInfo] = $eval;
+    $IDs = array();
+    $count = 0;
+    $last_q = NULL;
+
+    // Need to go thru each line of tsv to find the first and last hsp of a hit.
+    // Need to get the smallest and largest coordinate for the parent feature
+    foreach ($results as $s => $hspInfoArray) {
+      $hsp = 0;
+      foreach ($hspInfoArray as $hspInfoStr => $e) {
+        list($q,$ss,$se,$qs,$qe) = preg_split('/,/',$hspInfoStr);
+        if (!$last_q or  $q != $last_q) {
           $count++;
           $hsp=0;
-       }
-       $q_strand = '+';
-       if ($qs > $qe){
-         list($qs,$qe) = array($qe,$qs);
-         $q_strand = '-';
-       }
-       $IDs["$s,$q"]['strand']='+';
-       list($start,$end) = array($ss,$se);
-       if($ss > $se){
-         list($start,$end) = array($se,$ss);
-         $IDs["$s,$q"]['strand']='-';
-       }
-       if (!array_key_exists('SS',$IDs["$s,$q"]) or $ss < $IDs["$s,$q"]['SS']){
+        }
+        $q_strand = '+';
+        if ($qs > $qe) {
+          list($qs,$qe) = array($qe,$qs);
+          $q_strand = '-';
+        }
+        $IDs["$s,$q"]['strand']='+';
+        list($start,$end) = array($ss,$se);
+        if($ss > $se) {
+          list($start,$end) = array($se,$ss);
+          $IDs["$s,$q"]['strand']='-';
+        }
+        if (!array_key_exists('SS',$IDs["$s,$q"]) or $ss < $IDs["$s,$q"]['SS']) {
           $IDs["$s,$q"]['SS'] = $ss;
         }
-        if (!array_key_exists('SE',$IDs["$s,$q"]) or $se > $IDs["$s,$q"]['SE']){
+        if (!array_key_exists('SE',$IDs["$s,$q"]) or $se > $IDs["$s,$q"]['SE']) {
           $IDs["$s,$q"]['SE'] = $se;
         }
-        if (!array_key_exists('E',$IDs["$s,$q"]) or $e < $IDs["$s,$q"]['E']){
+        if (!array_key_exists('E',$IDs["$s,$q"]) or $e < $IDs["$s,$q"]['E']) {
           $IDs["$s,$q"]['E'] = $e;
         }
         $hsp++;
         $IDs["$s,$q"]['HSPs'][] = join("\t", array($s, "BLASTRESULT" , "match_part" , $start , $end , $e , $IDs["$s,$q"]['strand'] , '.' , "ID=$s.$count.$hsp;Parent=$s.$count;Target=$q $qs $qe $q_strand"));
         $last_q = $q;
-
-     }
-   }
-
+      }
+    }
   }//end of tsv file while
-  // now can print a parent gff line and all the children
-  // the evalues seem to be sorted properly without actually sorting them, need to make sure this is always true
-  foreach ($IDs as $sq => $value ){
+
+  // Now can print a parent gff line and all the children.
+  // Note: the evalues seem to be sorted properly without actually sorting them.
+  // @todo: need to make sure this is always true.
+  foreach ($IDs as $sq => $value ) {
     list ($s,$q) = preg_split('/,/' , $sq);
     $evalue =  $IDs["$s,$q"]['E'];
     $parent =  join ("\t", array($s, "BLASTRESULT" , "match" , $IDs["$s,$q"]['SS'] , $IDs["$s,$q"]['SE'] , $IDs["$s,$q"]['E'] , $IDs["$s,$q"]['strand'] , '.' , "ID=$s.$count;Name=$q($evalue)")) . "\n";
@@ -771,6 +792,8 @@ function convert_tsv2gff3($blast_tsv,$blast_gff){
     fwrite($gff,$parent);
     fwrite($gff,$child);
   }
+
+  // Close the files.
   fclose($tsv);
   fclose($gff);
 }
