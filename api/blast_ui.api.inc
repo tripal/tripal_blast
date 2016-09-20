@@ -756,6 +756,8 @@ function convert_tsv2gff3($blast_tsv,$blast_gff){
         if (!$last_q or  $q != $last_q) {
           $count++;
           $hsp=0;
+          printGFF_parent_children($gff,$IDs);
+          $IDs = array();
         }
         $q_strand = '+';
         if ($qs > $qe) {
@@ -782,21 +784,34 @@ function convert_tsv2gff3($blast_tsv,$blast_gff){
         $last_q = $q;
       }
     }
+    printGFF_parent_children($gff,$IDs);
   }
 
   // Now can print a parent gff line and all the children.
   // Note: the evalues seem to be sorted properly without actually sorting them.
   // @todo: need to make sure this is always true.
-  foreach ($IDs as $sq => $value ) {
-    list ($s,$q) = preg_split('/,/' , $sq);
-    $evalue =  $IDs["$s,$q"]['E'];
-    $parent =  join ("\t", array($s, "BLASTRESULT" , "match" , $IDs["$s,$q"]['SS'] , $IDs["$s,$q"]['SE'] , $IDs["$s,$q"]['E'] , $IDs["$s,$q"]['strand'] , '.' , "ID=$s.$count;Name=$q($evalue)")) . "\n";
-    $child = join ("\n",$IDs[$sq]['HSPs']) . "\n";
-    fwrite($gff,$parent);
-    fwrite($gff,$child);
-  }
+//  foreach ($IDs as $sq => $value ) {
+//    list ($s,$q) = preg_split('/,/' , $sq);
+//    $evalue =  $IDs["$s,$q"]['E'];
+//    $parent =  join ("\t", array($s, "BLASTRESULT" , "match" , $IDs["$s,$q"]['SS'] , $IDs["$s,$q"]['SE'] , $IDs["$s,$q"]['E'] , $IDs["$s,$q"]['strand'] , '.' , "ID=$s.$count;Name=$q($evalue)")) . "\n";
+//    $child = join ("\n",$IDs[$sq]['HSPs']) . "\n";
+//    fwrite($gff,$parent);
+//    fwrite($gff,$child);
+//  }
 
   // Close the files.
   fclose($tsv);
   fclose($gff);
+}
+
+function printGFF_parent_children ($gff,$blast_feature_array){
+  foreach ($blast_feature_array as $sq => $value ) {
+    list ($s,$q) = preg_split('/,/' , $sq);
+    $evalue =  $blast_feature_array["$s,$q"]['E'];
+    $parent =  join ("\t", array($s, "BLASTRESULT" , "match" , $blast_feature_array["$s,$q"]['SS'] , $blast_feature_array["$s,$q"]['SE'] , $blast_feature_array["$s,$q"]['E'] , $blast_feature_array["$s,$q"]['strand'] , '.' , "ID=$s.$count;Name=$q($evalue)")) . "\n";
+    $child = join ("\n",$blast_feature_array[$sq]['HSPs']) . "\n";
+    fwrite($gff,$parent);
+    fwrite($gff,$child);
+  }
+
 }
