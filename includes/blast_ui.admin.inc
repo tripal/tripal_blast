@@ -113,7 +113,7 @@ CTGTTTTTAT TCAACATATT TAATCACATG GATGAATTTT TGAACTGTTA';
     '#type' => 'textarea',
     '#title' => 'Nucleotide Example',
     '#description' => t('Enter a complete nucleotide FASTA record including the header. More information: <a href="@fasta-format-url" target="_blank">FASTA format</a>.',
-      array('@fasta-format-url' => 'http://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml')),
+      array('@fasta-format-url' => 'https://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml')),
     '#default_value' => variable_get(
         'blast_ui_nucleotide_example_sequence',
         $nucleotide_default
@@ -131,7 +131,7 @@ KRSLEEGLKTTGEGLDWGVLFGFGPGLTIETVVLRSVAI';
     '#type' => 'textarea',
     '#title' => 'Protein Example',
     '#description' => t('Enter a complete protein FASTA record including the header. More information: <a href="@fasta-format-url" target="_blank">FASTA format</a>.',
-      array('@fasta-format-url' => 'http://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml')),
+      array('@fasta-format-url' => 'https://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml')),
     '#default_value' => variable_get(
         'blast_ui_protein_example_sequence',
         $protein_default
