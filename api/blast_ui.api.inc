@@ -279,8 +279,9 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
 	$blast_path    = variable_get('blast_path', '');
 	$blast_threads = variable_get('blast_threads', 1);
 	
+// No,don't do this in case some indication of "protein" is in the db name.
 	// Strip the extension off the BLAST target
-	$database = preg_replace("/(.*)\.[pn]\w\w/", '$1', $database);
+//	$database = preg_replace("/(.*)\.[pn]\w\w/", '$1', $database);
 	
 	// The executables:
 	$program       = $blast_path . $program;
