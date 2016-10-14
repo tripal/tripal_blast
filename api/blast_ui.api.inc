@@ -192,7 +192,8 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
   $blast_cmd = "$program -query '$query' -db '$database' -out '$output_file' -outfmt=11";
   if (!empty($options)) {
     foreach ($options as $opt => $val) {
-      if ($val) {
+      $val = trim($val);
+      if (!empty($val)) {
         print "\t$opt: $val\n";
         $blast_cmd .= " -$opt $val";
       }

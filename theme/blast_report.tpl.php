@@ -94,6 +94,10 @@ $no_hits = TRUE;
     <?php print format_date($blast_job->date_submitted, 'medium');?></div>
   <div class="blast-cmd-info"><strong>BLAST Command executed</strong>:
     <?php print $blast_job->blast_cmd;?></div>
+
+  <br />
+  <div class="num-results"><strong>Number of Results</strong>: <?php print $num_results; ?></div>
+
 </div>
 <br />
 
@@ -310,10 +314,12 @@ and click the <em>target name </em> to get more information about the target hit
     }
   }//handle no hits
 }//XML exists
-
+elseif ($too_many_results) {
+  print '<div class="messages error">Your BLAST resulted in '. number_format(floatval($num_results)) .' results which is too many to reasonably display. We have provided the result files for Download at the top of this page; however, we suggest you re-submit your query using a more stringent e-value (i.e. a smaller number).</div>';
+}
 else {
   drupal_set_title('BLAST: Error Encountered');
-  print '<p class="blast-no-results">We encountered an error and are unable to load your BLAST results.</p>';
+  print '<div class="messages error">We encountered an error and are unable to load your BLAST results.</div>';
 }
 ?>
 

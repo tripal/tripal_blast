@@ -48,7 +48,7 @@ function blast_ui_blastn_advanced_options_form(&$form, $form_state) {
     '#title' => t('Max target sequences:'),
     '#options' => _get_max_target('blastn'),
     '#default_value' => $defaults['max_target_seqs'],
-    '#description' => t('Select the maximum number of aligned sequences to display'),
+    '#description' => t('Select the maximum number of unique target sequences per query sequence to show results for.'),
   );
 
 /*eksc- remove until we learn how this is implemented by NCBI
@@ -1085,7 +1085,7 @@ function blast_ui_tblastn_advanced_options_form_submit($form, $form_state) {
 function _get_default_values($options) {
   // restore previous values or set to default
   $max_target = (isset($options['max_target_seqs']))
-            ? $options['max_target_seqs'] : 10;
+            ? $options['max_target_seqs'] : 0;
   $short_queries = (isset($options['shortQueries']))
             ? $options['shortQueries'] : true;
   $evalue = (isset($options['evalue']))
@@ -1169,6 +1169,7 @@ function _get_max_target($which) {
     case 'blastp':
     case 'tblastn':
       return array(
+        0 => t(' '),
         10 => t('10'),
         50 => t('50'),
         100 => t('100'),
