@@ -179,14 +179,14 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
 
   // Allow administrators to use an absolute path for these commands.
   // Defaults to using $PATH.
-  $blast_path    = variable_get('blast_path', '');
+  $blast_path = variable_get('blast_path', '');
   $blast_threads = variable_get('blast_threads', 1);
 
   // Strip the extension off the BLAST target
   $database = preg_replace("/(.*)\.[pn]\w\w/", '$1', $database);
 
   // The executables:
-  $program       = $blast_path . $program;
+  $program = $blast_path . $program;
   $blast_formatter_command = $blast_path . 'blast_formatter';
 
   $blast_cmd = "$program -query '$query' -db '$database' -out '$output_file' -outfmt=11";
@@ -270,7 +270,6 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
       array('print' => TRUE)
     );
   }
-
 
   print "\nDone!\n";
 }
