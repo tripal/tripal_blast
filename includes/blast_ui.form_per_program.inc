@@ -414,7 +414,7 @@ function blast_ui_per_blast_program_form_submit($form, &$form_state) {
   if (isset($form_state['qFlag'])) {
     if ($form_state['qFlag'] == 'seqQuery') {
       $seq_content = $form_state['values']['FASTA'];
-      $blastjob['query_file'] = '/tmp/' . date('YMd_His') . '_query.fasta';
+      $blastjob['query_file'] = variable_get('file_temporary_path', file_directory_temp()) . '/' . date('YMd_His') . '_query.fasta';
       file_put_contents ($blastjob['query_file'], $seq_content);
     }
     elseif ($form_state['qFlag'] == 'upQuery') {
