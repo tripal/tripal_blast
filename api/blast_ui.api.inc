@@ -185,23 +185,50 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
   // Strip the extension off the BLAST target
   $database = preg_replace("/(.*)\.[pn]\w\w/", '$1', $database);
 
-  // The executables:
+  // The Blast executeable.
   $program = $blast_path . $program;
-  $blast_formatter_command = $blast_path . 'blast_formatter';
+  if (!file_exists($program)) {
+    tripal_report_error(
+      'blast_ui',
+      TRIPAL_ERROR,
+      "Unable to find the BLAST executable (ie: /urs/bin/blastn). This can be changed in the admin settings; you supplied: @command",
+      array('@command' => $program),
+      array('print' => TRUE)
+    );
+    return FALSE;
+  }
 
-  $blast_cmd = "$program -query '$query' -db '$database' -out '$output_file' -outfmt=11";
+  // The blast db formatter executable.
+  $blast_formatter_command = $blast_path . 'blast_formatter';
+  if (!file_exists($blast_formatter_command)) {
+    tripal_report_error(
+      'blast_ui',
+      TRIPAL_ERROR,
+      "Unable to find the BLAST Formatter executable (ie: /urs/bin/blast_formatter). This can be changed in the admin settings; you supplied: @command",
+      array('@command' => $blast_formatter_command),
+      array('print' => TRUE)
+    );
+    return FALSE;
+  }
+
+  // Note: all variables are escaped (adds single quotes around their values) for security reasons.
+  $blast_cmd = escapeshellarg($program) . ' -query ' . escapeshellarg($query) . ' -db ' . escapeshellarg($database) . ' -out ' . escapeshellarg($output_file) . ' -outfmt=11';
   if (!empty($options)) {
     foreach ($options as $opt => $val) {
       $val = trim($val);
       if (!empty($val)) {
         print "\t$opt: $val\n";
-        $blast_cmd .= " -$opt $val";
+        // We want to escape all the option values since they were supplied via
+        // user input. These values should also have been checked in the
+        // advanced form _validate functions but this adds an extra layer of
+        // protection.
+        $blast_cmd .= ' -' . escapeshellarg($opt) . ' ' . escapeshellarg($val);
       }
     }
   }
 
  // Setting the value of threads by admin page
- $blast_cmd .= " -num_threads ".$blast_threads;
+ $blast_cmd .= ' -num_threads ' . escapeshellarg($blast_threads);
 
   print "\nExecuting the following BLAST command:\n" . $blast_cmd . "\n";
 
@@ -221,8 +248,8 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
   print "\nGenerating additional download formats...\n";
 
   print "\tXML\n";
-  $format_cmd = "$blast_formatter_command -archive $output_file -outfmt 5 -out $output_file_xml";
-  print "\nExecuting $format_cmd\n\n";
+  $format_cmd = escapeshellarg($blast_formatter_command) . ' -archive ' . escapeshellarg($output_file) . ' -outfmt 5 -out ' . escapeshellarg($output_file_xml);
+  print "\t\tExecuting $format_cmd\n\n";
   system($format_cmd);
   if (!file_exists($output_file_xml)) {
     tripal_report_error(
@@ -235,7 +262,9 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
   }
 
   print "\tTab-delimited\n";
-  system("$blast_formatter_command -archive $output_file -outfmt 7 -out $output_file_tsv");
+  $format_cmd = escapeshellarg($blast_formatter_command) . ' -archive ' . escapeshellarg($output_file) . ' -outfmt 7 -out ' . escapeshellarg($output_file_tsv);
+  print "\t\tExecuting $format_cmd\n\n";
+  system($format_cmd);
   if (!file_exists($output_file_tsv)) {
     tripal_report_error(
       'blast_ui',
@@ -260,7 +289,9 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
   }
 
   print "\tHTML (includes alignments)\n";
-  system("$blast_formatter_command -archive $output_file -outfmt 0 -out $output_file_html -html");
+  $format_cmd = escapeshellarg($blast_formatter_command) . ' -archive ' . escapeshellarg($output_file) . ' -outfmt 0 -out ' . escapeshellarg($output_file_html) . ' -html';
+  print "\t\tExecuting $format_cmd\n\n";
+  system($format_cmd);
   if (!file_exists($output_file_tsv)) {
     tripal_report_error(
       'blast_ui',
@@ -424,7 +455,7 @@ function get_number_of_recent_jobs() {
 function format_query_headers($file) {
 
   $headers = array();
-  exec('grep ">" '.$file, $headers);
+  exec('grep ">" ' . escapeshellarg($file), $headers);
 
   // Easiest case: if there is only one query header then show it.
   if (sizeof($headers) == 1 AND isset($headers[0])) {

@@ -433,7 +433,7 @@ function blast_ui_per_blast_program_form_submit($form, &$form_state) {
     // to provide multiple download type options from the same BLAST
     $blastdb_with_path = $form_state['upDB_path'];
     $result = NULL;
-    exec("makeblastdb -in $blastdb_with_path -dbtype $mdb_type -parse_seqids 2>&1", $result);
+    exec('makeblastdb -in ' . escapeshellarg($blastdb_with_path) . ' -dbtype ' . escapeshellarg($mdb_type) . ' -parse_seqids 2>&1', $result);
 
     // Check that the BLAST database was made correctly.
     $result = implode('<br />', $result);

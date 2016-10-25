@@ -55,7 +55,7 @@ function blast_ui_preprocess_show_blast_report(&$vars) {
   $full_path_xml = DRUPAL_ROOT . DIRECTORY_SEPARATOR . $vars['blast_job']->files->result->xml;
   if (is_readable($full_path_xml)) {
 
-    $vars['num_results'] = `grep -c "<Hit>" $full_path_xml`;
+    $vars['num_results'] = shell_exec('grep -c "<Hit>" ' . escapeshellarg($full_path_xml));
 
     if ($vars['num_results'] < 500) {
       $vars['xml'] = simplexml_load_file($full_path_xml);

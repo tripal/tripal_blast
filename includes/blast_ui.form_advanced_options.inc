@@ -116,7 +116,24 @@ function blast_ui_blastn_advanced_options_form(&$form, $form_state) {
  *
  * @see blast_ui_blastn_advanced_options_form().
  */
-function blast_ui_blastn_advanced_options_form_validate($form, $form_state) { }
+function blast_ui_blastn_advanced_options_form_validate($form, $form_state) {
+
+  // Ensure that our textfields are what we expect them to be since we will
+  // use them to generate the BLAST command.
+  // First up, e-value. We expect the evalue to be a very small yet still
+  // positive number. It may be given in scientific notation which is
+  // luckily supported by is_numeric().
+  if (!is_numeric($form_state['values']['eVal'])) {
+    form_set_error('eVal', 'The e-value should be a very small number (scientific notation is supported). For example, <em>0.001</em> or, even better, <em>1e-10</em>.');
+  }
+
+  // Next textfield up, "Max matches in a query range" which is also expected
+  // to be a positive number.
+  if (!is_numeric($form_state['values']['qRange'])) {
+    form_set_error('qRange', 'The "Max matches in a query range" should be a positive integer.');
+  }
+
+}
 
 /**
  * Processed the advanced options provided by the BLASTn form above.
@@ -274,7 +291,24 @@ function blast_ui_blastx_advanced_options_form(&$form, $form_state) {
  *
  * @see blast_ui_blastx_advanced_options_form().
  */
-function blast_ui_blastx_advanced_options_form_validate($form, $form_state) { }
+function blast_ui_blastx_advanced_options_form_validate($form, $form_state) {
+
+  // Ensure that our textfields are what we expect them to be since we will
+  // use them to generate the BLAST command.
+  // First up, e-value. We expect the evalue to be a very small yet still
+  // positive number. It may be given in scientific notation which is
+  // luckily supported by is_numeric().
+  if (!is_numeric($form_state['values']['eVal'])) {
+    form_set_error('eVal', 'The e-value should be a very small number (scientific notation is supported). For example, <em>0.001</em> or, even better, <em>1e-10</em>.');
+  }
+
+  // Next textfield up, "Max matches in a query range" which is also expected
+  // to be a positive number.
+  if (!is_numeric($form_state['values']['qRange'])) {
+    form_set_error('qRange', 'The "Max matches in a query range" should be a positive integer.');
+  }
+
+}
 
 /**
  * Processed the advanced options provided by the BLASTx form above.
@@ -422,7 +456,23 @@ function blast_ui_blastp_advanced_options_form(&$form, $form_state) {
  *
  * @see blast_ui_blastp_advanced_options_form().
  */
-function blast_ui_blastp_advanced_options_form_validate($form, $form_state) { }
+function blast_ui_blastp_advanced_options_form_validate($form, $form_state) {
+
+  // Ensure that our textfields are what we expect them to be since we will
+  // use them to generate the BLAST command.
+  // First up, e-value. We expect the evalue to be a very small yet still
+  // positive number. It may be given in scientific notation which is
+  // luckily supported by is_numeric().
+  if (!is_numeric($form_state['values']['eVal'])) {
+    form_set_error('eVal', 'The e-value should be a very small number (scientific notation is supported). For example, <em>0.001</em> or, even better, <em>1e-10</em>.');
+  }
+
+  // Next textfield up, "Max matches in a query range" which is also expected
+  // to be a positive number.
+  if (!is_numeric($form_state['values']['qRange'])) {
+    form_set_error('qRange', 'The "Max matches in a query range" should be a positive integer.');
+  }
+}
 
 /**
  * Processed the advanced options provided by the BLASTp form above.
@@ -1065,7 +1115,23 @@ function blast_ui_tblastn_advanced_options_form(&$form, $form_state) {
  *
  * @see blast_ui_tblastn_advanced_options_form().
  */
-function blast_ui_tblastn_advanced_options_form_validate($form, $form_state) { }
+function blast_ui_tblastn_advanced_options_form_validate($form, $form_state) {
+
+  // Ensure that our textfields are what we expect them to be since we will
+  // use them to generate the BLAST command.
+  // First up, e-value. We expect the evalue to be a very small yet still
+  // positive number. It may be given in scientific notation which is
+  // luckily supported by is_numeric().
+  if (!is_numeric($form_state['values']['eVal'])) {
+    form_set_error('eVal', 'The e-value should be a very small number (scientific notation is supported). For example, <em>0.001</em> or, even better, <em>1e-10</em>.');
+  }
+
+  // Next textfield up, "Max matches in a query range" which is also expected
+  // to be a positive number.
+  if (!is_numeric($form_state['values']['qRange'])) {
+    form_set_error('qRange', 'The "Max matches in a query range" should be a positive integer.');
+  }
+}
 
 /**
  * Processed the advanced options provided by the tBLASTn form above.
