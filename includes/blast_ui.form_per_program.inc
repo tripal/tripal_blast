@@ -526,8 +526,7 @@ your sequence headers include pipes (i.e.: | ) they adhere to '
 
     // We want to save all result files (.asn, .xml, .tsv, .html) in the public files directory.
     // Usually [drupal root]/sites/default/files.
-    $output_dir = variable_get('file_public_path', conf_path() . '/files')
-      . DIRECTORY_SEPARATOR . 'tripal' . DIRECTORY_SEPARATOR . 'tripal_blast';
+    $output_dir = tripal_get_files_dir('tripal_blast');
     $output_filestub = $output_dir . DIRECTORY_SEPARATOR . date('YMd_His') . '.blast';
 
     $job_args = array(
