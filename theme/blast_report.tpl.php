@@ -64,7 +64,7 @@ $no_hits = TRUE;
 
 <!-- Provide Information to the user about their blast job -->
 <div class="blast-job-info">
-<?php if($xml):
+<?php 
   $output_files = array();
   if (file_exists($blast_job->files->result->html))
     $output_files['html'] = array('path' => $blast_job->files->result->html, 'title' => 'Alignment');
@@ -75,6 +75,7 @@ $no_hits = TRUE;
   if (file_exists($blast_job->files->result->xml))
     $output_files['xml'] = array('path' => $blast_job->files->result->xml, 'title' => 'XML');
 ?>
+  <?php if(!empty($output_files)): ?>
   <div class="blast-download-info"><strong>Download</strong>:
     <?php
       $i = 0;
@@ -84,7 +85,7 @@ $no_hits = TRUE;
         if (sizeof($output_files) != $i) print ', ';
     } ?>
   </div>
-<?php endif; ?>
+  <?php endif; ?>
   <br />
   <div class="blast-query-info"><strong>Query Information</strong>:
     <?php print $blast_job->files->query;?></div>
