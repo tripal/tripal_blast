@@ -690,6 +690,7 @@ function generate_blast_hit_image($acc = '', $scores, $hits, $tsize, $qsize, $na
  *
  * Created by Sofia Robb
  * 09/15/2016
+ * counter bugfix 10/27/2016
  *
  * The subject (hit) will be the source feature.
  * The query will be the target.
