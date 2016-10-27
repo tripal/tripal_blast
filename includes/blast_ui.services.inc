@@ -547,7 +547,7 @@ function blast_ui_getblastJobId( $query_type, $db_type, $seqQuery, $Databasekey,
        }
     }
 
-   $query = '/tmp/' . date( 'YMd_His' ) . '_query.fasta';
+   $query = variable_get('file_temporary_path', file_directory_temp()) . '/' . date( 'YMd_His' ) . '_query.fasta';
    file_put_contents( $query, $seqQuery );
    $blastdb_node      = node_load( $Databasekey );
    $blastdb_name      = $blastdb_node->db_name;
