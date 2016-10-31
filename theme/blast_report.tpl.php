@@ -8,7 +8,7 @@ $linkout = FALSE;
 if ($blast_job->blastdb->linkout->none === FALSE) {
   $linkout_type  = $blast_job->blastdb->linkout->type;
   $linkout_regex = $blast_job->blastdb->linkout->regex;
-  
+
   // Note that URL prefix is not required if linkout type is 'custom'
   if (isset($blast_job->blastdb->linkout->db_id->urlprefix) && !empty($blast_job->blastdb->linkout->db_id->urlprefix)) {
     $linkout_urlprefix = $blast_job->blastdb->linkout->db_id->urlprefix;
@@ -64,22 +64,41 @@ $no_hits = TRUE;
 
 <!-- Provide Information to the user about their blast job -->
 <div class="blast-job-info">
-<?php if($xml): ?>
+<?php 
+  $output_files = array();
+  if (file_exists($blast_job->files->result->html))
+    $output_files['html'] = array('path' => $blast_job->files->result->html, 'title' => 'Alignment');
+  if (file_exists($blast_job->files->result->tsv))
+    $output_files['tsv'] = array('path' => $blast_job->files->result->tsv, 'title' => 'Tab-Delimited');
+  if (file_exists($blast_job->files->result->gff))
+    $output_files['gff'] = array('path' => $blast_job->files->result->gff, 'title' => 'GFF3');
+  if (file_exists($blast_job->files->result->xml))
+    $output_files['xml'] = array('path' => $blast_job->files->result->xml, 'title' => 'XML');
+?>
+  <?php if(!empty($output_files)): ?>
   <div class="blast-download-info"><strong>Download</strong>:
-    <a href="<?php print '../../' . $blast_job->files->result->html; ?>">Alignment</a>,
-    <a href="<?php print '../../' . $blast_job->files->result->tsv; ?>">Tab-Delimited</a>,
-    <a href="<?php print '../../' . $blast_job->files->result->xml; ?>">XML</a>
+    <?php
+      $i = 0;
+      foreach($output_files as $file) {
+        $i++;
+        print l($file['title'], $file['path']);
+        if (sizeof($output_files) != $i) print ', ';
+    } ?>
   </div>
-<?php endif; ?>
+  <?php endif; ?>
   <br />
-  <div class="blast-query-info"><strong>Query Information</strong>: 
+  <div class="blast-query-info"><strong>Query Information</strong>:
     <?php print $blast_job->files->query;?></div>
-  <div class="blast-target-info"><strong>Search Target</strong>: 
+  <div class="blast-target-info"><strong>Search Target</strong>:
     <?php print $blast_job->blastdb->db_name;?></div>
-  <div class="blast-date-info"><strong>Submission Date</strong>: 
+  <div class="blast-date-info"><strong>Submission Date</strong>:
     <?php print format_date($blast_job->date_submitted, 'medium');?></div>
-  <div class="blast-cmd-info"><strong>BLAST Command executed</strong>: 
+  <div class="blast-cmd-info"><strong>BLAST Command executed</strong>:
     <?php print $blast_job->blast_cmd;?></div>
+
+  <br />
+  <div class="num-results"><strong>Number of Results</strong>: <?php print $num_results; ?></div>
+
 </div>
 <br />
 
@@ -93,8 +112,8 @@ $no_hits = TRUE;
 if ($xml) {
 ?>
 
-<p>The following table summarizes the results of your BLAST. 
-Click on a <em>triangle </em> on the left to see the alignment and a visualization of the hit, 
+<p>The following table summarizes the results of your BLAST.
+Click on a <em>triangle </em> on the left to see the alignment and a visualization of the hit,
 and click the <em>target name </em> to get more information about the target hit.</p>
 
 <?php
@@ -121,7 +140,7 @@ and click the <em>target name </em> to get more information about the target hit
     $q_name = $xml->{'BlastOutput_query-def'};
     $query_size = $xml->{'BlastOutput_query-len'};
     $target_size = $iteration->{'Iteration_stat'}->{'Statistics'}->{'Statistics_db-len'};
-    
+
     if ($children_count != 0) {
       foreach ($iteration->{'Iteration_hits'}->children() as $hit) {
         if (is_object($hit)) {
@@ -134,12 +153,12 @@ and click the <em>target name </em> to get more information about the target hit
           $score = (float) $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_score'};
           $evalue = (float) $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_evalue'};
           $query_name = (string) $iteration->{'Iteration_query-def'};
-          
+
           // If the id is of the form gnl|BL_ORD_ID|### then the parseids flag
           // to makeblastdb did a really poor job. In thhis case we want to use
           // the def to provide the original FASTA header.
           // @todo Deepak changed this to use just the hit_def; inquire as to why.
-          $hit_name = (preg_match('/BL_ORD_ID/', $hit->{'Hit_id'})) ? $hit->{'Hit_def'} : $hit->{'Hit_id'};  
+          $hit_name = (preg_match('/BL_ORD_ID/', $hit->{'Hit_id'})) ? $hit->{'Hit_def'} : $hit->{'Hit_id'};
           // Used for the hit visualization to ensure the name isn't truncated.
           $hit_name_short = (preg_match('/^([^\s]+)/', $hit_name, $matches)) ? $matches[1] : $hit_name;
 
@@ -147,13 +166,13 @@ and click the <em>target name </em> to get more information about the target hit
           $rounded_evalue = '';
           if (strpos($evalue,'e') != false) {
             $evalue_split = explode('e', $evalue);
-            $rounded_evalue = round($evalue_split[0], 2, PHP_ROUND_HALF_EVEN);            
+            $rounded_evalue = round($evalue_split[0], 2, PHP_ROUND_HALF_EVEN);
             $rounded_evalue .= 'e' . $evalue_split[1];
           }
-          else { 
+          else {
             $rounded_evalue = $evalue;
           }
-          
+
           // State what should be in the summary row for theme_table() later.
           $summary_row = array(
             'data' => array(
@@ -165,7 +184,7 @@ and click the <em>target name </em> to get more information about the target hit
             ),
             'class' => array('result-summary')
           );
-        
+
           // ALIGNMENT ROW (collapsed by default)
           // Process HSPs
           $HSPs = array();
@@ -179,12 +198,12 @@ and click the <em>target name </em> to get more information about the target hit
           $hit_hsp_score = '';
           $target_size = $hit->{'Hit_len'};
           $Hsp_bit_score = '';
-          
+
           // Then for each hit hsp, keep track of the start of first hsp and the end of
           // the last hsp. Keep in mind that hsps might not be recorded in order.
           foreach ($hit->{'Hit_hsps'}->children() as $hsp_xml) {
             $HSPs[] = (array) $hsp_xml;
-    
+
             if ($track_start > $hsp_xml->{'Hsp_hit-from'}) {
               $track_start = $hsp_xml->{'Hsp_hit-from'} . "";
             }
@@ -195,22 +214,22 @@ and click the <em>target name </em> to get more information about the target hit
             // The BLAST visualization code requires the hsps to be formatted in a
             // very specific manner. Here we build up the strings to be submitted.
             // hits=4263001_4262263_1_742;4260037_4259524_895_1411;&scores=722;473;
-            $hit_hsps .=  $hsp_xml->{'Hsp_hit-from'} . '_' . 
-                          $hsp_xml->{'Hsp_hit-to'} . '_' . 
-                          $hsp_xml->{'Hsp_query-from'} . '_' . $hsp_xml->{'Hsp_query-to'} . 
-                          ';';  
-            $Hsp_bit_score .=   $hsp_xml->{'Hsp_bit-score'} .';';    
+            $hit_hsps .=  $hsp_xml->{'Hsp_hit-from'} . '_' .
+                          $hsp_xml->{'Hsp_hit-to'} . '_' .
+                          $hsp_xml->{'Hsp_query-from'} . '_' . $hsp_xml->{'Hsp_query-to'} .
+                          ';';
+            $Hsp_bit_score .=   $hsp_xml->{'Hsp_bit-score'} .';';
           }
           // Finally record the range.
           // @todo figure out why we arbitrarily subtract 50,000 here...
           // @more removing the 50,000 and using track start/end appears to cause no change...
           $range_start = (int) $track_start;// - 50000;
           $range_end = (int) $track_end;// + 50000;
-          if ($range_start < 1) $range_start = 1;  
-   
+          if ($range_start < 1) $range_start = 1;
+
 
           // Call the function to generate the hit image.
-          $hit_img = generate_blast_hit_image($target_name, $Hsp_bit_score, $hit_hsps, 
+          $hit_img = generate_blast_hit_image($target_name, $Hsp_bit_score, $hit_hsps,
                                    $target_size, $query_size, $q_name, $hit_name_short);
 
 
@@ -225,19 +244,19 @@ and click the <em>target name </em> to get more information about the target hit
             'class' => array('alignment-row', $zebra_class),
             'no_striping' => TRUE
           );
-          
+
           // LINK-OUTS.
           // It was determined above whether link-outs were supported for the
-          // tripal blast database used as a search target. Thus we only want to 
+          // tripal blast database used as a search target. Thus we only want to
           // determine a link-out if it's actually supported... ;-)
           if ($linkout) {
-          
+
             // First extract the linkout text using the regex provided through
             // the Tripal blast database node.
             if (preg_match($linkout_regex, $hit_name, $linkout_match)) {
               $hit->{'linkout_id'} = $linkout_match[1];
               $hit->{'hit_name'} = $hit_name;
-            
+
               // Allow custom functions to determine the URL to support more complicated
               // link-outs rather than just using the tripal database prefix.
               $hit_name = call_user_func(
@@ -253,11 +272,11 @@ and click the <em>target name </em> to get more information about the target hit
                 )
               );
             }
-                        
+
             // Replace the target name with the link.
             $summary_row['data']['hit']['data'] = $hit_name;
           }
-          
+
           // ADD TO TABLE ROWS
           $rows[] = $summary_row;
           $rows[] = $alignment_row;
@@ -265,7 +284,7 @@ and click the <em>target name </em> to get more information about the target hit
         }//end of if - checks $hit
       }//end of foreach - iteration_hits
     }//end of if - check for iteration_hits
-    
+
     else {
       // Currently where the "no results" is added.
       $query_name = $iteration->{'Iteration_query-def'};
@@ -296,15 +315,17 @@ and click the <em>target name </em> to get more information about the target hit
     }
   }//handle no hits
 }//XML exists
-
+elseif ($too_many_results) {
+  print '<div class="messages error">Your BLAST resulted in '. number_format(floatval($num_results)) .' results which is too many to reasonably display. We have provided the result files for Download at the top of this page; however, we suggest you re-submit your query using a more stringent e-value (i.e. a smaller number).</div>';
+}
 else {
   drupal_set_title('BLAST: Error Encountered');
-  print '<p class="blast-no-results">We encountered an error and are unable to load your BLAST results.</p>';
+  print '<div class="messages error">We encountered an error and are unable to load your BLAST results.</div>';
 }
 ?>
 
 <p><?php print l(
-  'Edit this query and re-submit', 
+  'Edit this query and re-submit',
   $blast_form_url,
   array('query' => array('resubmit' => blast_ui_make_secret($job_id))));
 ?></p>
