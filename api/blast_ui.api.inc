@@ -770,24 +770,31 @@ function convert_tsv2gff3($blast_tsv,$blast_gff){
 
     // Assign the important parts of the time to readable variables.
     $hitname = $parts[1];
-    $hspInfo = "$parts[0],$parts[8],$parts[9],$parts[6],$parts[7]";
+    $queryId = $parts[0];
+    $subjectStart = $parts[8];
+    $subjectEnd = $parts[9];
+    $queryStart = $part[6];
+    $queryEnd = $parts[7];
     $eval = $parts[10];
+    $hspInfo = "$queryId,$subjectStart,$subjectEnd,$queryStart,$queryEnd";
     $results[$hitname][$hspInfo] = $eval;
+  } // end tsv file while
 
-    $IDs = array();
-    $count = 0;
-    $last_q = NULL;
+  $IDs = array();
+  $count = 0;
+  $last_s = NULL;
 
     // Need to go thru each line of tsv to find the first and last hsp of a hit.
     // Need to get the smallest and largest coordinate for the parent feature
     foreach ($results as $s => $hspInfoArray) {
+      $count++;
       $hsp = 0;
       foreach ($hspInfoArray as $hspInfoStr => $e) {
         list($q,$ss,$se,$qs,$qe) = preg_split('/,/',$hspInfoStr);
-        if (!$last_q or  $q != $last_q) {
-          $count++;
+        if ($s != NULL and  $s != $last_s ) {
           $hsp=0;
         }
+        $IDs["$s,$q"]['count']=$count;
         $q_strand = '+';
         if ($qs > $qe) {
           list($qs,$qe) = array($qe,$qs);
@@ -810,10 +817,9 @@ function convert_tsv2gff3($blast_tsv,$blast_gff){
         }
         $hsp++;
         $IDs["$s,$q"]['HSPs'][] = join("\t", array($s, "BLASTRESULT" , "match_part" , $start , $end , $e , $IDs["$s,$q"]['strand'] , '.' , "ID=$s.$count.$hsp;Parent=$s.$count;Target=$q $qs $qe $q_strand"));
-        $last_q = $q;
+        $last_s = $s;
       }
     }
-  }
 
   // Now can print a parent gff line and all the children.
   // Note: the evalues seem to be sorted properly without actually sorting them.
@@ -821,6 +827,7 @@ function convert_tsv2gff3($blast_tsv,$blast_gff){
   foreach ($IDs as $sq => $value ) {
     list ($s,$q) = preg_split('/,/' , $sq);
     $evalue =  $IDs["$s,$q"]['E'];
+    $count = $IDs["$s,$q"]['count'];
     $parent =  join ("\t", array($s, "BLASTRESULT" , "match" , $IDs["$s,$q"]['SS'] , $IDs["$s,$q"]['SE'] , $IDs["$s,$q"]['E'] , $IDs["$s,$q"]['strand'] , '.' , "ID=$s.$count;Name=$q($evalue)")) . "\n";
     $child = join ("\n",$IDs[$sq]['HSPs']) . "\n";
     fwrite($gff,$parent);
