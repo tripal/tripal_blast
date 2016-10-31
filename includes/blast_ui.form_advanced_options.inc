@@ -23,7 +23,7 @@
  *   The current state fo the form passed in as $form.
  */
 function blast_ui_blastn_advanced_options_form(&$form, $form_state) {
-  
+
   // Edit and Resubmit functionality.
   // We want to pull up the details from a previous blast and fill them in as defaults
   // for this blast.
@@ -33,7 +33,7 @@ function blast_ui_blastn_advanced_options_form(&$form, $form_state) {
   else {
     $defaults = _get_default_values(array(), 'blastn');
   }
-  
+
   // General parameters
   //.........................
 
@@ -48,7 +48,7 @@ function blast_ui_blastn_advanced_options_form(&$form, $form_state) {
     '#title' => t('Max target sequences:'),
     '#options' => _get_max_target('blastn'),
     '#default_value' => $defaults['max_target_seqs'],
-    '#description' => t('Select the maximum number of aligned sequences to display'),
+    '#description' => t('Select the maximum number of unique target sequences per query sequence to show results for.'),
   );
 
 /*eksc- remove until we learn how this is implemented by NCBI
@@ -116,7 +116,24 @@ function blast_ui_blastn_advanced_options_form(&$form, $form_state) {
  *
  * @see blast_ui_blastn_advanced_options_form().
  */
-function blast_ui_blastn_advanced_options_form_validate($form, $form_state) { }
+function blast_ui_blastn_advanced_options_form_validate($form, $form_state) {
+
+  // Ensure that our textfields are what we expect them to be since we will
+  // use them to generate the BLAST command.
+  // First up, e-value. We expect the evalue to be a very small yet still
+  // positive number. It may be given in scientific notation which is
+  // luckily supported by is_numeric().
+  if (!is_numeric($form_state['values']['eVal'])) {
+    form_set_error('eVal', 'The e-value should be a very small number (scientific notation is supported). For example, <em>0.001</em> or, even better, <em>1e-10</em>.');
+  }
+
+  // Next textfield up, "Max matches in a query range" which is also expected
+  // to be a positive number.
+  if (!is_numeric($form_state['values']['qRange'])) {
+    form_set_error('qRange', 'The "Max matches in a query range" should be a positive integer.');
+  }
+
+}
 
 /**
  * Processed the advanced options provided by the BLASTn form above.
@@ -128,10 +145,10 @@ function blast_ui_blastn_advanced_options_form_submit($form, $form_state) {
 
   $trgtKey = $form_state['values']['maxTarget'];
   $numAlign = $form['ALG']['GParam']['maxTarget']['#options'][$trgtKey];
-  
+
   $wsKey = $form_state['values']['wordSize'];
   $wordSize = $form['ALG']['GParam']['wordSize']['#options'][$wsKey];
-  
+
   // Expand Gap Cost key into open and extend penalties
   $gap = _set_gap($form_state['values']['gapCost']);
 
@@ -142,7 +159,7 @@ function blast_ui_blastn_advanced_options_form_submit($form, $form_state) {
   $qRange = $form_state['values']['qRange'];
 
   return array(
-  	'max_target_seqs' => $numAlign,
+    'max_target_seqs' => $numAlign,
     'evalue'          => $eVal,
     'word_size'       => $wordSize,
     'gapopen'         => $gap['gapOpen'],
@@ -252,17 +269,17 @@ function blast_ui_blastx_advanced_options_form(&$form, $form_state) {
     '#description' => t('Limit the number of matches to a query range. This option is useful if many strong matches to one part of a query may prevent BLAST from presenting weaker matches to another part of the query.'),
   );
 
-/*eksc- NOT match/mismatch but instead computational adjustments; 
+/*eksc- NOT match/mismatch but instead computational adjustments;
         need to learn how there are implemented for blastx
   $form['ALG']['SParam']['M&MScores'] = array(
     '#type' => 'select',
     '#title' => t('Match/Mismatch Scores:'),
     '#options' => array(
-				0 => t('No adjustment'),
-				1 => t('Composition-based statistics'),
-				2 => t('Conditional compositional score matrix adjustment'),
-				3 => t('Universal composition score matrix adjustment '),
-			),
+        0 => t('No adjustment'),
+        1 => t('Composition-based statistics'),
+        2 => t('Conditional compositional score matrix adjustment'),
+        3 => t('Universal composition score matrix adjustment '),
+      ),
     '#default_value' => 2,
     '#description' => t('Matrix adjustment method to compensate for amino acid composition of sequences'),
   );
@@ -274,7 +291,24 @@ function blast_ui_blastx_advanced_options_form(&$form, $form_state) {
  *
  * @see blast_ui_blastx_advanced_options_form().
  */
-function blast_ui_blastx_advanced_options_form_validate($form, $form_state) { }
+function blast_ui_blastx_advanced_options_form_validate($form, $form_state) {
+
+  // Ensure that our textfields are what we expect them to be since we will
+  // use them to generate the BLAST command.
+  // First up, e-value. We expect the evalue to be a very small yet still
+  // positive number. It may be given in scientific notation which is
+  // luckily supported by is_numeric().
+  if (!is_numeric($form_state['values']['eVal'])) {
+    form_set_error('eVal', 'The e-value should be a very small number (scientific notation is supported). For example, <em>0.001</em> or, even better, <em>1e-10</em>.');
+  }
+
+  // Next textfield up, "Max matches in a query range" which is also expected
+  // to be a positive number.
+  if (!is_numeric($form_state['values']['qRange'])) {
+    form_set_error('qRange', 'The "Max matches in a query range" should be a positive integer.');
+  }
+
+}
 
 /**
  * Processed the advanced options provided by the BLASTx form above.
@@ -400,7 +434,7 @@ function blast_ui_blastp_advanced_options_form(&$form, $form_state) {
   );
 */
 
-/*eksc- NOT match/mismatch but instead computational adjustments; 
+/*eksc- NOT match/mismatch but instead computational adjustments;
         need to learn how there are implemented for blastp
   $form['ALG']['SParam']['M&MScores'] = array(
     '#type' => 'select',
@@ -422,7 +456,23 @@ function blast_ui_blastp_advanced_options_form(&$form, $form_state) {
  *
  * @see blast_ui_blastp_advanced_options_form().
  */
-function blast_ui_blastp_advanced_options_form_validate($form, $form_state) { }
+function blast_ui_blastp_advanced_options_form_validate($form, $form_state) {
+
+  // Ensure that our textfields are what we expect them to be since we will
+  // use them to generate the BLAST command.
+  // First up, e-value. We expect the evalue to be a very small yet still
+  // positive number. It may be given in scientific notation which is
+  // luckily supported by is_numeric().
+  if (!is_numeric($form_state['values']['eVal'])) {
+    form_set_error('eVal', 'The e-value should be a very small number (scientific notation is supported). For example, <em>0.001</em> or, even better, <em>1e-10</em>.');
+  }
+
+  // Next textfield up, "Max matches in a query range" which is also expected
+  // to be a positive number.
+  if (!is_numeric($form_state['values']['qRange'])) {
+    form_set_error('qRange', 'The "Max matches in a query range" should be a positive integer.');
+  }
+}
 
 /**
  * Processed the advanced options provided by the BLASTp form above.
@@ -440,20 +490,14 @@ function blast_ui_blastp_advanced_options_form_submit($form, $form_state) {
   $wordSize = $form['ALG']['GParam']['wordSize']['#options'][$wsKey];
 
   $qRange = $form_state['values']['qRange'];
-  
+
   // Expand Gap Cost key into open and extend penalties
   $matrix = $form_state['values']['Matrix'];
   $gapKey = $form_state['values']['gapCost'];
   $gap    = getGap( $matrix, $gapKey);
-      
-    
-
-   
-//eksc- need to implement query range limit
-//  q_range
 
   return array(
-  	'max_target_seqs' => $numAlign,
+    'max_target_seqs' => $numAlign,
     'evalue'          => $eVal,
     'word_size'       => $wordSize,
     'gapopen' => $gap[ 'gapOpen' ],
@@ -471,14 +515,14 @@ function blast_ui_blastp_advanced_options_form_submit($form, $form_state) {
  */
 function _get_matrix_options() {
   return drupal_map_assoc(array(
-		t('PAM30'),
-		t('PAM70'),
-		t('PAM250'),
-		t('BLOSUM80'),
-		t('BLOSUM62'),
-		t('BLOSUM45'),
-		t('BLOSUM50'),
-		t('BLOSUM90'),
+    t('PAM30'),
+    t('PAM70'),
+    t('PAM250'),
+    t('BLOSUM80'),
+    t('BLOSUM62'),
+    t('BLOSUM45'),
+    t('BLOSUM50'),
+    t('BLOSUM90'),
   ));
 }
 
@@ -585,13 +629,13 @@ function _get_gap_for_matrix($key = '') {
       t('Existence: 9 Extension: 1'),
     )),
   );
-  
-	if (isset($options[$key])) {
-		return $options[$key];
-	} 
-	else {
-		return array();
-	}
+
+  if (isset($options[$key])) {
+    return $options[$key];
+  }
+  else {
+    return array();
+  }
 }//_get_gap_for_matrix
 
 /**
@@ -716,7 +760,23 @@ function blast_ui_tblastn_advanced_options_form(&$form, $form_state) {
  *
  * @see blast_ui_tblastn_advanced_options_form().
  */
-function blast_ui_tblastn_advanced_options_form_validate($form, $form_state) { }
+function blast_ui_tblastn_advanced_options_form_validate($form, $form_state) {
+
+  // Ensure that our textfields are what we expect them to be since we will
+  // use them to generate the BLAST command.
+  // First up, e-value. We expect the evalue to be a very small yet still
+  // positive number. It may be given in scientific notation which is
+  // luckily supported by is_numeric().
+  if (!is_numeric($form_state['values']['eVal'])) {
+    form_set_error('eVal', 'The e-value should be a very small number (scientific notation is supported). For example, <em>0.001</em> or, even better, <em>1e-10</em>.');
+  }
+
+  // Next textfield up, "Max matches in a query range" which is also expected
+  // to be a positive number.
+  if (!is_numeric($form_state['values']['qRange'])) {
+    form_set_error('qRange', 'The "Max matches in a query range" should be a positive integer.');
+  }
+}
 
 /**
  * Processed the advanced options provided by the tBLASTn form above.
@@ -735,74 +795,74 @@ function blast_ui_tblastn_advanced_options_form_submit($form, $form_state) {
  */
 function _get_default_values($options) {
   // restore previous values or set to default
-  $max_target = (isset($options['max_target_seqs'])) 
-  					? $options['max_target_seqs'] : 10;
-  $short_queries = (isset($options['shortQueries'])) 
-  					? $options['shortQueries'] : true;
-  $evalue = (isset($options['evalue'])) 
-  					? $options['evalue'] : .001;
-  $word_size = (isset($options['word_size'])) 
-  					? $options['word_size'] : 11;
-  $qRange = (isset($options['culling_limit'])) 
-  					? $options['culling_limit'] : 0;
+  $max_target = (isset($options['max_target_seqs']))
+            ? $options['max_target_seqs'] : 0;
+  $short_queries = (isset($options['shortQueries']))
+            ? $options['shortQueries'] : true;
+  $evalue = (isset($options['evalue']))
+            ? $options['evalue'] : variable_get('eVal', 0.001);
+  $word_size = (isset($options['word_size']))
+            ? $options['word_size'] : 11;
+  $qRange = (isset($options['culling_limit']))
+            ? $options['culling_limit'] : variable_get('qRange',0);
 
   $matchmiss = 0;
-  $reward = (isset($options['reward'])) 
-  					? $options['reward'] : 1;
-  $penalty = (isset($options['penalty'])) 
-  					? $options['penalty'] : -2;
+  $reward = (isset($options['reward']))
+            ? $options['reward'] : 1;
+  $penalty = (isset($options['penalty']))
+            ? $options['penalty'] : -2;
   if ($reward == 1) {
-  	switch ($penalty) {
-  		case -1: $matchmiss = 5; break;
-  	  case -2: $matchmiss = 0; break;
-  	  case -3: $matchmiss = 1; break;
-  	  case -4: $matchmiss = 2; break;
-  	}
+    switch ($penalty) {
+      case -1: $matchmiss = 5; break;
+      case -2: $matchmiss = 0; break;
+      case -3: $matchmiss = 1; break;
+      case -4: $matchmiss = 2; break;
+    }
   }
   else if ($reward == 2) {
-  	$matchmiss = 3;
+    $matchmiss = 3;
   }
   else if ($reward == 3) {
-  	 $matchmis = 4;
+     $matchmis = 4;
   }
   else if ($eward == 4) {
-  	 $matchmiss = 5;
+     $matchmiss = 5;
   }
-  
+
   $gap = 0;
-  $gapopen = (isset($options['gapopen'])) 
-  					? $options['gapopen'] : 5;
-  $gapextend = (isset($options['gapextend'])) 
-  					? $options['gapextend'] : 2;
+  $gapopen = (isset($options['gapopen']))
+            ? $options['gapopen'] : 5;
+  $gapextend = (isset($options['gapextend']))
+            ? $options['gapextend'] : 2;
   if ($gapextend == 2) {
-  	switch ($gapopen) {
-  		case 5: $gap = 0; break;
-  		case 2: $gap = 1; break;
-  		case 1: $gap = 2; break;
-  		case 0: $gap = 3; break;
-  	}
+    switch ($gapopen) {
+      case 5: $gap = 0; break;
+      case 2: $gap = 1; break;
+      case 1: $gap = 2; break;
+      case 0: $gap = 3; break;
+    }
   }
   else if ($gapextend == 1) {
-  	switch ($gapopen) {
-  		case 3: $gap = 4;
-  		case 2: $gap = 5;
-  		case 1: $gap = 6;
-  	}
+    switch ($gapopen) {
+      case 3: $gap = 4;
+      case 2: $gap = 5;
+      case 1: $gap = 6;
+    }
   }
-  
+
 // eksc- need to implement query range limit
 //  $q_range = 0;
-  
-  $matrix = (isset($options['matrix'])) 
-  					? $options['matrix'] : 'PAM30';
+
+  $matrix = (isset($options['matrix']))
+            ? $options['matrix'] : 'PAM30';
   return array(
-  	'max_target_seqs' => $max_target,
-  	'short_queries'   => $short_queries,
-  	'word_size'       => $word_size,
-  	'evalue'          => $evalue,
-  	'matchmiss'       => $matchmiss,
-  	'gap'             => $gap,
-  	'qRange'          => $qRange,
+    'max_target_seqs' => $max_target,
+    'short_queries'   => $short_queries,
+    'word_size'       => $word_size,
+    'evalue'          => $evalue,
+    'matchmiss'       => $matchmiss,
+    'gap'             => $gap,
+    'qRange'          => $qRange,
     'matrix'          => $matrix,
   );
 }//_get_default_values
@@ -814,69 +874,70 @@ function _get_default_values($options) {
  * and describe the maximum number of aligned sequences to keep.
  */
 function _get_max_target($which) {
-	switch ($which) {
-	  case 'blastn':
-	  case 'blastx':
-	  case 'blastp':
-	  case 'tblastn':
-			return array(
-				10 => t('10'),
-				50 => t('50'),
-				100 => t('100'),
-				250 => t('250'),
-				500 => t('500'),
-				1000 => t('1000'),
-				5000 => t('5000'),
-				10000 => t('10000'),
-				20000 => t('20000'),
-			);
-	}//switch
+  switch ($which) {
+    case 'blastn':
+    case 'blastx':
+    case 'blastp':
+    case 'tblastn':
+      return array(
+        0 => t(' '),
+        10 => t('10'),
+        50 => t('50'),
+        100 => t('100'),
+        250 => t('250'),
+        500 => t('500'),
+        1000 => t('1000'),
+        5000 => t('5000'),
+        10000 => t('10000'),
+        20000 => t('20000'),
+      );
+  }//switch
 }
 
 /**
  * Get a list of options for work size.
  */
 function _get_word_size($which) {
-	switch ($which) {
-		case 'blastn':
-			 return array(
-				 7 => t('7'),  
-				 11 => t('11'),
-				 15 => t('15'),
-				 16 => t('16'),
-				 20 => t('20'),
-				 24 => t('24'),
-				 28 => t('28'),
-				 32 => t('32'),
-				 48 => t('48'),
-				 64 => t('64'),
-			 	 128 => t('128'),
-				 256 => t('256'),
-	    );
+  switch ($which) {
+    case 'blastn':
+       return array(
+         7 => t('7'),
+         11 => t('11'),
+         15 => t('15'),
+         16 => t('16'),
+         20 => t('20'),
+         24 => t('24'),
+         28 => t('28'),
+         32 => t('32'),
+         48 => t('48'),
+         64 => t('64'),
+          128 => t('128'),
+         256 => t('256'),
+      );
     case 'blastx':
     case 'blastp':
     case 'tblastn':
-    	return array(
+      return array(
       //  2 => t('2'),
         3 => t('3'),
         6 => t('6'),
       );
-	}//switch
+  }//switch
 }
 
 /**
  * Get a list of options for match/mismatch ratio.
  */
 function _get_match_mismatch($which) {
-	switch ($which) {
-		case 'blastn':
+  switch ($which) {
+    case 'blastn':
       return array(
-				 0 => t('1,-2'),
-				 1 => t('1,-3'),
-				 2 => t('1,-4'),
-				 3 => t('2,-3'),
-				 4 => t('4,-5'),
-				 5 => t('1,-1'),
+         0 => t('1,-2'),
+         1 => t('1,-3'),
+         2 => t('1,-4'),
+         3 => t('2,-3'),
+         4 => t('4,-5'),
+         5 => t('1,-1'),
       );
   }//switch
 }
@@ -1266,16 +1327,16 @@ function getGap( $matrix, $gapkey )
 
 
 function _get_gap($which) {
-	switch ($which) {
-		case 'blastn':
+  switch ($which) {
+    case 'blastn':
       return array(
-				0 => t('Existence: 5 Extension: 2'),
-				1 => t('Existence: 2 Extension: 2'),
-				2 => t('Existence: 1 Extension: 2'),
-				3 => t('Existence: 0 Extension: 2'),
-				4 => t('Existence: 3 Extension: 1'),
-				5 => t('Existence: 2 Extension: 1'),
-				6 => t('Existence: 1 Extension: 1'),
+        0 => t('Existence: 5 Extension: 2'),
+        1 => t('Existence: 2 Extension: 2'),
+        2 => t('Existence: 1 Extension: 2'),
+        3 => t('Existence: 0 Extension: 2'),
+        4 => t('Existence: 3 Extension: 1'),
+        5 => t('Existence: 2 Extension: 1'),
+        6 => t('Existence: 1 Extension: 1'),
       );
    }//switch
 }
@@ -1314,7 +1375,7 @@ function _set_gap($gap_key) {
       $gapExtend = 1;
       break;
   }//switch
-  
+
   return array('gapOpen' => $gapOpen, 'gapExtend' => $gapExtend);
 }
 
@@ -1348,6 +1409,6 @@ function _set_match_mismatch($m_m) {
       $reward = 1;
       break;
   }//switch
-  
+
   return array('penalty' => $penalty, 'reward' => $reward);
 }
