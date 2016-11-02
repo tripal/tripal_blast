@@ -635,16 +635,9 @@ function getBlastData( $job_id )
  {
    $result ;
    $sql     = "SELECT job_name FROM tripal_jobs WHERE job_id = :job_id ";
-
    $file_path = db_query( $sql, array(
        ':job_id' => $job_id 
    ) )->fetchField();
-
-   $job_res = db_query( $sql, array(
-       ':job_id' => $job_id
-   ) )->fetchField();
-
-   $file_path = str_replace( '_query.fasta', '.blast.asn', $job_res );
 
    if ( stristr( $file_path, "tblastn" ) )
     {
@@ -662,6 +655,7 @@ function getBlastData( $job_id )
     {
       $file_path = str_replace( 'BLAST (blastp): /', '/', $file_path );
     }
+    
   /*
   **  defined all the format here to support output format, file_exists search the file
   **  In temp folder, if exits, get output in result.
