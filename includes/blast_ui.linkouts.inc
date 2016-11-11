@@ -149,7 +149,6 @@ function blast_ui_blast_linkout_info() {
  *   An html link.
  */
 function tripal_blast_generate_linkout_link($url_prefix, $hit, $info, $options = array()) {
-//echo "url_prefix=[$url_prefix=, hit=<pre>";var_dump($hit);echo"</pre>info=<pre>";var_dump($info);echo "</pre>";
   if (isset($hit->{'linkout_id'})) {
     $hit_url = $url_prefix . $hit->{'linkout_id'};
     
@@ -227,22 +226,12 @@ function tripal_blast_generate_linkout_gbrowse($url_prefix, $hit, $info, $option
   // Calculate the minimum & maximum coordinates.
   $min = min($coords);
   $max = max($coords);
-
-/*eksc: l() is the proper way to build a link in Drupal, but it doesn't appear
- *      to be possible to build a correct GBrowse link here. The main parameter
- *      in this case is 'query', then there are many sub-parameters contained in
- *      the value for 'query'. It doesn't appear to be possible to teach l() how
- *      to handle nested CGI parameters. Blame GBrowse.
- *      Any attempts to make l() build this URL correctly are very welcome.
- 
   // Now we are finally ready to build the URL.
-  // First let's set the location of the hit so the GBrowse focuses in on the correct region.
-
+  // First lets set the location of the hit so the GBrowse focuses in on the correct region.
   $query = array();
   $query['ref'] = $hit->{'linkout_id'};
   $query['start'] = $min;
   $query['stop'] = $max;
-
   // Next we want to add our BLAST hit to the GBrowse.
   $query['add'] = format_string(
     '!ref !trackname !featurename !hspcoords',
@@ -256,7 +245,6 @@ function tripal_blast_generate_linkout_gbrowse($url_prefix, $hit, $info, $option
   
   // Highlight our newly added feature.
   $query['h_feat'] = 'BlastHit';
-
   $hit_url = $url_prefix; //. $url_postfix;
   $url = l(
     $hit->{'linkout_id'},
@@ -269,15 +257,7 @@ function tripal_blast_generate_linkout_gbrowse($url_prefix, $hit, $info, $option
   
   // For some reason GBrowse expects semi-colons (;) to delineate query paramters 
   // whereas Drupal throws ampherstands (&) in. This is to fix that.
-  $url = str_replace('&', ';', $url);
-*/
-
-  // Build the link brute force until/unless someone figures out how to prevent
-  //   l() from URL-encoding the sub-parameters to "query=".
-  $query = "query=ref=".$hit->{'linkout_id'}.";start=$min;stop=$max";
-  $query .= ";add=".$hit->{'linkout_id'}."+BLAST+BlastHit=" . join ("," , $ranges);
-  $query .= ";h_feat=BlastHit";
-  $url = "<a href=\"$url_prefix?$query\">" . $hit->{'linkout_id'} . "</a>";
+  $url = str_replace('&',';', $url);
   
   return $url;
 }
