@@ -299,7 +299,10 @@ function blast_ui_per_blast_program_form_validate($form, &$form_state) {
   //----------------
   // @todo: We are currently not validating uploaded files are valid FASTA.
   // First check to see if we have an upload & if so then validate it.
-  $file = file_load($form_state['values']['UPLOAD']);
+  $file = null;
+  if(isset($form_state['values']['UPLOAD'])) {
+    $file = file_load($form_state['values']['UPLOAD']);
+  }
   // If the $file is populated then this is a newly uploaded, temporary file.
   if (is_object($file)) {
     $form_state['qFlag'] = 'upQuery';
