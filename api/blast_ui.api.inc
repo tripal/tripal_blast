@@ -742,7 +742,7 @@ function convert_tsv2gff3($blast_tsv,$blast_gff){
     $queryId = $parts[0];
     $subjectStart = $parts[8];
     $subjectEnd = $parts[9];
-    $queryStart = $part[6];
+    $queryStart = $parts[6];
     $queryEnd = $parts[7];
     $eval = $parts[10];
     $hspInfo = "$queryId,$subjectStart,$subjectEnd,$queryStart,$queryEnd";
