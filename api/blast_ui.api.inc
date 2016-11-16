@@ -780,7 +780,7 @@ function convert_tsv2gff3($blast_tsv,$blast_gff){
     $q = $parts[0];
     $ss = $parts[8];
     $se = $parts[9];
-    $qs = $part[6];
+    $qs = $parts[6];
     $qe = $parts[7];
     $e = $parts[10];
      
