@@ -823,21 +823,27 @@ function convert_tsv2gff3($blast_tsv,$blast_gff){
   // Open a new file for writting the gff.
   $gff = fopen($blast_gff,"w");
   fwrite($gff,"##gff-version 3\n");
-
+  
   // Open the TSV file to read from.
   $tsv = fopen($blast_tsv, "r") or die("Unable to open tsv file!");
-
+  
   // For each line in the TSV file...
-  $results = array();
+  // Need to go thru each line of tsv to find the first and last hsp of a hit.
+  $last_s = NULL;
+  $hsp = NULL;
+  $HitResult=array();
+  
   while(!feof($tsv)) {
     $line = fgets($tsv);
     $line = rtrim($line);
-
+    
     // Skip the line if it's empty.
     if (preg_match('/^#/',$line) or preg_match('/^\s*$/',$line)){
       continue;
     }
-
+    
+    ## for keeping track of new queries and hits
+    
     // Each line has the following parts:
     //  0: query id,
     //  1: subject id,
@@ -852,67 +858,89 @@ function convert_tsv2gff3($blast_tsv,$blast_gff){
     // 10: evalue,
     // 11: bit score
     $parts = preg_split('/\t/', $line);
-
-    // Assign the important parts of the time to readable variables.
-    $hitname = $parts[1];
-    $hspInfo = "$parts[0],$parts[8],$parts[9],$parts[6],$parts[7]";
-    $eval = $parts[10];
-    $results[$hitname][$hspInfo] = $eval;
-
-    $IDs = array();
-    $count = 0;
-    $last_q = NULL;
-
-    // Need to go thru each line of tsv to find the first and last hsp of a hit.
-    // Need to get the smallest and largest coordinate for the parent feature
-    foreach ($results as $s => $hspInfoArray) {
-      $hsp = 0;
-      foreach ($hspInfoArray as $hspInfoStr => $e) {
-        list($q,$ss,$se,$qs,$qe) = preg_split('/,/',$hspInfoStr);
-        if (!$last_q or  $q != $last_q) {
-          $count++;
-          $hsp=0;
-        }
-        $q_strand = '+';
-        if ($qs > $qe) {
-          list($qs,$qe) = array($qe,$qs);
-          $q_strand = '-';
-        }
-        $IDs["$s,$q"]['strand']='+';
-        list($start,$end) = array($ss,$se);
-        if($ss > $se) {
-          list($start,$end) = array($se,$ss);
-          $IDs["$s,$q"]['strand']='-';
-        }
-        if (!array_key_exists('SS',$IDs["$s,$q"]) or $ss < $IDs["$s,$q"]['SS']) {
-          $IDs["$s,$q"]['SS'] = $ss;
-        }
-        if (!array_key_exists('SE',$IDs["$s,$q"]) or $se > $IDs["$s,$q"]['SE']) {
-          $IDs["$s,$q"]['SE'] = $se;
-        }
-        if (!array_key_exists('E',$IDs["$s,$q"]) or $e < $IDs["$s,$q"]['E']) {
-          $IDs["$s,$q"]['E'] = $e;
-        }
-        $hsp++;
-        $IDs["$s,$q"]['HSPs'][] = join("\t", array($s, "BLASTRESULT" , "match_part" , $start , $end , $e , $IDs["$s,$q"]['strand'] , '.' , "ID=$s.$count.$hsp;Parent=$s.$count;Target=$q $qs $qe $q_strand"));
-        $last_q = $q;
-      }
+    
+    // Assign the important parts of the line to readable variables.
+    $s = $parts[1];
+    $q = $parts[0];
+    $ss = $parts[8];
+    $se = $parts[9];
+    $qs = $parts[6];
+    $qe = $parts[7];
+    $e = $parts[10];
+     
+     
+    // if this is a new hit print the last and 
+    // empty the $HitResult array and
+    // reset hsp counter
+    if ($last_s != NULL and $s != $last_s ) {
+      printGFF_parent_children($gff,$HitResult);
+      $HitResult = array();
+      $hsp=0;
     }
-  }
-
-  // Now can print a parent gff line and all the children.
-  // Note: the evalues seem to be sorted properly without actually sorting them.
-  // @todo: need to make sure this is always true.
-  foreach ($IDs as $sq => $value ) {
-    list ($s,$q) = preg_split('/,/' , $sq);
-    $evalue =  $IDs["$s,$q"]['E'];
-    $parent =  join ("\t", array($s, "BLASTRESULT" , "match" , $IDs["$s,$q"]['SS'] , $IDs["$s,$q"]['SE'] , $IDs["$s,$q"]['E'] , $IDs["$s,$q"]['strand'] , '.' , "ID=$s.$count;Name=$q($evalue)")) . "\n";
-    $child = join ("\n",$IDs[$sq]['HSPs']) . "\n";
-    fwrite($gff,$parent);
-    fwrite($gff,$child);
-  }
-
+  
+   // every line is a new hsp
+    $hsp++;
+  
+    // determine query strand to use in match_part line, no need to store, just print
+    $q_strand = '+';
+    if ($qs > $qe) {
+        list($qs,$qe) = array($qe,$qs);
+        $q_strand = '-';
+    }
+    
+    // determine subject (hit) strand to use in match line, needs to be stored
+    $HitResult["$s,$q"]['strand']='+';
+    list($start,$end) = array($ss,$se);
+    if($ss > $se) {
+       list($start,$end) = array($se,$ss);
+       $HitResult["$s,$q"]['strand']='-';
+     }
+  
+    // store smallest start
+     if (!array_key_exists('SS',$HitResult["$s,$q"]) or $ss < $HitResult["$s,$q"]['SS']) {
+       $HitResult["$s,$q"]['SS'] = $ss;
+     }
+    
+    // store largest end
+     if (!array_key_exists('SE',$HitResult["$s,$q"]) or $se > $HitResult["$s,$q"]['SE']) {
+       $HitResult["$s,$q"]['SE'] = $se;
+     }
+     // store best evalue
+     if (!array_key_exists('E',$HitResult["$s,$q"]) or $e < $HitResult["$s,$q"]['E']) {
+       $HitResult["$s,$q"]['E'] = $e;
+     }   
+    
+     // generate the match_part line for each hsp
+     $HitResult["$s,$q"]['HSPs'][] = join("\t", array($s, "BLASTRESULT" , "match_part" , $start , $end , $e , $HitResult["$s,$q"]['strand'] , '.' , "ID=$s.$q.$hsp;Parent=$s.$q;Target=$q $qs $qe $q_strand"));
+     $last_s = $s;
+  } // end tsv file while
+  
+  // print hit and hsp for the last hit
+  printGFF_parent_children($gff,$HitResult);
+  
   // Close the files.
   fclose($tsv);
   fclose($gff);
+}
+
+
+/**
+ *   printGFF_parent_children
+ *   prints the GFF parent feature and all of its children features
+ *
+ *
+ *  @param $blast_feature_array
+ *  an array of the all the child features which is used to generate the smallest and largest coordinates for the parent
+ *
+ *
+ */
+function printGFF_parent_children ($gff,$blast_feature_array){
+  foreach ($blast_feature_array as $sq => $value ) {
+    list ($s,$q) = preg_split('/,/' , $sq);
+    $evalue =  $blast_feature_array["$s,$q"]['E'];
+    $parent =  join ("\t", array($s, "BLASTRESULT" , "match" , $blast_feature_array["$s,$q"]['SS'] , $blast_feature_array["$s,$q"]['SE'] , $blast_feature_array["$s,$q"]['E'] , $blast_feature_array["$s,$q"]['strand'] , '.' , "ID=$s.$q;Name=$q($evalue)")) . "\n";
+    $child = join ("\n",$blast_feature_array["$s,$q"]['HSPs']) . "\n";
+    fwrite($gff,$parent);
+    fwrite($gff,$child);
+  }
 }
