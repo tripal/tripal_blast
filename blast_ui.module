@@ -266,7 +266,7 @@ function show_blast_output($job_string) {
  *  
  */
 function blast_ui_ctools_plugin_api($owner, $api) {
-   $webservices = variable_get('Enable_webservices');
+   $webservices = variable_get('enable_blast_webservices');
   if($webservices == 1){
   if ($owner == 'services' && $api == 'services') {
     return array(

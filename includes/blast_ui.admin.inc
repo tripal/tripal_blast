@@ -44,11 +44,11 @@ function blast_ui_admin_form($form, $form_state) {
     '#default_value' => variable_get('qRange', 0),
   );
   
-   $form['general']['Enable_webservices'] = array(
+  $form['general']['enable_blast_webservices'] = array(
     '#type' => 'checkbox',
-    '#title' => 'Enable webservices of blast',
-    '#description' => 'When checked, a blast webservices gets enabled.',
-    '#default_value' => variable_get('Enable_webservices', true),
+    '#title' => 'Enable web services',
+    '#description' => 'When checked, BLAST web services are enabled. Requires the Drupal Services module. See help tab for more information.',
+    '#default_value' => variable_get('enable_blast_webservices', false),
   );
   
   $form['file_upload'] = array(
@@ -268,14 +268,14 @@ function blast_ui_admin_form_submit($form, $form_state) {
   variable_set('qRange', $form_state['values']['qRange']);
   
   // Logic to enable web services on single click
-  variable_set('Enable_webservices', $form_state['values']['Enable_webservices']);
+  variable_set('enable_blast_webservices', $form_state['values']['enable_blast_webservices']);
   variable_set('blast_ui_allow_query_upload', $form_state['values']['query_upload']);  
   variable_set('blast_ui_allow_target_upload', $form_state['values']['target_upload']);
 
   variable_set('blast_ui_nucleotide_example_sequence', $form_state['values']['nucleotide_example']);
   variable_set('blast_ui_protein_example_sequence', $form_state['values']['protein_example']);
   
-  if($form_state['values']['Enable_webservices'] == 1){
+  if($form_state['values']['enable_blast_webservices'] == 1){
     enable_web_services();
   }else{
     disable_web_services();
