@@ -113,8 +113,8 @@ End point: http://&lt;your-site&gt;/restapi/
   <tr>
     <td>POST {base endpoint/blast/getJobId.json|xml}</td>
     <td>
-      query_type, db_type, Select_Database, Max_target_sequences, Word_size, 
-      Match_Mismatch_Scores, Gap_Costs, seqQuery
+      query_type, db_type, database, max_target_sequences, word_size, 
+      match_mismatch_scores, gap_costs, query, matrix_options
     </td>
     <td>Start a BLAST job. Returns a job ID to be used for further requests.</td>
   </tr>
@@ -162,19 +162,19 @@ Sample Code<br>
   echo "BLAST options: "; print_r($response);
 
   // Make BLAST job request
-  $select_database       = 'Arachis duranensis - CDS';
+  $database              = 'Arachis duranensis - CDS';
   $max_target_sequences  = '50';
   $word_size             = '11';
   $match_mismatch_scores = '1,-3';
   $gap_costs             = 'Existence: 1 Extension: 2';
   $post = array("query_type"            => $query_type,
                 "db_type"               => $db_type,
-                "Select_Database"       => $select_database,
-                "Max_target_sequences"  => $max_target_sequences,
-                "Word_size"             => $word_size,
-                "Match_Mismatch_Scores" => $match_mismatch_scores,
-                "Gap_Costs"             => $gap_costs,
-                "seqQuery"              =>
+                "database"              => $select_database,
+                "max_target_sequences"  => $max_target_sequences,
+                "word_size"             => $word_size,
+                "match_mismatch_scores" => $match_mismatch_scores,
+                "gap_costs"             => $gap_costs,
+                "query"                 =>
 ">partial lipoxygenase Glyma15g03040
 TTTCGTATGA GATTAAAATG TGTGAAATTT TGTTTGATAG GACATGGGAA
 AGGAAAAGTT GGAAAGGCTA CAAATTTAAG AGGACAAGTG TCGTTACCAA

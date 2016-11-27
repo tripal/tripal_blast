@@ -170,21 +170,21 @@ function _blast_ui_getDatabaseOption( $data )
    if ( $blast_program == 'blastn' )
     {
       return array(
-          'Select_Database' => $options_database,
-         'Max_target_sequences' => _get_max_target( $blast_program ),
-         'Word_size' => _get_word_size( $blast_program ),
-         'Match_Mismatch_Scores' => _get_match_mismatch( $blast_program ),
-         'Gap_Costs' => _get_gap( $blast_program )
+         'database' => $options_database,
+         'max_target_sequences' => _get_max_target( $blast_program ),
+         'word_size' => _get_word_size( $blast_program ),
+         'match_mismatch_scores' => _get_match_mismatch( $blast_program ),
+         'gap_costs' => _get_gap( $blast_program )
       );
     }
    // Data Set send to user for selection of Blastx
    elseif ( $blast_program == 'blastx' )
     {
       return array(
-          'Select_Database' => $options_database,
-         'Max_target_sequences' => _get_max_target( $blast_program ),
-         'Word_size' => _get_word_size( $blast_program ),
-         'Matrix_options' => _get_matrix_options()
+         'database' => $options_database,
+         'max_target_sequences' => _get_max_target( $blast_program ),
+         'word_size' => _get_word_size( $blast_program ),
+         'matrix_options' => _get_matrix_options()
 
       );
     }
@@ -192,22 +192,22 @@ function _blast_ui_getDatabaseOption( $data )
    elseif ( $blast_program == 'tblastn' )
     {
       return array(
-          'Select_Database' => $options_database,
-         'Max_target_sequences' => _get_max_target( $blast_program ),
-         'Word_size' => _get_word_size( $blast_program ),
-         'Matrix_options' => _get_matrix_options(),
-         'Gap_Costs' => getGap_cost()
+         'database' => $options_database,
+         'max_target_sequences' => _get_max_target( $blast_program ),
+         'word_size' => _get_word_size( $blast_program ),
+         'matrix_options' => _get_matrix_options(),
+         'gap_costs' => getGap_cost()
       );
     }
    //Data Set send to user for selection of blastp
    elseif ( $blast_program == 'blastp' )
     {
       return array(
-          'Select_Database' => $options_database,
-         'Max_target_sequences' => _get_max_target( $blast_program ),
-         'Word_size' => _get_word_size( $blast_program ),
-         'Matrix_options' => _get_matrix_options(),
-         'Gap_Costs' => getGap_cost()
+         'database' => $options_database,
+         'max_target_sequences' => _get_max_target( $blast_program ),
+         'word_size' => _get_word_size( $blast_program ),
+         'matrix_options' => _get_matrix_options(),
+         'gap_costs' => getGap_cost()
       );
     }
  }
@@ -222,67 +222,67 @@ function blast_validation( $query_type, $db_type, $data )
     {
       if ( $db_type == 'nucleotide' )
        {
-         if ( !isset( $data['Select_Database'] ) )
+         if ( !isset( $data['database'] ) )
           {
-            return services_error( 'Missing blast attribute $Select_Database [ query blast/getDatabaseOptions for options :- Add database you need to use]', 406 );
+            return services_error( 'Missing blast attribute database [ query blast/getDatabaseOptions for options :- Add database you need to use]', 406 );
           }
-         if ( !isset( $data['Max_target_sequences'] ) )
+         if ( !isset( $data['max_target_sequences'] ) )
           {
-            return services_error( 'Missing blast attribute $Max_target_sequences [ query blast/getDatabaseOptions for options ]', 406 );
+            return services_error( 'Missing blast attribute max_target_sequences [ query blast/getDatabaseOptions for options ]', 406 );
           }
-         if ( !isset( $data['Word_size'] ) )
+         if ( !isset( $data['word_size'] ) )
           {
-            return services_error( 'Missing blast attribute $Word_size [ query blast/getDatabaseOptions for options ]', 406 );
+            return services_error( 'Missing blast attribute word_size [ query blast/getDatabaseOptions for options ]', 406 );
           }
-         if ( !isset( $data['Match_Mismatch_Scores'] ) )
+         if ( !isset( $data['match_mismatch_scores'] ) )
           {
-            return services_error( 'Missing blast attribute $Match_Mismatch_Scores [ query blast/getDatabaseOptions for options]', 406 );
+            return services_error( 'Missing blast attribute match_mismatch_scores [ query blast/getDatabaseOptions for options]', 406 );
           }
-         if ( !isset( $data['Gap_Costs'] ) )
+         if ( !isset( $data['gap_costs'] ) )
           {
-            return services_error( 'Missing blast attribute $Gap_Costs [ query blast/getDatabaseOptions for options ]', 406 );
+            return services_error( 'Missing blast attribute gap_costs [ query blast/getDatabaseOptions for options ]', 406 );
           }
-         if ( isset( $data['seqQuery'] ) )
+         if ( isset( $data['query'] ) )
           {
-            if ( validate_fasta_sequence( $query_type, $data['seqQuery'] ) == 1 )
+            if ( validate_fasta_sequence( $query_type, $data['query'] ) == 1 )
              {
                return services_error( 'Please enter validate_fasta_sequence', 406 );
              }
           }
          else
           {
-            return services_error( 'Missing blast attribute data[seqQuery]', 406 );
+            return services_error( 'Missing blast attribute data[query]', 406 );
           }
        }
       else
        {
          
-         if ( !isset( $data['Select_Database'] ) )
+         if ( !isset( $data['database'] ) )
           {
-            return services_error( 'Missing blast attribute $Select_Database [ query blast/getDatabaseOptions for options :- Add database used by you]', 406 );
+            return services_error( 'Missing blast attribute database [ query blast/getDatabaseOptions for options :- Add database used by you]', 406 );
           }
-         if ( !isset( $data['Max_target_sequences'] ) )
+         if ( !isset( $data['max_target_sequences'] ) )
           {
-            return services_error( 'Missing blast attribute $Max_target_sequences [ query blast/getDatabaseOptions for options ]', 406 );
+            return services_error( 'Missing blast attribute max_target_sequences [ query blast/getDatabaseOptions for options ]', 406 );
           }
-         if ( !isset( $data['Word_size'] ) )
+         if ( !isset( $data['word_size'] ) )
           {
-            return services_error( 'Missing blast attribute $Word_size [ query blast/getDatabaseOptions for options ]', 406 );
+            return services_error( 'Missing blast attribute word_size [ query blast/getDatabaseOptions for options ]', 406 );
           }
-         if ( !isset( $data['Matrix_options'] ) )
+         if ( !isset( $data['matrix_options'] ) )
           {
-            return services_error( 'Missing blast attribute $Matrix_options [ query blast/getDatabaseOptions for options ]', 406 );
+            return services_error( 'Missing blast attribute matrix_options [ query blast/getDatabaseOptions for options ]', 406 );
           }
-         if ( isset( $data['seqQuery'] ) )
+         if ( isset( $data['query'] ) )
           {
-            if ( validate_fasta_sequence( $query_type, $data['seqQuery'] ) == 1 )
+            if ( validate_fasta_sequence( $query_type, $data['query'] ) == 1 )
              {
                return services_error( 'Please enter validate_fasta_sequence', 406 );
              }
           }
          else
           {
-            return services_error( 'Missing blast attribute data[seqQuery]', 406 );
+            return services_error( 'Missing blast attribute data[query]', 406 );
           }
 
        }
@@ -291,68 +291,68 @@ function blast_validation( $query_type, $db_type, $data )
     {
       if ( $db_type == 'nucleotide' )
        {
-         if ( !isset( $data[ 'Select_Database' ] ) )
+         if ( !isset( $data[ 'database' ] ) )
           {
-            return services_error( 'Missing blast attribute Select_Database [ query blast/getDatabaseOptions for options :- Add database you need to use]', 406 );
+            return services_error( 'Missing blast attribute database [ query blast/getDatabaseOptions for options :- Add database you need to use]', 406 );
           }
-         if ( !isset( $data[ 'Max_target_sequences' ] ) )
+         if ( !isset( $data[ 'max_target_sequences' ] ) )
           {
-            return services_error( 'Missing blast attribute Max_target_sequences [ query blast/getDatabaseOptions for options ]', 406 );
+            return services_error( 'Missing blast attribute max_target_sequences [ query blast/getDatabaseOptions for options ]', 406 );
           }
-         if ( !isset( $data[ 'Word_size' ] ) )
+         if ( !isset( $data[ 'word_size' ] ) )
           {
-            return services_error( 'Missing blast attribute Word_size [ query blast/getDatabaseOptions for options ]', 406 );
+            return services_error( 'Missing blast attribute word_size [ query blast/getDatabaseOptions for options ]', 406 );
           }
-         if ( !isset( $data[ 'Matrix_options' ] ) )
+         if ( !isset( $data[ 'matrix_options' ] ) )
           {
-            return services_error( 'Missing blast attribute Matrix_options [ query blast/getDatabaseOptions for options ]', 406 );
+            return services_error( 'Missing blast attribute matrix_options [ query blast/getDatabaseOptions for options ]', 406 );
           }
-         if ( !isset( $data[ 'Gap_costs' ] ) )
+         if ( !isset( $data[ 'gap_costs' ] ) )
           {
-            return services_error( 'Missing blast attribute Gap_costs [ query blast/getDatabaseOptions for options ]', 406 );
+            return services_error( 'Missing blast attribute gap_costs [ query blast/getDatabaseOptions for options ]', 406 );
           }
          
-         if ( isset( $data[ 'seqQuery' ] ) )
+         if ( isset( $data[ 'query' ] ) )
           {
-            if ( validate_fasta_sequence( $query_type, $data[ 'seqQuery' ] ) == 1 )
+            if ( validate_fasta_sequence( $query_type, $data[ 'query' ] ) == 1 )
              {
                return services_error( 'Please enter validate_fasta_sequence', 406 );
              }
           }
          else
           {
-            return services_error( 'Missing blast attribute data[seqQuery]', 406 );
+            return services_error( 'Missing blast attribute data[query]', 406 );
           }
        }
       else
        {
 
-         if ( !isset( $data[ 'Select_Database' ] ) )
+         if ( !isset( $data[ 'database' ] ) )
           {
-            return services_error( 'Missing blast attribute Select_Database [ query blast/getDatabaseOptions for options :- Add database used by you]', 406 );
+            return services_error( 'Missing blast attribute database [ query blast/getDatabaseOptions for options :- Add database used by you]', 406 );
           }
-         if ( !isset( $data[ 'Max_target_sequences' ] ) )
+         if ( !isset( $data[ 'max_target_sequences' ] ) )
           {
-            return services_error( 'Missing blast attribute Max_target_sequences [ query blast/getDatabaseOptions for options ]', 406 );
+            return services_error( 'Missing blast attribute max_target_sequences [ query blast/getDatabaseOptions for options ]', 406 );
           }
-         if ( !isset( $data[ 'Word_size' ] ) )
+         if ( !isset( $data[ 'word_size' ] ) )
           {
-            return services_error( 'Missing blast attribute Word_size [ query blast/getDatabaseOptions for options ]', 406 );
+            return services_error( 'Missing blast attribute word_size [ query blast/getDatabaseOptions for options ]', 406 );
           }
-         if ( !isset( $data[ 'Matrix_options' ] ) )
+         if ( !isset( $data[ 'matrix_options' ] ) )
           {
-            return services_error( 'Missing blast attribute Matrix_options [ query blast/getDatabaseOptions for options ]', 406 );
+            return services_error( 'Missing blast attribute matrix_options [ query blast/getDatabaseOptions for options ]', 406 );
           }
-         if ( isset( $data[ 'seqQuery' ] ) )
+         if ( isset( $data[ 'query' ] ) )
           {
-            if ( validate_fasta_sequence( $query_type, $data[ 'seqQuery' ] ) == 1 )
+            if ( validate_fasta_sequence( $query_type, $data[ 'query' ] ) == 1 )
              {
                return services_error( 'Please enter validate_fasta_sequence', 406 );
              }
           }
          else
           {
-            return services_error( 'Missing blast attribute data[seqQuery]', 406 );
+            return services_error( 'Missing blast attribute data[query]', 406 );
           }
        }
     }
@@ -418,7 +418,7 @@ function _blast_ui_getJobId( $data )
        {
          $blast_program    = 'blastn';
          $options_database = get_blast_database_options( $data[ 'db_type' ] );
-         $Databasekey      = array_search( $data[ 'Select_Database' ], $options_database );
+         $Databasekey      = array_search( $data[ 'database' ], $options_database );
          $advanced_options = advanced_options( $blast_program, $eVal, $qRange, $data );
 
        }
@@ -427,7 +427,7 @@ function _blast_ui_getJobId( $data )
          $blast_program    = 'blastx';
          // how to get gap cost - question
          $options_database = get_blast_database_options( $data[ 'db_type' ] );
-         $Databasekey      = array_search( $data[ 'Select_Database' ], $options_database );
+         $Databasekey      = array_search( $data[ 'database' ], $options_database );
          $advanced_options = advanced_options( $blast_program, $eVal, $qRange, $data );
        }
     }
@@ -437,7 +437,7 @@ function _blast_ui_getJobId( $data )
        {
          $blast_program    = 'tblastn';
          $options_database = get_blast_database_options( $data[ 'db_type' ] );
-         $Databasekey      = array_search( $data[ 'Select_Database' ], $options_database );
+         $Databasekey      = array_search( $data[ 'database' ], $options_database );
          $advanced_options = advanced_options( $blast_program, $eVal, $qRange, $data );
 
        }
@@ -445,12 +445,12 @@ function _blast_ui_getJobId( $data )
        {
          $blast_program    = 'blastp';
          $options_database = get_blast_database_options( $data[ 'db_type' ] );
-         $Databasekey      = array_search( $data[ 'Select_Database' ], $options_database );
+         $Databasekey      = array_search( $data[ 'database' ], $options_database );
          $advanced_options = advanced_options( $blast_program, $eVal, $qRange, $data );
        }
     }
    return blast_ui_getblastJobId( $data[ 'query_type' ], $data[ 'db_type' ], 
-                                  $data[ 'seqQuery' ], $Databasekey, $advanced_options, 
+                                  $data[ 'query' ], $Databasekey, $advanced_options, 
                                   getOutputFormat($output_format),$output_format);
  }
  
@@ -463,20 +463,20 @@ function advanced_options( $blast_program, $eVal, $qRange, $data )
 
    if ( $blast_program == 'blastn' )
     {
-      $wordvalue = intval( $data[ 'Word_size' ] );
-      $numAlign  = intval( $data[ 'Max_target_sequences' ] );
+      $wordvalue = intval( $data[ 'word_size' ] );
+      $numAlign  = intval( $data[ 'max_target_sequences' ] );
       
       $Data_GapCost = _get_gap( $blast_program );
-      $gapkey       = array_search( $data[ 'Gap_Costs' ], $Data_GapCost );
+      $gapkey       = array_search( $data[ 'gap_costs' ], $Data_GapCost );
       
       $gap                  = _set_gap( $gapkey );
       $Data_Mismatch_Scores = _get_match_mismatch( $blast_program );
       
-      $Mismatch_Scores_key = array_search( $data[ 'Match_Mismatch_Scores' ], $Data_Mismatch_Scores );
+      $Mismatch_Scores_key = array_search( $data[ 'match_mismatch_scores' ], $Data_Mismatch_Scores );
       $m_m                 = _set_match_mismatch( $Mismatch_Scores_key );
 
       return array(
-          'max_target_seqs' => $numAlign,
+         'max_target_seqs' => $numAlign,
          'evalue' => $eVal,
          'word_size' => $wordvalue,
          'gapopen' => $gap[ 'gapOpen' ],
@@ -489,13 +489,13 @@ function advanced_options( $blast_program, $eVal, $qRange, $data )
     }
    elseif ( $blast_program == 'blastx' )
     {
-      $wordSize = intval( $data[ 'Word_size' ] );
-      $numAlign = intval( $data[ 'Max_target_sequences' ] );
-      $matrix   = $data[ 'Matrix_options' ];
+      $wordSize = intval( $data[ 'word_size' ] );
+      $numAlign = intval( $data[ 'max_target_sequences' ] );
+      $matrix   = $data[ 'matrix_options' ];
       $gap      = getGap( $matrix, 1 );
 
       return array(
-          'max_target_seqs' => $numAlign,
+         'max_target_seqs' => $numAlign,
          'evalue' => $eVal,
          'word_size' => $wordSize,
          'gapopen' => $gap[ 'gapOpen' ],
@@ -506,13 +506,13 @@ function advanced_options( $blast_program, $eVal, $qRange, $data )
     }
    elseif ( $blast_program == 'tblastn' )
     {
-      $wordSize = intval( $data[ 'Word_size' ] );
-      $numAlign = intval( $data[ 'Max_target_sequences' ] );
-      $matrix   = $data[ 'Matrix_options' ];
+      $wordSize = intval( $data[ 'word_size' ] );
+      $numAlign = intval( $data[ 'max_target_sequences' ] );
+      $matrix   = $data[ 'matrix_options' ];
       $gap      = getGap( $matrix, 1 );
 
       return array(
-          'max_target_seqs' => $numAlign,
+         'max_target_seqs' => $numAlign,
          'evalue' => $eVal,
          'word_size' => $wordSize,
          'gapopen' => $gap[ 'gapOpen' ],
@@ -523,13 +523,13 @@ function advanced_options( $blast_program, $eVal, $qRange, $data )
     }
    elseif ( $blast_program == 'blastp' )
     {
-      $wordSize = intval( $data[ 'Word_size' ] );
-      $numAlign = intval( $data[ 'Max_target_sequences' ] );
-      $matrix   = $data[ 'Matrix_options' ];
+      $wordSize = intval( $data[ 'word_size' ] );
+      $numAlign = intval( $data[ 'max_target_sequences' ] );
+      $matrix   = $data[ 'matrix_options' ];
       $gap      = getGap( $matrix, 1 );
 
       return array(
-          'max_target_seqs' => $numAlign,
+         'max_target_seqs' => $numAlign,
          'evalue' => $eVal,
          'word_size' => $wordSize,
          'gapopen' => $gap[ 'gapOpen' ],
