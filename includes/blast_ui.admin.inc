@@ -224,7 +224,7 @@ $resources = array(
       ),
     ),
     'actions' => array(
-      'getJobId' => array(
+      'makeJobRequest' => array(
         'enabled' => '1',
       ),
       'getBlastStatus' => array(
@@ -245,7 +245,7 @@ $resources = array(
     'name' => 'restapi',
     'server' => 'rest_server',
     'path' => 'restapi',
-    'resources' =>  serialize($resources),   //'a:1:{s:5:"blast";a:2:{s:10:"operations";a:2:{s:8:"retrieve";a:1:{s:7:"enabled";s:1:"1";}s:5:"index";a:1:{s:7:"enabled";s:1:"1";}}s:7:"actions";a:2:{s:8:"getJobId";a:1:{s:7:"enabled";s:1:"1";}s:18:"getDatabaseOptions";a:1:{s:7:"enabled";s:1:"1";}}}}',
+    'resources' =>  serialize($resources),   //'a:1:{s:5:"blast";a:2:{s:10:"operations";a:2:{s:8:"retrieve";a:1:{s:7:"enabled";s:1:"1";}s:5:"index";a:1:{s:7:"enabled";s:1:"1";}}s:7:"actions";a:2:{s:8:"makeJobRequest";a:1:{s:7:"enabled";s:1:"1";}s:18:"getDatabaseOptions";a:1:{s:7:"enabled";s:1:"1";}}}}',
      'server_settings' => serialize($server_settings),
     'authentication' => 'a:0:{}',
   ))->execute();

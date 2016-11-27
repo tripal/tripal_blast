@@ -111,7 +111,7 @@ End point: http://&lt;your-site&gt;/restapi/
     <td>Get all possible BLAST options for the requested program.</td>
   </tr>
   <tr>
-    <td>POST {base endpoint/blast/getJobId.json|xml}</td>
+    <td>POST {base endpoint/blast/makeJobRequest.json|xml}</td>
     <td>
       query_type, db_type, database, max_target_sequences, word_size, 
       match_mismatch_scores, gap_costs, query, matrix_options
@@ -204,7 +204,7 @@ TGCAGGGTAT GCTACATATT TTGAATATGT AGAATATTAT CAATATACTC
 CTGTTTTTAT TCAACATATT TAATCACATG GATGAATTTT TGAACTGTTA",
               );
 
-  $ch = curl_init($endpoint . 'blast/getJobId.json');
+  $ch = curl_init($endpoint . 'blast/makeJobRequest.json');
   $post = http_build_query($post, '', '&');
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
   curl_setopt($ch, CURLOPT_POST, true);

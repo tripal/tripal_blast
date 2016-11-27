@@ -9,7 +9,7 @@ function blast_ui_services_resources()
    return array(
        'blast' => array(
           'retrieve' => array(
-             'help' => 'Retrieves a blastResult',
+            'help' => 'Retrieves a blastResult',
             'callback' => 'getBlastData',
             'access callback' => 'user_access',
             'access arguments' => array(
@@ -40,9 +40,9 @@ function blast_ui_services_resources()
          ),
 
          'actions' => array(
-             'getJobId' => array(
-                'help' => 'Retrieves a listing of database',
-               'callback' => '_blast_ui_getJobId',
+             'makeJobRequest' => array(
+               'help' => 'Retrieves a listing of database',
+               'callback' => '_blast_ui_makeJobRequest',
                'access callback' => 'user_access',
                'access arguments' => array(
                    'access content'
@@ -361,11 +361,11 @@ function blast_validation( $query_type, $db_type, $data )
 /*
  ** Method call the blast_ui_getblastJobId by setting all the needed
  ** parameters
- ** web service url :  http://localhost:8080/restapi/blast/getJobId.json
+ ** web service url :  http://localhost:8080/restapi/blast/makeJobRequest.json
  */
 
 
-function _blast_ui_getJobId( $data )
+function _blast_ui_makeJobRequest( $data )
  {
 
    $query_type;
