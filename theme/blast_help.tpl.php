@@ -120,7 +120,7 @@ End point: http://&lt;your-site&gt;/restapi/
   </tr>
   <tr>
     <td>POST {base endpoint/blast/getBlastStatus.json|xml}</td>
-    <td>job_Id</td>
+    <td>job_id</td>
     <td>Returns Tripal Job Launcher status of BLAST job ('Running' or 'Completed')</td>
   </tr>
   <tr>
@@ -213,7 +213,7 @@ CTGTTTTTAT TCAACATATT TAATCACATG GATGAATTTT TGAACTGTTA",
   echo "BLAST job id: "; print_r($response);
 
   // Here is the job ID
-  $job_id = $response->job_Id;
+  $job_id = $response->job_id;
 
   // Check job status
   $ch = curl_init($endpoint . 'blast/getBlastStatus.json');

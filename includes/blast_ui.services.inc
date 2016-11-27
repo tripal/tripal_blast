@@ -602,7 +602,7 @@ function blast_ui_getblastJobId( $query_type, $db_type, $seqQuery, $Databasekey,
     ob_end_clean();
    
     return array(
-         'job_Id' => $job_id 
+         'job_id' => $job_id 
     );
  }
 
