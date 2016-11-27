@@ -107,7 +107,7 @@ End point: http://&lt;your-site&gt;/restapi/
   </tr>
   <tr>
     <td>POST {base endpoint/blast/getDatabaseOptions.json|xml}</td>
-    <td>query_type, db_type, blast_program</td>
+    <td>blast_program</td>
     <td>Get all possible BLAST options for the requested program.</td>
   </tr>
   <tr>
@@ -149,10 +149,7 @@ Sample Code<br>
   $query_type    = 'nucleotide';
   $db_type       = 'nucleotide';
   $blast_program = 'blastn';
-  $post = array("query_type" => $query_type,
-                "db_type" => $db_type,
-                "blast_program" => $blast_program,
-               );
+  $post = array("blast_program" => $blast_program);
   $ch = curl_init($endpoint . 'blast/getDatabaseOptions.json');
   $post = http_build_query($post, '', '&');
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);

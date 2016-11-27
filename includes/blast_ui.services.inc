@@ -148,21 +148,11 @@ function _blast_ui_index()
 
 function _blast_ui_getDatabaseOption( $data )
  {
-   if ( !isset( $data['query_type'] ) )
-    {
-      return services_error( t('Missing blast attribute $query_type [ set necleotide or protein in post request of query_type ]'), 406 );
-    }
-   if ( !isset( $data['db_type'] ) )
-    {
-      return services_error( t('Missing blast attribute $db_type [ set necleotide or protein in post request of db_type ]'), 406 );
-    }
    if ( !isset( $data['blast_program'] ) )
     {
-      return services_error(t( 'Missing blast attribute $blast_program [ set blastn, blastx, tblastn, blastp in post request of blast_program ]'), 406 );
+      return services_error(t( 'Missing blast attribute blast_program [ set blastn, blastx, tblastn, blastp in post request of blast_program ]'), 406 );
     }
    
-   $query_type       = $data[ 'query_type' ];
-   $db_type          = $data[ 'db_type' ];
    $blast_program    = $data[ 'blast_program' ];
    $options_database = get_blast_database_options( $db_type );
 
