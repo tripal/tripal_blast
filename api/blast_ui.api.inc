@@ -183,7 +183,7 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
   $blast_threads = variable_get('blast_threads', 1);
 
   // Strip the extension off the BLAST target
-  $database = preg_replace("/(.*)\.[pn]\w\w/", '$1', $database);
+  $database = preg_replace("/(.*)\.[pn]\w\w$/", '$1', $database);
 
   // The Blast executeable.
   $program = $blast_path . $program;
