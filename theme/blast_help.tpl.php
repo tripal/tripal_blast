@@ -87,6 +87,7 @@ must be installed:
     http://&lt;your-site&gt;/restapi/blast.xml<br>A list of the 
     BLAST programs provided by this module should be returned in JSON or XML.
   </li>
+  <li><b>BLAST+ 2.2+ is required</b></li>
 </ol>
 
 API<br>
