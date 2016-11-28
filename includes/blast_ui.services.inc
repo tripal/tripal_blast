@@ -148,12 +148,13 @@ function _blast_ui_index()
 
 function _blast_ui_getDatabaseOption( $data )
  {
-   if ( !isset( $data['blast_program'] ) )
+ 
+   if ( !isset( $data['db_type'] ) )
     {
       return services_error(t( 'Missing blast attribute blast_program [ set blastn, blastx, tblastn, blastp in post request of blast_program ]'), 406 );
     }
    
-   $blast_program    = $data[ 'blast_program' ];
+   $db_type    = $data[ 'db_type' ];
    $options_database = get_blast_database_options( $db_type );
 
    // Data Set send to user for selection of Blastn
@@ -369,11 +370,11 @@ function _blast_ui_makeJobRequest( $data )
    
    if ( !isset( $data[ 'query_type'] ) )
     {
-      return services_error( 'Missing blast attribute $query_type [ set necleotide or protein in post request of query_type ]', 406 );
+      return services_error( 'Missing blast attribute query_type [ set necleotide or protein in post request of query_type ]', 406 );
     }
    if ( !isset( $data[ 'db_type' ] ) )
     {
-      return services_error( 'Missing blast attribute $db_type [ set necleotide or protein in post request of db_type ]', 406 );
+      return services_error( 'Missing blast attribute db_type [ set necleotide or protein in post request of db_type ]', 406 );
     }
    
    $query_type = $data[ 'query_type' ];
@@ -388,10 +389,10 @@ function _blast_ui_makeJobRequest( $data )
       $eVal = $data[ 'eVal' ];
     }
     
-    if ( isset( $data[ 'output_format' ] ) )
+   if ( isset( $data[ 'output_format' ] ) )
     {
       $output_format = $data[ 'output_format' ];
-     if(strcasecmp($output_format, 'xml') == 0)
+      if(strcasecmp($output_format, 'xml') == 0)
       {
         $output_format = 'json';
       }  
@@ -410,7 +411,6 @@ function _blast_ui_makeJobRequest( $data )
          $options_database = get_blast_database_options( $data[ 'db_type' ] );
          $Databasekey      = array_search( $data[ 'database' ], $options_database );
          $advanced_options = advanced_options( $blast_program, $eVal, $qRange, $data );
-
        }
       elseif ( $db_type == 'protein' )
        {
@@ -662,7 +662,7 @@ function getBlastData( $job_id )
        $result = readfile($file_path);
     }
     else{
-       $result = "File Does not exits in database";
+       $result = "File does not exist in database";
     }
   
    return $result; 
