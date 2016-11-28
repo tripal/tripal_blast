@@ -149,13 +149,16 @@ function _blast_ui_index()
 function _blast_ui_getDatabaseOption( $data )
  {
  
-   if ( !isset( $data['db_type'] ) )
+   if ( !isset( $data['blast_program'] ) )
     {
       return services_error(t( 'Missing blast attribute blast_program [ set blastn, blastx, tblastn, blastp in post request of blast_program ]'), 406 );
     }
    
-   $db_type    = $data[ 'db_type' ];
+   $blast_program = $data[ 'blast_program' ];
+   $db_type = ($blast_program == 'blastn' || $blast_program == 'tblastn') 
+            ? 'nucleotide' : 'protein';
    $options_database = get_blast_database_options( $db_type );
+//return array('msg'=>"_blast_ui_getDatabaseOption()".print_r($options_database,true));
 
    // Data Set send to user for selection of Blastn
    if ( $blast_program == 'blastn' )

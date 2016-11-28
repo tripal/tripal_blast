@@ -107,7 +107,7 @@ End point: http://&lt;your-site&gt;/restapi/
   </tr>
   <tr>
     <td>POST {base endpoint/blast/getDatabaseOptions.json|xml}</td>
-    <td>db_type[nucleotide/protein]</td>
+    <td>blast_program[blastn|blastx|blastp|tblastn]</td>
     <td>Get all possible BLAST options for the requested program.</td>
   </tr>
   <tr>
