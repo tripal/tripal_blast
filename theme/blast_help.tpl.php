@@ -107,14 +107,15 @@ End point: http://&lt;your-site&gt;/restapi/
   </tr>
   <tr>
     <td>POST {base endpoint/blast/getDatabaseOptions.json|xml}</td>
-    <td>blast_program</td>
+    <td>db_type[nucleotide/protein]</td>
     <td>Get all possible BLAST options for the requested program.</td>
   </tr>
   <tr>
     <td>POST {base endpoint/blast/makeJobRequest.json|xml}</td>
     <td>
-      query_type, db_type, database, max_target_sequences, word_size, 
-      match_mismatch_scores, gap_costs, query, matrix_options
+      query_type[nucleotide/protein], db_type[nucleotide/protein], database[BLAST node name], 
+      max_target_sequences, word_size, match_mismatch_scores, gap_costs, query, 
+      matrix_options, output_options[asn/xml/json]
     </td>
     <td>Start a BLAST job. Returns a job ID to be used for further requests.</td>
   </tr>
@@ -146,10 +147,7 @@ Sample Code<br>
   echo "BLAST programs: "; print_r($response)
 
   // Get database options for blastn
-  $query_type    = 'nucleotide';
-  $db_type       = 'nucleotide';
-  $blast_program = 'blastn';
-  $post = array("blast_program" => $blast_program);
+  $post = array("db_type" => 'nucleotide');
   $ch = curl_init($endpoint . 'blast/getDatabaseOptions.json');
   $post = http_build_query($post, '', '&');
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -164,9 +162,9 @@ Sample Code<br>
   $word_size             = '11';
   $match_mismatch_scores = '1,-3';
   $gap_costs             = 'Existence: 1 Extension: 2';
-  $post = array("query_type"            => $query_type,
-                "db_type"               => $db_type,
-                "database"              => $select_database,
+  $post = array("query_type"            => 'nucleotide',
+                "db_type"               => 'protein',
+                "database"              => $database,
                 "max_target_sequences"  => $max_target_sequences,
                 "word_size"             => $word_size,
                 "match_mismatch_scores" => $match_mismatch_scores,
