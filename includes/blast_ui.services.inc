@@ -569,9 +569,8 @@ function blast_ui_getblastJobId( $query_type, $db_type, $seqQuery, $Databasekey,
        }
     }
    
-// TODO: use temp path variable instead of hard-coding it.
-//    $query = variable_get('file_temporary_path', file_directory_temp()) . '/' . date( 'YMd_His' ) . '_query.fasta';
-    $query = '/tmp/' . date( 'YMd_His' ) . '_query.fasta';
+    $query = variable_get('file_temporary_path', file_directory_temp()) 
+           . '/' . date( 'YMd_His' ) . '_query.fasta';
     file_put_contents( $query, $seqQuery );
     $blastdb_node      = node_load( $Databasekey );
     $blastdb_name      = $blastdb_node->db_name;
@@ -581,14 +580,14 @@ function blast_ui_getblastJobId( $query_type, $db_type, $seqQuery, $Databasekey,
 
     $output_filestub = date( 'YMd_His' );
    
-    $job_args        = array(
-       'program' => $blast_program,
-       'query' => $query,
-       'database' => $blastdb_with_path,
+    $job_args = array(
+       'program'         => $blast_program,
+       'query'           => $query,
+       'database'        => $blastdb_with_path,
        'output_filename' => $output_filestub,
-       'options' => $adv_options, 
-       'format'  => $output_format,
-       'format_type' => $format_type,
+       'options'         => $adv_options, 
+       'format'          => $output_format,
+       'format_type'     => $format_type,
     );
    
     $job_id = tripal_add_job( t( 'BLAST (@program): @query', array(
