@@ -25,6 +25,9 @@
  *   Which specifies Json or asn format of file or program
  * @param  $format_type 
  * which specify the number of format used by BLAST e.g json has 11 and json as 12. 
+ *
+ * Author: Prateek Gupta
+ * Created: 2016
  */
 
 function run_BLAST_tripal_job_services($program, $query, $database, $output_filestub, $options, $format, $format_type,  $job_id = NULL) {
@@ -51,23 +54,25 @@ function run_BLAST_tripal_job_services($program, $query, $database, $output_file
   $program       = $blast_path . $program;
   $blast_formatter_command = $blast_path . 'blast_formatter';
 
-  //$blast_cmd = "$program -query '$query' -db '$database' -out '$output_file' -outfmt=11";
-  $blast_cmd = "$program -query '$query' -db '$database' -out '$output_file' -outfmt=".$format;
+  $blast_cmd = escapeshellarg($program) 
+             . ' -query ' . escapeshellarg($query)
+             . ' -db ' . escapeshellarg($database)
+             . ' -out ' . escapeshellarg($output_file)
+             . ' -outfmt=' . escapeshellarg($format);
   
    if (!empty($options)) {
     foreach ($options as $opt => $val) {
       if ($val) {
         print "\t$opt: $val\n";
-        $blast_cmd .= " -$opt $val";
+        $blast_cmd .= ' -' . escapeshellarg($opt) . ' ' . escapeshellarg($val);
       }
     }
   }
 
   // Setting the value of threads by admin page
-  $blast_cmd .= " -num_threads ".$blast_threads;
+  $blast_cmd .= ' -num_threads ' . escapeshellarg($blast_threads);
 
   print "\nExecuting the following BLAST command:\n" . $blast_cmd . "\n";
-
   system($blast_cmd);
 
   if (!file_exists($output_file)) {
