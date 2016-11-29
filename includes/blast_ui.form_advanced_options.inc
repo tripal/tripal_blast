@@ -507,6 +507,7 @@ function blast_ui_blastp_advanced_options_form_submit($form, $form_state) {
   );
 }//blast_ui_blastp_advanced_options_form_submit
 
+
 /**
  * Fill the matrix dropdown list with appropriate options
  *
@@ -525,6 +526,7 @@ function _get_matrix_options() {
     t('BLOSUM90'),
   ));
 }
+
 
 /**
  * Fill the gap penalty dropdown list with appropriate options given selected matrix
@@ -638,12 +640,14 @@ function _get_gap_for_matrix($key = '') {
   }
 }//_get_gap_for_matrix
 
+
 /**
  * Respond to Ajax dropdown call
  */
 function ajax_dependent_dropdown_callback($form, $form_state) {
   return $form['ALG']['SParam']['gapCost'];
 }
+
 
 /**
  * @section
@@ -755,6 +759,7 @@ function blast_ui_tblastn_advanced_options_form(&$form, $form_state) {
   );
 }
 
+
 /**
  * Validate the advanced options provided by the tBLASTn form above.
  *
@@ -778,6 +783,7 @@ function blast_ui_tblastn_advanced_options_form_validate($form, $form_state) {
   }
 }
 
+
 /**
  * Processed the advanced options provided by the tBLASTn form above.
  *
@@ -788,6 +794,7 @@ function blast_ui_tblastn_advanced_options_form_submit($form, $form_state) {
   return blast_ui_blastp_advanced_options_form_submit($form, $form_state);
 
 }
+
 
 /**
  * Get default form values; may come from saved job data if user is re-running
@@ -867,6 +874,7 @@ function _get_default_values($options) {
   );
 }//_get_default_values
 
+
 /**
  * Get a list of options for the max_target_seq blast option.
  *
@@ -893,6 +901,7 @@ function _get_max_target($which) {
       );
   }//switch
 }
+
 
 /**
  * Get a list of options for work size.
@@ -925,6 +934,7 @@ function _get_word_size($which) {
   }//switch
 }
 
+
 /**
  * Get a list of options for match/mismatch ratio.
  */
@@ -948,8 +958,6 @@ function _get_match_mismatch($which) {
  **Method Used in Blast_ui.services.inc
  **  @return  int $gapOpen and $gapExtend
  */
-
-
 function getGap( $matrix, $gapkey )
  {
    switch ( $matrix )
@@ -1315,17 +1323,9 @@ function getGap( $matrix, $gapkey )
  }
 
 
-
-
 /* 
-/**
  * Get a list of options for gaps.
  */
-
-
-
-
-
 function _get_gap($which) {
   switch ($which) {
     case 'blastn':

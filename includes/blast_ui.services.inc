@@ -77,7 +77,7 @@ function blast_ui_services_resources()
               ),
               'access arguments append' => FALSE 
             ),
-            
+
             'getDatabaseOptions' => array(
                'help' => 'Retrieves a listing of database',
                'callback' => '_blast_ui_getDatabaseOption',
@@ -102,7 +102,6 @@ function blast_ui_services_resources()
  }
 
 
-
 /**
  * Callback for retrieving blast services.
  *
@@ -110,9 +109,10 @@ function blast_ui_services_resources()
  * @return object
  */
 function _blast_ui_retrieve( $id )
- {
+{
    return getBlastData( $id );
- }
+}
+
 
 /**
  * Callback for Index blast services.
@@ -120,7 +120,7 @@ function _blast_ui_retrieve( $id )
  */
 
 function _blast_ui_index()
- {
+{
    return array(
 
        'query_type' => array(
@@ -138,7 +138,8 @@ function _blast_ui_index()
          '4' => 'blastp'
       )
    );
- }
+}
+
 
 /*
  **  Method returns Advanced options and Database Type
@@ -158,7 +159,6 @@ function _blast_ui_getDatabaseOption( $data )
    $db_type = ($blast_program == 'blastn' || $blast_program == 'tblastn') 
             ? 'nucleotide' : 'protein';
    $options_database = get_blast_database_options( $db_type );
-//return array('msg'=>"_blast_ui_getDatabaseOption()".print_r($options_database,true));
 
    // Data Set send to user for selection of Blastn
    if ( $blast_program == 'blastn' )
@@ -442,10 +442,12 @@ function _blast_ui_makeJobRequest( $data )
          $advanced_options = advanced_options( $blast_program, $eVal, $qRange, $data );
        }
     }
+
    return blast_ui_getblastJobId( $data[ 'query_type' ], $data[ 'db_type' ], 
                                   $data[ 'query' ], $Databasekey, $advanced_options, 
                                   getOutputFormat($output_format),$output_format);
  }
+
  
 /*
  ** Define the advanced Options for Blast
@@ -459,14 +461,14 @@ function advanced_options( $blast_program, $eVal, $qRange, $data )
       $wordvalue = intval( $data[ 'word_size' ] );
       $numAlign  = intval( $data[ 'max_target_sequences' ] );
       
-      $Data_GapCost = _get_gap( $blast_program );
-      $gapkey       = array_search( $data[ 'gap_costs' ], $Data_GapCost );
+      $Data_GapCost         = _get_gap( $blast_program );
+      $gapkey               = array_search( $data[ 'gap_costs' ], $Data_GapCost );
       
       $gap                  = _set_gap( $gapkey );
       $Data_Mismatch_Scores = _get_match_mismatch( $blast_program );
       
-      $Mismatch_Scores_key = array_search( $data[ 'match_mismatch_scores' ], $Data_Mismatch_Scores );
-      $m_m                 = _set_match_mismatch( $Mismatch_Scores_key );
+      $Mismatch_Scores_key  = array_search( $data[ 'match_mismatch_scores' ], $Data_Mismatch_Scores );
+      $m_m                  = _set_match_mismatch( $Mismatch_Scores_key );
 
       return array(
          'max_target_seqs' => $numAlign,
@@ -564,12 +566,13 @@ function blast_ui_getblastJobId( $query_type, $db_type, $seqQuery, $Databasekey,
        }
     }
    
+// TODO: use temp path variable instead of hard-coding it.
+//    $query = variable_get('file_temporary_path', file_directory_temp()) . '/' . date( 'YMd_His' ) . '_query.fasta';
     $query = '/tmp/' . date( 'YMd_His' ) . '_query.fasta';
     file_put_contents( $query, $seqQuery );
     $blastdb_node      = node_load( $Databasekey );
     $blastdb_name      = $blastdb_node->db_name;
     $blastdb_with_path = $blastdb_node->db_path;
-
 
     global $user;
 
@@ -631,6 +634,7 @@ function getBlastData( $job_id )
    $file_path = db_query( $sql, array(
        ':job_id' => $job_id 
    ) )->fetchField();
+
 
    if ( stristr( $file_path, "tblastn" ) )
     {

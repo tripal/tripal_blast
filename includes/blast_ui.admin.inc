@@ -146,6 +146,7 @@ KRSLEEGLKTTGEGLDWGVLFGFGPGLTIETVVLRSVAI';
   return $form;
 }
 
+
 /**
  * Validate the Admin/Settings form.
  */
@@ -163,12 +164,12 @@ function blast_ui_admin_form_validate($form, &$form_state) {
 
 }
 
+
 /*
 **
 ** custom method disabled the web services 
 **
 */
-
 function disable_web_services()
 {
     $ar=array('services', 'rest_server');
@@ -182,79 +183,80 @@ function disable_web_services()
   
 }
 
+
 /*
 ** custom method enable the web services 
 **
 */
-
 function enable_web_services()
 {
-    $ar=array('services', 'rest_server');
-    $result = module_enable($ar, true);
-    if (empty($result)) {
-     throw new DrupalUpdateException(implode(', ', $ar) . ' or dependencies could not be enabled, please install services ');
-   }
+  $ar=array('services', 'rest_server');
+  $result = module_enable($ar, true);
+  if (empty($result)) {
+   throw new DrupalUpdateException(implode(', ', $ar) . ' or dependencies could not be enabled, please install services ');
+  }
    
-   $server_settings = array(
-  'formatters' => array(
-    'bencode' => TRUE,
-    'json' => TRUE,
-    'jsonp' => TRUE,
-    'php' => TRUE,
-    'xml' => TRUE,
-  ),
-  'parsers' => array(
-    'application/json' => TRUE,
-    'application/vnd.php.serialized' => TRUE,
-    'application/x-www-form-urlencoded' => TRUE,
-    'application/xml' => TRUE,
-    'multipart/form-data' => TRUE,
-    'text/xml' => TRUE,
-  ),
-);
+  $server_settings = array(
+    'formatters' => array(
+      'bencode' => TRUE,
+      'json' => TRUE,
+      'jsonp' => TRUE,
+      'php' => TRUE,
+      'xml' => TRUE,
+    ),
+    'parsers' => array(
+      'application/json' => TRUE,
+      'application/vnd.php.serialized' => TRUE,
+      'application/x-www-form-urlencoded' => TRUE,
+      'application/xml' => TRUE,
+      'multipart/form-data' => TRUE,
+      'text/xml' => TRUE,
+    ),
+  );
 
-$resources = array(
-  'blast' => array(
-    'operations' => array(
-      'retrieve' => array(
-        'enabled' => '1',
+  $resources = array(
+    'blast' => array(
+      'operations' => array(
+        'retrieve' => array(
+          'enabled' => '1',
+        ),
+        'index' => array(
+          'enabled' => '1',
+        ),
       ),
-      'index' => array(
-        'enabled' => '1',
+      'actions' => array(
+        'makeJobRequest' => array(
+          'enabled' => '1',
+        ),
+        'getBlastStatus' => array(
+          'enabled' => '1',
+        ),
+        'getDatabaseOptions' => array(
+          'enabled' => '1',
+        ),
       ),
     ),
-    'actions' => array(
-      'makeJobRequest' => array(
-        'enabled' => '1',
-      ),
-      'getBlastStatus' => array(
-        'enabled' => '1',
-      ),
-      'getDatabaseOptions' => array(
-        'enabled' => '1',
-      ),
-    ),
-  ),
-);
+  );
 
   try{
-   $nid = db_insert('services_endpoint')->fields(
+    $nid = db_insert('services_endpoint')->fields(
     array(
-    'eid' => 1,
-    'debug'  => 1,
-    'name' => 'restapi',
-    'server' => 'rest_server',
-    'path' => 'restapi',
-    'resources' =>  serialize($resources),   //'a:1:{s:5:"blast";a:2:{s:10:"operations";a:2:{s:8:"retrieve";a:1:{s:7:"enabled";s:1:"1";}s:5:"index";a:1:{s:7:"enabled";s:1:"1";}}s:7:"actions";a:2:{s:8:"makeJobRequest";a:1:{s:7:"enabled";s:1:"1";}s:18:"getDatabaseOptions";a:1:{s:7:"enabled";s:1:"1";}}}}',
-     'server_settings' => serialize($server_settings),
-    'authentication' => 'a:0:{}',
-  ))->execute();
-}
- catch(Exception $e){
+      'eid' => 1,
+      'debug'  => 1,
+      'name' => 'restapi',
+      'server' => 'rest_server',
+      'path' => 'restapi',
+      'resources' =>  serialize($resources),   //'a:1:{s:5:"blast";a:2:{s:10:"operations";a:2:{s:8:"retrieve";a:1:{s:7:"enabled";s:1:"1";}s:5:"index";a:1:{s:7:"enabled";s:1:"1";}}s:7:"actions";a:2:{s:8:"makeJobRequest";a:1:{s:7:"enabled";s:1:"1";}s:18:"getDatabaseOptions";a:1:{s:7:"enabled";s:1:"1";}}}}',
+      'server_settings' => serialize($server_settings),
+      'authentication' => 'a:0:{}',
+    ))->execute();
+  }
+  catch(Exception $e){
     //drupal_set_message(t("Web-Services of blast are already Enabled"), 'error');
-   }
+  }
   
 }
+
 
 /**
  * Submit the Admin/settings form.

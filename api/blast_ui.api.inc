@@ -64,7 +64,7 @@ function run_BLAST_tripal_job_services($program, $query, $database, $output_file
   }
 
   // Setting the value of threads by admin page
- $blast_cmd .= " -num_threads ".$blast_threads;
+  $blast_cmd .= " -num_threads ".$blast_threads;
 
   print "\nExecuting the following BLAST command:\n" . $blast_cmd . "\n";
 
@@ -79,7 +79,7 @@ function run_BLAST_tripal_job_services($program, $query, $database, $output_file
       array('print' => TRUE)
     );
     return FALSE;
- }
+  }
   print "\nDone!\n";
 
 }
@@ -114,6 +114,7 @@ function get_blast_database($identifiers) {
 
   return $node;
 }
+
 
 /**
  * Returns a list BLAST DATABASE options
@@ -172,6 +173,7 @@ function get_blast_database_options($type) {
   return $options;
 }
 
+
 /**
  * Retrieve all the information for a blast job in a standardized node-like format.
  *
@@ -227,6 +229,7 @@ function get_BLAST_job($job_id) {
 
   return $job;
 }
+
 
 /**
  * Run BLAST (should be called from the command-line)
@@ -806,6 +809,7 @@ function generate_blast_hit_image($acc = '', $scores, $hits, $tsize, $qsize, $na
  *
  * Created by Sofia Robb
  * 09/15/2016
+ * counter bugfix 10/27/2016
  *
  * The subject (hit) will be the source feature.
  * The query will be the target.
@@ -823,10 +827,10 @@ function convert_tsv2gff3($blast_tsv,$blast_gff){
   // Open a new file for writting the gff.
   $gff = fopen($blast_gff,"w");
   fwrite($gff,"##gff-version 3\n");
-  
+
   // Open the TSV file to read from.
   $tsv = fopen($blast_tsv, "r") or die("Unable to open tsv file!");
-  
+
   // For each line in the TSV file...
   // Need to go thru each line of tsv to find the first and last hsp of a hit.
   $last_s = NULL;
@@ -836,14 +840,14 @@ function convert_tsv2gff3($blast_tsv,$blast_gff){
   while(!feof($tsv)) {
     $line = fgets($tsv);
     $line = rtrim($line);
-    
+
     // Skip the line if it's empty.
     if (preg_match('/^#/',$line) or preg_match('/^\s*$/',$line)){
       continue;
     }
-    
+
     ## for keeping track of new queries and hits
-    
+
     // Each line has the following parts:
     //  0: query id,
     //  1: subject id,
@@ -858,7 +862,7 @@ function convert_tsv2gff3($blast_tsv,$blast_gff){
     // 10: evalue,
     // 11: bit score
     $parts = preg_split('/\t/', $line);
-    
+
     // Assign the important parts of the line to readable variables.
     $s = $parts[1];
     $q = $parts[0];
@@ -867,7 +871,6 @@ function convert_tsv2gff3($blast_tsv,$blast_gff){
     $qs = $parts[6];
     $qe = $parts[7];
     $e = $parts[10];
-     
      
     // if this is a new hit print the last and 
     // empty the $HitResult array and
@@ -878,7 +881,7 @@ function convert_tsv2gff3($blast_tsv,$blast_gff){
       $hsp=0;
     }
   
-   // every line is a new hsp
+    // every line is a new hsp
     $hsp++;
   
     // determine query strand to use in match_part line, no need to store, just print
@@ -887,7 +890,7 @@ function convert_tsv2gff3($blast_tsv,$blast_gff){
         list($qs,$qe) = array($qe,$qs);
         $q_strand = '-';
     }
-    
+
     // determine subject (hit) strand to use in match line, needs to be stored
     $HitResult["$s,$q"]['strand']='+';
     list($start,$end) = array($ss,$se);
@@ -905,6 +908,7 @@ function convert_tsv2gff3($blast_tsv,$blast_gff){
      if (!array_key_exists('SE',$HitResult["$s,$q"]) or $se > $HitResult["$s,$q"]['SE']) {
        $HitResult["$s,$q"]['SE'] = $se;
      }
+
      // store best evalue
      if (!array_key_exists('E',$HitResult["$s,$q"]) or $e < $HitResult["$s,$q"]['E']) {
        $HitResult["$s,$q"]['E'] = $e;
@@ -914,15 +918,14 @@ function convert_tsv2gff3($blast_tsv,$blast_gff){
      $HitResult["$s,$q"]['HSPs'][] = join("\t", array($s, "BLASTRESULT" , "match_part" , $start , $end , $e , $HitResult["$s,$q"]['strand'] , '.' , "ID=$s.$q.$hsp;Parent=$s.$q;Target=$q $qs $qe $q_strand"));
      $last_s = $s;
   } // end tsv file while
-  
+
   // print hit and hsp for the last hit
   printGFF_parent_children($gff,$HitResult);
-  
+
   // Close the files.
   fclose($tsv);
   fclose($gff);
 }
-
 
 /**
  *   printGFF_parent_children
