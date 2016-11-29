@@ -1,7 +1,10 @@
 <?php
 /**
  * Implements hook_services_resources().
- * Hooks provided by Services for the definition of new services,
+ * Hooks provided by Services for the definition of new services.
+ *
+ * Author: Prateek Gupta
+ * Created: 2016
  */
 
 function blast_ui_services_resources()
