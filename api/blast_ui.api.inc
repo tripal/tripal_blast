@@ -47,9 +47,6 @@ function run_BLAST_tripal_job_services($program, $query, $database, $output_file
   $blast_path    = variable_get('blast_path', '');
   $blast_threads = variable_get('blast_threads', '');
   
-  // Strip the extension off the BLAST target
-  $database = preg_replace("/(.*)\.[pn]\w\w/", '$1', $database);
-  
   // The executables:
   $program       = $blast_path . $program;
   $blast_formatter_command = $blast_path . 'blast_formatter';
@@ -271,12 +268,6 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
   // Defaults to using $PATH.
   $blast_path    = variable_get('blast_path', '');
   $blast_threads = variable_get('blast_threads', 1);
-  
-//eksc- No,don't do this in case ".p*" appears somewhere in the db name, not just the 
-// suffix.If administrator includes the suffix, it will have to be an error, as it is for  
-// the BLAST commands themselves.
-  // Strip the extension off the BLAST target
-  // $database = preg_replace("/(.*)\.[pn]\w\w/", '$1', $database);
   
   // The BLAST executeable.
   $program = $blast_path . $program;
