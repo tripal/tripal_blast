@@ -4,6 +4,14 @@
  */
 ?>
 
+<style>
+.sub_table {
+  border: 0px;
+  padding:1px 1px;
+  background-color: inherit;
+}
+</style>
+
 <h3>Module Description</h3>
 <p>This module provides a basic interface to allow your users to utilize your server's NCBI BLAST+.</p>
 
@@ -79,7 +87,7 @@ Functionality of this module can be exposed via REST web services. To do so, the
 must be installed:
 <ol>
   <li>Install the Services module.
-  <li>Enable the Services, REST server, and XMLRPC Server modules.
+  <li>Enable the Services module, REST server, and XMLRPC Server modules.
   <li>Enable all permissions for the admin user.
   <li>Edit the BLAST UI settings and select the 'Enable web services' checkbox.
   <li>
@@ -94,9 +102,9 @@ API<br>
 End point: http://&lt;your-site&gt;/restapi/
 <table>
   <tr>
-    <th>Request</th>
-    <th>Parameters</th>
-    <th>Description</th>
+    <th width="25%">Request</th>
+    <th width="50%">Parameters</th>
+    <th width="25%">Description</th>
   </tr>
   <tr>
     <td>GET {endpoint/blast.json|xml}</td>
@@ -108,21 +116,84 @@ End point: http://&lt;your-site&gt;/restapi/
   </tr>
   <tr>
     <td>POST {base endpoint/blast/getDatabaseOptions.json|xml}</td>
-    <td>blast_program[blastn|blastx|blastp|tblastn]</td>
+    <td>
+      <table class="sub_table">
+        <tbody class="sub_table">
+        <tr class="sub_table">
+          <td width="145pt" class="sub_table">blast_program</td>
+          <td class="sub_table">[blastn|blastx|blastp|tblastn]</td>
+        </tr>
+        </tbody>
+      </table>
+    </td>
     <td>Get all possible BLAST options for the requested program.</td>
   </tr>
   <tr>
     <td>POST {base endpoint/blast/makeJobRequest.json|xml}</td>
     <td>
-      query_type[nucleotide/protein], db_type[nucleotide/protein], database[BLAST node name], 
-      max_target_sequences, word_size, match_mismatch_scores, gap_costs, query, 
-      matrix_options, output_options[asn/xml/json]
+      <table class="sub_table">
+        <tbody class="sub_table">
+        <tr class="sub_table">
+          <td class="sub_table">culling_limit</td>
+          <td class="sub_table">[<i>int</i>]</td>
+        </tr>
+        <tr class="sub_table">
+          <td class="sub_table">database</td>
+          <td class="sub_table">[<i>BLAST node name</i>]</td>
+        </tr>
+        <tr class="sub_table">
+          <td class="sub_table">db_type</td>
+          <td class="sub_table">[nucleotide|protein]</td>
+        </tr>
+        <tr class="sub_table">
+          <td class="sub_table">gap_costs</td>
+          <td class="sub_table">[Existence: <i>int</i> Extension: <i>int</i>]</td>
+        </tr>
+        <tr class="sub_table">
+          <td class="sub_table">match_mismatch_scores</td>
+          <td class="sub_table">[1,-2|1,-3|1,-4|2,-3|4,-5|1,-1]</td>
+        </tr>
+        <tr class="sub_table">
+          <td class="sub_table">matrix_options</td>
+          <td class="sub_table">[PAM30|PAM70|PAM250|BLOSUM80|BLOSUM62| BLOSUM45|BLOSUM50|BLOSUM90]</td>
+        </tr>
+        <tr class="sub_table">
+          <td class="sub_table">output_options</td>
+          <td class="sub_table">[asn/xml/json]</td>
+        </tr>
+        <tr class="sub_table">
+          <td class="sub_table">max_target_sequences</td>
+          <td class="sub_table">[<i>int</i>]</td>
+        </tr>
+        <tr class="sub_table">
+          <td class="sub_table">query</td>
+          <td class="sub_table">[sequence]</td>
+        </tr>
+        <tr class="sub_table">
+          <td width="145pt"  width="25pt" class="sub_table">query_type</td>
+          <td class="sub_table">[nucleotide|protein]</td>
+        </tr>
+        <tr class="sub_table">
+          <td class="sub_table">word_size</td>
+          <td class="sub_table">[<i>int</i>]</td>
+        </tr>
+        </tbody>
+      </table>
     </td>
     <td>Start a BLAST job. Returns a job ID to be used for further requests.</td>
   </tr>
   <tr>
     <td>POST {base endpoint/blast/getBlastStatus.json|xml}</td>
-    <td>job_id</td>
+    <td>
+      <table class="sub_table">
+        <tbody class="sub_table">
+        <tr class="sub_table">
+          <td width="145pt" class="sub_table">job_id</td>
+          <td class="sub_table">[<i>int</i>]</td>
+        </tr>
+        </tbody>
+      </table>
+    </td>
     <td>Returns Tripal Job Launcher status of BLAST job ('Running' or 'Completed')</td>
   </tr>
   <tr>
