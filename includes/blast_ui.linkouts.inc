@@ -209,11 +209,11 @@ function tripal_blast_generate_linkout_gbrowse($url_prefix, $hit, $info, $option
   // First we need to collect the HSPs to define the ranges we want to
   // display on the JBrowse.
   $ranges = array();
+  
   // We also keep track of all the coordinates in order to later
   // calculate the smallest and largest coordinate.
   $coords = array();
   foreach($info['HSPs'] as $hsp) {
-  
     $start = min($hsp['Hsp_hit-from'], $hsp['Hsp_hit-to']);
     $stop = max($hsp['Hsp_hit-from'], $hsp['Hsp_hit-to']);
     
@@ -223,15 +223,18 @@ function tripal_blast_generate_linkout_gbrowse($url_prefix, $hit, $info, $option
     // Add both the start & stop to the coordinate list.
     array_push($coords, $start, $stop);
   }
+  
   // Calculate the minimum & maximum coordinates.
   $min = min($coords);
   $max = max($coords);
+  
   // Now we are finally ready to build the URL.
   // First lets set the location of the hit so the GBrowse focuses in on the correct region.
   $query = array();
   $query['ref'] = $hit->{'linkout_id'};
   $query['start'] = $min;
   $query['stop'] = $max;
+  
   // Next we want to add our BLAST hit to the GBrowse.
   $query['add'] = format_string(
     '!ref !trackname !featurename !hspcoords',
@@ -306,6 +309,7 @@ function tripal_blast_generate_linkout_jbrowse($url_prefix, $hit, $info, $option
   // First we need to collect the HSPs to define the ranges we want to
   // display on the JBrowse.
   $ranges = array();
+  
   // We also keep track of all the coordinates in order to later
   // calculate the smallest and largest coordinate.
   $coords = array();
@@ -339,6 +343,7 @@ function tripal_blast_generate_linkout_jbrowse($url_prefix, $hit, $info, $option
     );
     array_push($ranges, $hsp_def);
   }
+  
   // Calculate the minimum & maximum coordinates.
   $min = min($coords);
   $max = max($coords);
