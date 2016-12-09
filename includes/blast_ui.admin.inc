@@ -165,13 +165,10 @@ function blast_ui_admin_form_validate($form, &$form_state) {
 }
 
 
-/*
-**
-** custom method disabled the web services 
-**
-*/
-function disable_web_services()
-{
+/**
+ * Disable the web services 
+ */
+function disable_web_services() {
     $ar=array('services', 'rest_server');
     $result = module_disable($ar,true);
     try{
@@ -184,12 +181,10 @@ function disable_web_services()
 }
 
 
-/*
-** custom method enable the web services 
-**
-*/
-function enable_web_services()
-{
+/**
+ * custom method enable the web services 
+ */
+function enable_web_services() {
   $ar=array('services', 'rest_server');
   $result = module_enable($ar, true);
   if (empty($result)) {

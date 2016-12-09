@@ -51,14 +51,6 @@ function blast_ui_blastn_advanced_options_form(&$form, $form_state) {
     '#description' => t('Select the maximum number of unique target sequences per query sequence to show results for.'),
   );
 
-/*eksc- remove until we learn how this is implemented by NCBI
-  $form['ALG']['GParam']['shortQueries'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Automatically adjust parameters for short input sequences'),
-    '#default_value' => $short_queries,
-  );
-*/
-
   $form['ALG']['GParam']['eVal'] = array(
     '#type' => 'textfield',
     '#title' => t('e-Value (Expected Threshold)'),
@@ -111,6 +103,7 @@ function blast_ui_blastn_advanced_options_form(&$form, $form_state) {
   );
 }
 
+
 /**
  * Validate the advanced options provided by the BLASTn form above.
  *
@@ -134,6 +127,7 @@ function blast_ui_blastn_advanced_options_form_validate($form, $form_state) {
   }
 
 }
+
 
 /**
  * Processed the advanced options provided by the BLASTn form above.
@@ -169,6 +163,7 @@ function blast_ui_blastn_advanced_options_form_submit($form, $form_state) {
     'culling_limit'   => $qRange,
   );
 }
+
 
 /**
  * @section
@@ -222,14 +217,6 @@ function blast_ui_blastx_advanced_options_form(&$form, $form_state) {
     '#description' => t('Expected number of chance matches in a random model. This number should be give in a decimal format. <a href="https://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml#expect" target="_blank">More Information</a> | <a href="https://www.youtube.com/watch?v=nO0wJgZRZJs" target="_blank">Expect value vedio tutorial</a>'),
   );
 
-/*eksc- need to learn how this is implemented for blastx
-  $form['ALG']['GParam']['shortQueries'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Automatically adjust parameters for short input sequences'),
-    '#default_value' => TRUE,
-  );
-*/
-
   $form['ALG']['GParam']['wordSize'] = array(
     '#type' => 'select',
     '#title' => t('Word size:'),
@@ -268,23 +255,8 @@ function blast_ui_blastx_advanced_options_form(&$form, $form_state) {
     '#maxlength' => 20,
     '#description' => t('Limit the number of matches to a query range. This option is useful if many strong matches to one part of a query may prevent BLAST from presenting weaker matches to another part of the query.'),
   );
-
-/*eksc- NOT match/mismatch but instead computational adjustments;
-        need to learn how there are implemented for blastx
-  $form['ALG']['SParam']['M&MScores'] = array(
-    '#type' => 'select',
-    '#title' => t('Match/Mismatch Scores:'),
-    '#options' => array(
-        0 => t('No adjustment'),
-        1 => t('Composition-based statistics'),
-        2 => t('Conditional compositional score matrix adjustment'),
-        3 => t('Universal composition score matrix adjustment '),
-      ),
-    '#default_value' => 2,
-    '#description' => t('Matrix adjustment method to compensate for amino acid composition of sequences'),
-  );
-*/
 }
+
 
 /**
  * Validate the advanced options provided by the BLASTn form above.
@@ -307,8 +279,8 @@ function blast_ui_blastx_advanced_options_form_validate($form, $form_state) {
   if (!is_numeric($form_state['values']['qRange'])) {
     form_set_error('qRange', 'The "Max matches in a query range" should be a positive integer.');
   }
-
 }
+
 
 /**
  * Processed the advanced options provided by the BLASTx form above.
@@ -321,6 +293,7 @@ function blast_ui_blastx_advanced_options_form_submit($form, $form_state) {
   return blast_ui_blastp_advanced_options_form_submit($form, $form_state);
 
 }
+
 
 /**
  * @section
@@ -366,14 +339,6 @@ function blast_ui_blastp_advanced_options_form(&$form, $form_state) {
     '#default_value' => $defaults['max_target_seqs'],
     '#description' => t('Select the maximum number of aligned sequences to display'),
   );
-
-/*eksc- remove until we learn how this is implemented
-  $form['ALG']['GParam']['shortQueries'] = array(
-   '#type' => 'checkbox',
-   '#title' => t('Automatically adjust parameters for short input sequences'),
-   '#default_value' => TRUE,
-  );
-*/
 
   $form['ALG']['GParam']['eVal'] = array(
     '#type' => 'textfield',
@@ -421,35 +386,8 @@ function blast_ui_blastp_advanced_options_form(&$form, $form_state) {
       'wrapper' => 'dropdown-second-replace',
     ),
   );
-
-/*eksc- probably not used for blastp
-  $form['ALG']['SParam']['gapCost'] = array(
-    '#type' => 'select',
-    '#title' => t('Gap Costs:'),
-    '#prefix' => '<div id="dropdown-second-replace">',
-    '#suffix' => '</div>',
-    '#options' => _get_gap_for_matrix($selected),
-    '#default_value' => 2,
-    '#description' => t('Cost to create and extend a gap in an alignment.'),
-  );
-*/
-
-/*eksc- NOT match/mismatch but instead computational adjustments;
-        need to learn how there are implemented for blastp
-  $form['ALG']['SParam']['M&MScores'] = array(
-    '#type' => 'select',
-    '#title' => t('Match/Mismatch Scores:'),
-    '#options' => array(
-      0 => t('No adjustment'),
-      1 => t('Composition-based statistics'),
-      2 => t('Conditional compositional score matrix adjustment'),
-      3 => t('Universal composition score matrix adjustment '),
-    ),
-    '#default_value' => 2,
-    '#description' => t('Matrix adjustment method to compensate for amino acid composition of sequences'),
-  );
-*/
 }
+
 
 /**
  * Validate the advanced options provided by the BLASTp form above.
@@ -473,6 +411,7 @@ function blast_ui_blastp_advanced_options_form_validate($form, $form_state) {
     form_set_error('qRange', 'The "Max matches in a query range" should be a positive integer.');
   }
 }
+
 
 /**
  * Processed the advanced options provided by the BLASTp form above.
@@ -701,14 +640,6 @@ function blast_ui_tblastn_advanced_options_form(&$form, $form_state) {
     '#description' => t('Expected number of chance matches in a random model. This number should be give in a decimal format. <a href="https://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml#expect" target="_blank">More Information</a> | <a href="https://www.youtube.com/watch?v=nO0wJgZRZJs" target="_blank">Expect value vedio tutorial</a>'),
   );
 
-/*eksc- need to learn how this is implemented for tblastn
-  $form['ALG']['GParam']['shortQueries'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Automatically adjust parameters for short input sequences'),
-    '#default_value' => TRUE,
-  );
-*/
-
   $form['ALG']['GParam']['wordSize'] = array(
     '#type' => 'select',
     '#title' => t('Word size:'),
@@ -856,9 +787,6 @@ function _get_default_values($options) {
       case 1: $gap = 6;
     }
   }
-
-// eksc- need to implement query range limit
-//  $q_range = 0;
 
   $matrix = (isset($options['matrix']))
             ? $options['matrix'] : 'PAM30';
@@ -1341,6 +1269,7 @@ function _get_gap($which) {
    }//switch
 }
 
+
 /**
  * Translate above gap options into blast gap open and extend costs.
  */
@@ -1378,6 +1307,7 @@ function _set_gap($gap_key) {
 
   return array('gapOpen' => $gapOpen, 'gapExtend' => $gapExtend);
 }
+
 
 /**
  * Translate mismatch/match ratio option into blast penalty/reward options.
