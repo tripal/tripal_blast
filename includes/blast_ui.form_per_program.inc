@@ -228,6 +228,7 @@ function blast_ui_per_blast_program_form($form, $form_state) {
     '#type' => 'select',
     '#title' => t('%type BLAST Databases:', array('%type' => ucfirst($db_type))),
     '#options' => $options,
+    '#empty_option' => t('Select a Dataset'),
     '#default_value' => $defaults['SELECT_DB'],
   );
 
