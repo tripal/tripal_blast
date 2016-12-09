@@ -22,9 +22,9 @@
  *   BLAST (ie: 'num_alignments') and the value is relates to this particular
  *   BLAST job (ie: 250)
  * @param $format 
- *   Which specifies Json or asn format of file or program
+ *   Indicates 'json' or 'asn' output format
  * @param $format_type 
- * which specify the number of format used by BLAST e.g json has 11 and json as 12. 
+ * specify output format code used by BLAST, e.g 11 indicates asn, 12 indicates json. 
  *
  * Author: Prateek Gupta
  * Created: 2016
