@@ -23,17 +23,16 @@
  *   BLAST job (ie: 250)
  * @param $format 
  *   Which specifies Json or asn format of file or program
- * @param  $format_type 
+ * @param $format_type 
  * which specify the number of format used by BLAST e.g json has 11 and json as 12. 
  *
  * Author: Prateek Gupta
  * Created: 2016
  */
 
-function run_BLAST_tripal_job_services($program, $query, $database, $output_filestub, $options, $format, $format_type,  $job_id = NULL) {
-  $output_file = file_directory_temp() .  DIRECTORY_SEPARATOR . $output_filestub . '.blast.' . $format_type;
-  $output_dir = variable_get('file_public_path', conf_path() . '/files') 
-              . DIRECTORY_SEPARATOR . 'tripal' . DIRECTORY_SEPARATOR . 'tripal_blast';
+function run_BLAST_tripal_job_services($program, $query, $database, $output_filestub, 
+                                       $options, $format, $format_type,  $job_id = NULL) {
+  $output_file = "$output_filestub.$format_type";
 
   print "\nExecuting $program\n\n";
   print "Query: $query\n";
@@ -48,7 +47,7 @@ function run_BLAST_tripal_job_services($program, $query, $database, $output_file
   $blast_threads = variable_get('blast_threads', '');
   
   // The executables:
-  $program       = $blast_path . $program;
+  $program = $blast_path . $program;
   $blast_formatter_command = $blast_path . 'blast_formatter';
 
   $blast_cmd = escapeshellarg($program) 
@@ -83,7 +82,6 @@ function run_BLAST_tripal_job_services($program, $query, $database, $output_file
     return FALSE;
   }
   print "\nDone!\n";
-
 }
 
 
