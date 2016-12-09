@@ -169,9 +169,6 @@ function get_blast_database_options($type) {
   // Sort alphabetically
   asort($options);
   
-  // Prepend prompt; note that array_unshift() will re-index the array
-  $options = array('Select a Dataset') + $options;
-
   return $options;
 }
 
