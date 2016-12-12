@@ -172,9 +172,10 @@ function disable_web_services() {
     $ar=array('services', 'rest_server');
     $result = module_disable($ar,true);
     try{
-    $eid = 1;
+    $eid  = variable_get('eid_endpoint');
     $num_deleted = db_delete('services_endpoint')->condition('eid', $eid)->execute();  
-    } catch(Exception $e){
+    } 
+    catch(Exception $e){
     //drupal_set_message(t("Web-Services of blast are already disabled"), 'error');
    }
   
@@ -232,11 +233,19 @@ function enable_web_services() {
       ),
     ),
   );
-
+  $max_eid = 1;
   try{
+    $max_eid = db_query('SELECT MAX(eid) FROM {services_endpoint}')->fetchField();
+      if (max_eid == null) {
+          $max_eid = 1;
+      } 
+      else{
+          $max_eid = $max_eid + 1;
+      }
+    variable_set('eid_endpoint', $max_eid);
     $nid = db_insert('services_endpoint')->fields(
     array(
-      'eid' => 1,
+      'eid' => variable_get('eid_endpoint'),
       'debug'  => 1,
       'name' => 'restapi',
       'server' => 'rest_server',
@@ -247,6 +256,8 @@ function enable_web_services() {
     ))->execute();
   }
   catch(Exception $e){
+     // This will reset the value if name = 'restapi' is already present in database configuration
+        variable_set('eid_endpoint', $max_eid - 1);
     //drupal_set_message(t("Web-Services of blast are already Enabled"), 'error');
   }
   
@@ -274,7 +285,8 @@ function blast_ui_admin_form_submit($form, $form_state) {
   
   if($form_state['values']['enable_blast_webservices'] == 1){
     enable_web_services();
-  }else{
+  }
+  else{
     disable_web_services();
   }
 }
