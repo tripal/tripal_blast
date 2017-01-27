@@ -203,9 +203,9 @@ End point: http://&lt;your-site&gt;/restapi/
   </tr>
 </table>
 
-Sample Code<br>
+Sample Code for http requests<br>
 <pre>
-  $endpoint = 'http://lis-dev.agron.iastate.edu/restapi/';
+  $endpoint = 'http://your.web.site/restapi/';
 
   // Get BLAST programs
   $ch = curl_init($endpoint . 'blast.json');
@@ -307,4 +307,36 @@ CTGTTTTTAT TCAACATATT TAATCACATG GATGAATTTT TGAACTGTTA",
   $response = json_decode(curl_exec($ch));
   echo "BLAST results: "; print_r($response);
 </pre>
-    
+
+Sample Code for https (SSL) requests<br>
+<pre>
+  $endpoint = 'https://your.web.site/restapi/';
+
+  // Get BLAST programs
+  $context = stream_context_create(array(
+    'http' => array(
+      'method' => 'GET',
+      'header' => 'Content-Type: application/x-www-form-urlencoded',
+      'protocol_version' => 1.1,
+      'timeout' => 10,
+      'ignore_errors' => true,
+    ),
+  ));
+  $result = file_get_contents("$endpoint/blast.json", false, $context);
+  echo "available programs:" . var_dump($result);
+
+  // Get database options for blastn
+  $context = stream_context_create(array(
+    'http' => array(
+      'method' => 'GET',
+      'header' => 'Content-Type: application/x-www-form-urlencoded',
+      'content' => http_build_query(array('blast_program' => 'blastn')),
+      'protocol_version' => 1.1,
+      'timeout' => 10,
+      'ignore_errors' => true,
+    ),
+  ));
+  $result = file_get_contents("$endpoint/blast/getDatabaseOptions.json", false, $context);
+  echo "available options for blastn:" . var_dump($result);
+
+   
