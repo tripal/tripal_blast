@@ -20,7 +20,7 @@ function blast_ui_services_resources() {
             'access arguments append' => FALSE,
             'args' => array(
                 array(
-                   'name' => 'job_id',
+                  'name' => 'job_id',
                   'type' => 'int',
                   'description' => 'The information needed',
                   'source' => array(
@@ -31,7 +31,7 @@ function blast_ui_services_resources() {
             )
          ),
          'index' => array(
-             'help' => 'Retrieves a listing of blast_ui',
+            'help' => 'Retrieves a listing of blast_ui',
             'callback' => '_blast_ui_index',
             'access callback' => 'user_access',
             'access arguments' => array(
@@ -552,7 +552,15 @@ function getBlaststatus( $data ) {
  **  @param int $job_id
  **  web service url :  http://localhost:8080/restapi/blast/job_id
  */
-function getBlastData( $job_id ) {
+function getBlastData($job_id) {
+
+  // Make sure $job_id is a number. If not, a web service was called incorrectly
+  if (!is_integer($job_id)) {
+    $msg = "The web service request was incorrectly specified. Check the endpoint and ";
+    $msg .= "data, and be sure to use the correct request method (GET vs POST)";
+    return array('status' => 400, 'msg' => $msg);
+  }
+  
   $result ;
   $sql = "SELECT job_name FROM tripal_jobs WHERE job_id = :job_id ";
   $query_name = db_query( $sql, array(
