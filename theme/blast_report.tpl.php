@@ -299,9 +299,9 @@ and click the <em>target name </em> to get more information about the target hit
   else {
     // We want to warn the user if some of their query sequences had no hits.
     if (!empty($query_with_no_hits)) {
-      print '<p class="no-hits-message">Some of your query sequences did not '
-      . 'match to the database/template. They are: '
-      . implode(', ', $query_with_no_hits) . '.</p>';
+      print '<p class="no-hits-message">Some query sequences did not match the target '
+      . 'database:<ul class="no-hits-message">' 
+      . implode('<li>', $query_with_no_hits) . '</ul></p>';
     }
 
     // Actually print the table.
