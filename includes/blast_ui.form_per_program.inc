@@ -126,6 +126,11 @@ function blast_ui_per_blast_program_form($form, $form_state) {
     );
   }
 
+  // Add a warning, if need be (to be used for temporary messages like down-for-maintanence)
+  $form['warning'] = array(
+    '#markup' => t(''),
+  );
+  
   // REQUEST A NEW BLAST
   //-----------------------------------
   $form['B'] = array(
@@ -146,7 +151,7 @@ function blast_ui_per_blast_program_form($form, $form_state) {
       . 'contain a single sequence or a list of sequences. In both cases, the '
       . 'data must be in <a href="@formaturl" target="_blank">FASTA format</a>.',
         array(
-          '@formaturl' => 'http://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml'
+          '@formaturl' => 'https://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml'
         )
       ),
     '#collapsible' => TRUE,
@@ -223,6 +228,7 @@ function blast_ui_per_blast_program_form($form, $form_state) {
     '#type' => 'select',
     '#title' => t('%type BLAST Databases:', array('%type' => ucfirst($db_type))),
     '#options' => $options,
+    '#empty_option' => t('Select a Dataset'),
     '#default_value' => $defaults['SELECT_DB'],
   );
 
@@ -319,7 +325,7 @@ function blast_ui_per_blast_program_form_validate($form, &$form_state) {
       . '<a href="@url" target="_blank">NCBI FASTA Specification</a>.',
         array(
           '%molecule-type' => $molecule_type,
-          '@url' => 'http://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml'
+          '@url' => 'https://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml'
       )));
     }
     else {
@@ -444,7 +450,7 @@ function blast_ui_per_blast_program_form_submit($form, &$form_state) {
       drupal_set_message('Unable to generate a BLAST database from your uploaded
 FASTA sequence. Please check that your file is a valid FASTA file and that if
 your sequence headers include pipes (i.e.: | ) they adhere to '
-. l('NCBI standards.', 'http://www.ncbi.nlm.nih.gov/books/NBK21097/table/A632/?report=objectonly', array('attributes' => array('target' => '_blank'))),
+. l('NCBI standards.', 'https://www.ncbi.nlm.nih.gov/books/NBK21097/table/A632/?report=objectonly', array('attributes' => array('target' => '_blank'))),
         'error'
       );
 

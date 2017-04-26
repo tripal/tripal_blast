@@ -142,6 +142,7 @@ function blast_ui_menu() {
   return $items;
 }
 
+
 /**
  * Implements hook_theme().
  */
@@ -201,6 +202,7 @@ function blast_ui_theme() {
   return $items;
 }
 
+
 /**
  * Implements hook_help().
  */
@@ -209,6 +211,7 @@ function blast_ui_help($path, $arg) {
     return theme('blast_help');
   }
 }
+
 
 /**
  * Facilitate presenting the result of the blast search
@@ -251,7 +254,6 @@ function show_blast_output($job_string) {
     return theme('blast_report_pending', array('status_code' => 1, 'status' => 'Running'));
   }
 
-
   return '';
 }
 
@@ -263,13 +265,15 @@ function show_blast_output($job_string) {
  * @param $api
  *
  * @return $result
- *  
  */
 function blast_ui_ctools_plugin_api($owner, $api) {
-  if ($owner == 'services' && $api == 'services') {
-    return array(
-      'version' => 3,
-      'file' => 'includes/blast_ui.services.inc'
-    );
+  $webservices = variable_get('enable_blast_webservices');
+  if($webservices == 1) {
+    if ($owner == 'services' && $api == 'services') {
+      return array(
+        'version' => 3,
+        'file' => 'includes/blast_ui.services.inc'
+      );
+    }
   }
 }
