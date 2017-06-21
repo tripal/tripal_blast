@@ -258,9 +258,9 @@ function tripal_blast_generate_linkout_gbrowse($url_prefix, $hit, $info, $option
     )
   );
   
-  // For some reason GBrowse expects semi-colons (;) to delineate query paramters 
+  // For some reason GBrowse expects semi-colons (;&) to delineate query paramters 
   // whereas Drupal throws ampherstands (&) in. This is to fix that.
-  $url = str_replace('&',';', $url);
+  $url = str_replace('&',';&', $url);
   
   return $url;
 }

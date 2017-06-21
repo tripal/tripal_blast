@@ -236,7 +236,7 @@ function enable_web_services() {
   $max_eid = 1;
   try{
     $max_eid = db_query('SELECT MAX(eid) FROM {services_endpoint}')->fetchField();
-      if (max_eid == null) {
+      if ($max_eid == null) {
           $max_eid = 1;
       } 
       else{
