@@ -210,23 +210,20 @@ function blast_validation( $query_type, $db_type, $data ) {
   if ( $query_type == 'nucleotide' ) {
     if ( $db_type == 'nucleotide' ) {
        if ( !isset( $data['database'] ) ) {
-          return services_error( 'Missing blast attribute database [ query blast/getDatabaseOptions for options :- Add database you need to use]', 406 );
+          return services_error( "Missing blast attribute 'database' [ query blast/getDatabaseOptions for options :- Add database you need to use]", 406 );
        }
        if ( !isset( $data['max_target_sequences'] ) ) {
-          return services_error( 'Missing blast attribute max_target_sequences [ query blast/getDatabaseOptions for options ]', 406 );
+          return services_error( "Missing blast attribute 'max_target_sequences' [ query blast/getDatabaseOptions for options ]", 406 );
        }
        if ( !isset( $data['word_size'] ) ) {
-          return services_error( 'Missing blast attribute word_size [ query blast/getDatabaseOptions for options ]', 406 );
+          return services_error( "Missing blast attribute 'word_size' [ query blast/getDatabaseOptions for options ]", 406 );
        }
        if ( !isset( $data['match_mismatch_scores'] ) ) {
-          return services_error( 'Missing blast attribute match_mismatch_scores [ query blast/getDatabaseOptions for options]', 406 );
-       }
-       if ( !isset( $data['gap_costs'] ) ) {
-          return services_error( 'Missing blast attribute gap_costs [ query blast/getDatabaseOptions for options ]', 406 );
+          return services_error( "Missing blast attribute 'match_mismatch_scores' [ query blast/getDatabaseOptions for options]", 406 );
        }
        if ( isset( $data['query'] ) ) {
           if ( validate_fasta_sequence( $query_type, $data['query'] ) == 1 ) {
-             return services_error( 'Please enter validate_fasta_sequence', 406 );
+             return services_error( 'Please enter valid fasta sequence', 406 );
           }
        }
        else {
@@ -235,20 +232,14 @@ function blast_validation( $query_type, $db_type, $data ) {
     }
     else {
        if ( !isset( $data['database'] ) ) {
-          return services_error( 'Missing blast attribute database [ query blast/getDatabaseOptions for options :- Add database used by you]', 406 );
+          return services_error( "Missing blast attribute 'database' [ query blast/getDatabaseOptions for options]", 406 );
        }
        if ( !isset( $data['max_target_sequences'] ) ) {
-          return services_error( 'Missing blast attribute max_target_sequences [ query blast/getDatabaseOptions for options ]', 406 );
-       }
-       if ( !isset( $data['word_size'] ) ) {
-          return services_error( 'Missing blast attribute word_size [ query blast/getDatabaseOptions for options ]', 406 );
-       }
-       if ( !isset( $data['matrix_options'] ) ) {
-          return services_error( 'Missing blast attribute matrix_options [ query blast/getDatabaseOptions for options ]', 406 );
+          return services_error( "Missing blast attribute 'max_target_sequences' [ query blast/getDatabaseOptions for options ]", 406 );
        }
        if ( isset( $data['query'] ) ) {
           if ( validate_fasta_sequence( $query_type, $data['query'] ) == 1 ) {
-             return services_error( 'Please enter validate_fasta_sequence', 406 );
+             return services_error( 'Please enter valid fasta sequence', 406 );
           }
        }
        else {
@@ -259,50 +250,35 @@ function blast_validation( $query_type, $db_type, $data ) {
   else {
       if ( $db_type == 'nucleotide' ) {
          if ( !isset( $data[ 'database' ] ) ) {
-            return services_error( 'Missing blast attribute database [ query blast/getDatabaseOptions for options :- Add database you need to use]', 406 );
+            return services_error( "Missing blast attribute 'database' [ query blast/getDatabaseOptions for options]", 406 );
          }
          if ( !isset( $data[ 'max_target_sequences' ] ) ) {
-            return services_error( 'Missing blast attribute max_target_sequences [ query blast/getDatabaseOptions for options ]', 406 );
-         }
-         if ( !isset( $data[ 'word_size' ] ) ) {
-            return services_error( 'Missing blast attribute word_size [ query blast/getDatabaseOptions for options ]', 406 );
-         }
-         if ( !isset( $data[ 'matrix_options' ] ) ) {
-            return services_error( 'Missing blast attribute matrix_options [ query blast/getDatabaseOptions for options ]', 406 );
-         }
-         if ( !isset( $data[ 'gap_costs' ] ) ) {
-            return services_error( 'Missing blast attribute gap_costs [ query blast/getDatabaseOptions for options ]', 406 );
+            return services_error( "Missing blast attribute 'max_target_sequences' [ query blast/getDatabaseOptions for options ]", 406 );
          }
          
          if ( isset( $data[ 'query' ] ) ) {
             if ( validate_fasta_sequence( $query_type, $data[ 'query' ] ) == 1 ) {
-               return services_error( 'Please enter validate_fasta_sequence', 406 );
+               return services_error( 'Please enter valid fasta sequence', 406 );
             }
          }
          else {
-            return services_error( 'Missing blast attribute data[query]', 406 );
+            return services_error( 'Missing blast attribute query', 406 );
          }
       }
       else {
          if ( !isset( $data[ 'database' ] ) ) {
-            return services_error( 'Missing blast attribute database [ query blast/getDatabaseOptions for options :- Add database used by you]', 406 );
+            return services_error( "Missing blast attribute 'database' [ query blast/getDatabaseOptions for options]", 406 );
          }
          if ( !isset( $data[ 'max_target_sequences' ] ) ) {
-            return services_error( 'Missing blast attribute max_target_sequences [ query blast/getDatabaseOptions for options ]', 406 );
-         }
-         if ( !isset( $data[ 'word_size' ] ) ) {
-            return services_error( 'Missing blast attribute word_size [ query blast/getDatabaseOptions for options ]', 406 );
-         }
-         if ( !isset( $data[ 'matrix_options' ] ) ) {
-            return services_error( 'Missing blast attribute matrix_options [ query blast/getDatabaseOptions for options ]', 406 );
+            return services_error( "Missing blast attribute 'max_target_sequences' [ query blast/getDatabaseOptions for options ]", 406 );
          }
          if ( isset( $data[ 'query' ] ) ) {
             if ( validate_fasta_sequence( $query_type, $data[ 'query' ] ) == 1 ) {
-               return services_error( 'Please enter validate_fasta_sequence', 406 );
+               return services_error( 'Please enter valid fasta sequence', 406 );
             }
          }
          else {
-            return services_error( 'Missing blast attribute data[query]', 406 );
+            return services_error( 'Missing blast attribute query', 406 );
          }
       }
    }
@@ -536,7 +512,7 @@ function blast_ui_getblastJobId($query_type, $db_type, $seqQuery, $Databasekey,
 */
 function getBlaststatus( $data ) {
   if ( !isset( $data[ 'job_id'] ) ) {
-      return services_error( 'Required the job_id to check the blast status', 406 );
+      return services_error( 'A job_id is required to check the blast status', 406 );
   }
   $job_id = $data[ 'job_id'];
  
@@ -555,9 +531,9 @@ function getBlaststatus( $data ) {
 function getBlastData($job_id) {
 
   // Make sure $job_id is a number. If not, a web service was called incorrectly
-  if (!is_integer($job_id)) {
-    $msg = "The web service request was incorrectly specified. Check the endpoint and ";
-    $msg .= "data, and be sure to use the correct request method (GET vs POST)";
+  if (!intval($job_id)) {
+    $msg = "The web service request was incorrectly specified. ";
+    $msg .= "The job id provided ($job_id) is not a valid job id.";
     return array('status' => 400, 'msg' => $msg);
   }
   
