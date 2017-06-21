@@ -219,7 +219,7 @@ Sample Code for http requests<br>
   echo "BLAST programs: "; print_r($response)
 
   // Get database options for blastn
-  $post = array("db_type" => 'nucleotide');
+  $post = array('blast_program' => 'blastn');
   $ch = curl_init($endpoint . 'blast/getDatabaseOptions.json');
   $post = http_build_query($post, '', '&');
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -297,6 +297,7 @@ CTGTTTTTAT TCAACATATT TAATCACATG GATGAATTTT TGAACTGTTA",
 
   // Get job results
   $ch = curl_init($endpoint . "blast/$job_id.json");
+  $post = array("job_id" => $job_id);
   $post = http_build_query($post, '', '&');
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
   curl_setopt($ch, CURLOPT_HEADER, false);
@@ -323,7 +324,7 @@ Sample Code for https (SSL) requests<br>
     ),
   ));
   $result = file_get_contents("$endpoint/blast.json", false, $context);
-  echo "available programs:" . var_dump($result);
+  echo "available programs:"; var_dump($result);
 
   // Get database options for blastn
   $context = stream_context_create(array(
@@ -337,6 +338,6 @@ Sample Code for https (SSL) requests<br>
     ),
   ));
   $result = file_get_contents("$endpoint/blast/getDatabaseOptions.json", false, $context);
-  echo "available options for blastn:" . var_dump($result);
-
+  echo "available options for blastn:"; var_dump($result);
+</pre>
    
