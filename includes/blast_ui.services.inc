@@ -293,7 +293,10 @@ function blast_validation( $query_type, $db_type, $data ) {
 function _blast_ui_makeJobRequest( $data ) {
    $query_type;
    $db_type;
-   $output_format = 'json';
+
+   // Hard-code output type to ASN.1 because it can be converted to any format
+   $output_format = 'asn';
+
    // Setting the default value of qRange and eValue from blast_ui.admin
    $eVal   = variable_get( 'eVal', '' );
    $qRange = variable_get( 'qRange', '' );   
