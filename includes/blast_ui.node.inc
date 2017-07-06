@@ -267,6 +267,20 @@ function blastdb_form_validate($form, $form_state) {
       );
     }
   }
+  
+  // Check that db_path does not include the suffix
+  if (isset($form_state['values']['db_path'])) {
+    $form_state['values']['db_path'] = trim($form_state['values']['db_path']);
+    if (preg_match("/\.[n|p]al|hd|hi|hr|in|og|sd|si|sq$/", 
+                   $form_state['values']['db_path'], 
+                   $matches)) {
+      form_set_error('db_path', 
+                     'The BLAST target file prefix includes a BLAST target file type '
+                     . 'extension. Please enter the target file prefix without a '
+                     . 'file type extension.'
+      );
+    }
+  }
 }
 
 /**

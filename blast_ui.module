@@ -25,6 +25,7 @@ require_once 'api/blast_ui.api.inc';
 
 // Administration
 require_once 'includes/blast_ui.admin.inc';
+require_once('includes/blast_ui.services.test.inc');
 
 /**
  * Implements hook_menu().
@@ -131,6 +132,16 @@ function blast_ui_menu() {
     'type' => MENU_DEFAULT_LOCAL_TASK,
   );
 
+  $items['admin/tripal/extension/tripal_blast/test-ws'] = array(
+    'title' => 'Test WebServices',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('blast_ui_test_ws_form'),
+    'access arguments' => array('administer tripal'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'includes/blast_ui.services.test.inc',
+  );
+
+
   $items['admin/tripal/extension/tripal_blast/help'] = array(
     'title' => 'Help',
     'page callback' => 'theme',
@@ -141,6 +152,7 @@ function blast_ui_menu() {
 
   return $items;
 }
+
 
 /**
  * Implements hook_theme().
@@ -168,14 +180,14 @@ function blast_ui_theme() {
     'variables' => array('hsps' => NULL),
     'path' => "$path/theme",
   );
-  
+
   // Lists the recent blast jobs for a given user/session.
   $items['blast_recent_jobs'] = array(
     'template' => 'blast_recent_jobs',
     'variables' => array('programs' => NULL),
     'path' => "$path/theme",
   );
-  
+
   // Module Help
   $items['blast_help'] = array(
     'template' => 'blast_help',
@@ -201,6 +213,7 @@ function blast_ui_theme() {
   return $items;
 }
 
+
 /**
  * Implements hook_help().
  */
@@ -209,6 +222,7 @@ function blast_ui_help($path, $arg) {
     return theme('blast_help');
   }
 }
+
 
 /**
  * Facilitate presenting the result of the blast search
@@ -251,7 +265,6 @@ function show_blast_output($job_string) {
     return theme('blast_report_pending', array('status_code' => 1, 'status' => 'Running'));
   }
 
-
   return '';
 }
 
@@ -259,17 +272,19 @@ function show_blast_output($job_string) {
  * Enable web services API
  *
  * @param $owner
- *   
+ *
  * @param $api
  *
  * @return $result
- *  
  */
 function blast_ui_ctools_plugin_api($owner, $api) {
-  if ($owner == 'services' && $api == 'services') {
-    return array(
-      'version' => 3,
-      'file' => 'includes/blast_ui.services.inc'
-    );
+  $webservices = variable_get('enable_blast_webservices');
+  if($webservices == 1) {
+    if ($owner == 'services' && $api == 'services') {
+      return array(
+        'version' => 3,
+        'file' => 'includes/blast_ui.services.inc'
+      );
+    }
   }
 }

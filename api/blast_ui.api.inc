@@ -1,10 +1,89 @@
 <?php
-
 /**
  * @file
  * Contains more generally applicable functions as well as some meant to help developers
  * Plug-in to the BLAST UI functionality
  */
+
+/**
+ * This program is used for services module specifically.
+ * Run BLAST (should be called from the command-line)
+ *
+ * @param $program
+ *   Which BLAST program to run (ie: 'blastn', 'tblastn', tblastx', 'blastp','blastx')
+ * @param $query
+ *   The full path and filename of the query FASTA file
+ * @param $database
+ *   The full path and filename prefix (excluding .nhr, .nin, .nsq, etc.)
+ * @param $output_filestub
+ *   The filename (not including path) to give the results. Should not include file type suffix
+ * @param $options
+ *   An array of additional option where the key is the name of the option used by
+ *   BLAST (ie: 'num_alignments') and the value is relates to this particular
+ *   BLAST job (ie: 250)
+ * @param $format 
+ *   Indicates 'json' or 'asn' output format
+ * @param $format_type 
+ * specify output format code used by BLAST, e.g 11 indicates asn, 12 indicates json. 
+ *
+ * Author: Prateek Gupta
+ * Created: 2016
+ */
+
+function run_BLAST_tripal_job_services($program, $query, $database, $output_filestub, 
+                                       $options, $format, $format_type,  $job_id = NULL) {
+  $output_file = "$output_filestub.$format_type";
+
+  print "\nExecuting $program\n\n";
+  print "Query: $query\n";
+  print "Database: $database\n";
+  print "Results File: $output_file\n";
+
+  print "Options:\n";
+
+  // Allow administrators to use an absolute path for these commands.
+  // Defaults to using $PATH.
+  $blast_path    = variable_get('blast_path', '');
+  $blast_threads = variable_get('blast_threads', '');
+  
+  // The executables:
+  $program = $blast_path . $program;
+  $blast_formatter_command = $blast_path . 'blast_formatter';
+
+  $blast_cmd = escapeshellarg($program) 
+             . ' -query ' . escapeshellarg($query)
+             . ' -db ' . escapeshellarg($database)
+             . ' -out ' . escapeshellarg($output_file)
+             . ' -outfmt=' . escapeshellarg($format);
+  
+   if (!empty($options)) {
+    foreach ($options as $opt => $val) {
+      if ($val) {
+        print "\t$opt: $val\n";
+        $blast_cmd .= ' -' . escapeshellarg($opt) . ' ' . escapeshellarg($val);
+      }
+    }
+  }
+
+  // Setting the value of threads by admin page
+  $blast_cmd .= ' -num_threads ' . escapeshellarg($blast_threads);
+
+  print "\nExecuting the following BLAST command:\n" . $blast_cmd . "\n";
+  system($blast_cmd);
+
+  if (!file_exists($output_file)) {
+    tripal_report_error(
+      'blast_ui',
+      TRIPAL_ERROR,
+      "BLAST did not complete successfully as is implied by the lack of output file (%file). The command run was @command",
+      array('%file' => $output_file, '@command' => $blast_cmd),
+      array('print' => TRUE)
+    );
+    return FALSE;
+  }
+  print "\nDone!\n";
+}
+
 
 /**
  * Get a specific BlastDB.
@@ -35,6 +114,7 @@ function get_blast_database($identifiers) {
 
   return $node;
 }
+
 
 /**
  * Returns a list BLAST DATABASE options
@@ -84,11 +164,12 @@ function get_blast_database_options($type) {
     }
   }
 
+  // Sort alphabetically
   asort($options);
-  $options[0] = 'Select a Dataset';
-
+  
   return $options;
 }
+
 
 /**
  * Retrieve all the information for a blast job in a standardized node-like format.
@@ -146,6 +227,7 @@ function get_BLAST_job($job_id) {
   return $job;
 }
 
+
 /**
  * Run BLAST (should be called from the command-line)
  *
@@ -179,13 +261,10 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
 
   // Allow administrators to use an absolute path for these commands.
   // Defaults to using $PATH.
-  $blast_path = variable_get('blast_path', '');
+  $blast_path    = variable_get('blast_path', '');
   $blast_threads = variable_get('blast_threads', 1);
-
-  // Strip the extension off the BLAST target
-  $database = preg_replace("/(.*)\.[pn]\w\w$/", '$1', $database);
-
-  // The Blast executeable.
+  
+  // The BLAST executeable.
   $program = $blast_path . $program;
   if (!file_exists($program)) {
     tripal_report_error(
@@ -784,7 +863,6 @@ function convert_tsv2gff3($blast_tsv,$blast_gff){
     $qe = $parts[7];
     $e = $parts[10];
      
-
     // if this is a new hit print the last and 
     // empty the $HitResult array and
     // reset hsp counter
@@ -794,7 +872,7 @@ function convert_tsv2gff3($blast_tsv,$blast_gff){
       $hsp=0;
     }
   
-   // every line is a new hsp
+    // every line is a new hsp
     $hsp++;
   
     // determine query strand to use in match_part line, no need to store, just print
@@ -850,7 +928,6 @@ function convert_tsv2gff3($blast_tsv,$blast_gff){
  *
  *
  */
-
 function printGFF_parent_children ($gff,$blast_feature_array){
   foreach ($blast_feature_array as $sq => $value ) {
     list ($s,$q) = preg_split('/,/' , $sq);
