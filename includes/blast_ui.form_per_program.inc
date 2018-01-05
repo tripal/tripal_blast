@@ -43,7 +43,7 @@ function blast_ui_per_blast_program_form($form, $form_state) {
     if (!isset($prev_blast->blastdb->nid)) {
       drupal_set_message('You will need to re-upload your <em>Search Target</em> database.','warning');
     }
-    // Andi f they didn't upload a target then set a default for the select list.
+    // And if they didn't upload a target then set a default for the select list.
     else {
       $defaults['SELECT_DB'] = $prev_blast->blastdb->nid;
     }
@@ -223,6 +223,7 @@ function blast_ui_per_blast_program_form($form, $form_state) {
     '#type' => 'select',
     '#title' => t('%type BLAST Databases:', array('%type' => ucfirst($db_type))),
     '#options' => $options,
+    '#empty_option' => t('Select a Dataset'),
     '#default_value' => $defaults['SELECT_DB'],
   );
 
@@ -312,10 +313,9 @@ function blast_ui_per_blast_program_form_validate($form, &$form_state) {
   // Check if there was a query sequence entered in the texfield.
   elseif (!empty($form_state['input']['FASTA'])) {
     // Check to ensure that the query sequence entered is valid FASTA.
-    if (validate_fasta_sequence($type, $form_state['input']['FASTA'])){
-      form_set_error('query', t('You need to provide a valid FASTA sequence '
-      . 'for the query. It should contain a FASTA header/definition line '
-      . 'followed by %molecule-type. For more information see the '
+    if (!validate_fasta_sequence($type, $form_state['input']['FASTA'])){
+      form_set_error('query', t('You need to provide a valid %molecule-type FASTA sequence '
+      . 'for the query. For more information see the '
       . '<a href="@url" target="_blank">NCBI FASTA Specification</a>.',
         array(
           '%molecule-type' => $molecule_type,
@@ -441,10 +441,14 @@ function blast_ui_per_blast_program_form_submit($form, &$form_state) {
     // Check that the BLAST database was made correctly.
     $result = implode('<br />', $result);
     if (preg_match('/Error/', $result)) {
-      drupal_set_message('Unable to generate a BLAST database from your uploaded
-FASTA sequence. Please check that your file is a valid FASTA file and that if
-your sequence headers include pipes (i.e.: | ) they adhere to '
-. l('NCBI standards.', 'http://www.ncbi.nlm.nih.gov/books/NBK21097/table/A632/?report=objectonly', array('attributes' => array('target' => '_blank'))),
+      drupal_set_message(t('Unable to generate a BLAST database from your uploaded FASTA '
+                          .'sequence. Please check that your file is a valid FASTA file '
+                          .'and that if your sequence headers include pipes (i.e.: | ) '
+                          .' they adhere to ') 
+                          .l('NCBI standards.', 
+                             'http://www.ncbi.nlm.nih.gov/books/NBK21097/table/A632/?report=objectonly', 
+                             array('attributes' => array('target' => '_blank'))
+                          ),
         'error'
       );
 
