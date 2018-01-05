@@ -327,25 +327,21 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
  *
  */
 function validate_fasta_sequence($type, $sequence) {
-
-  if ($type == 'nucleotide') {
-    $fastaIdRegEx = '/^>.*(\\n|\\r)/';
-    $fastaSeqRegEx = '/[^ATCGNUKMBVSWDYRHatcgnukmbvswdyrh\n\r]/'; //Includes IUPAC codes.
-    if ( preg_match($fastaSeqRegEx,$sequence) && !(preg_match($fastaIdRegEx,$sequence)) ) {
-      return TRUE;
-    } else {
-      return FALSE;
-    }
-  } elseif ($type == 'protein') {
-    $fastaIdRegEx = '/^>.*(\\n|\\r)/';
-    $fastaSeqRegEx = '/[^ABCDEFGHIKLMNPQRSTUVWYZXabcdefghiklmnpqrstuvwyzx\*\-\n\r]/';
-    if ( preg_match($fastaSeqRegEx,$sequence) && !(preg_match($fastaIdRegEx,$sequence)) ) {
-      return TRUE;
-    } else {
-      return FALSE;
+  //Includes IUPAC codes.
+  $fastaSeqRegEx = ($type == 'nucleotide') 
+                   ? '/^[ATCGNUKMBVSWDYRHatcgnukmbvswdyrh\s\n\r]*$/' 
+                   : '/^[ABCDEFGHIKLMNPQRSTUVWYZXabcdefghiklmnpqrstuvwyzx\*\-\s\n\r]*$/';
+  $defRegEx      = '/^>.*(\\n|\\r)(.*)$/sm';
+  if (preg_match($defRegEx, $sequence, $matches)) {
+    if (isset($matches[2]) && $matches[2] != '' && preg_match($fastaSeqRegEx, $matches[2])) {
+      return true;
     }
   }
-  return FALSE;
+  else if ($sequence != '' && preg_match($defRegEx, $sequence)) {
+    return true;
+  }
+  
+  return false;
 }
 
 /**
