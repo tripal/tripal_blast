@@ -57,7 +57,8 @@ function blast_ui_preprocess_show_blast_report(&$vars) {
 
     $vars['num_results'] = shell_exec('grep -c "<Hit>" ' . escapeshellarg($full_path_xml));
 
-    if ($vars['num_results'] < 500) {
+    $max_results = intval(variable_get('blast_ui_max_results_displayed', 500));
+    if ($vars['num_results'] < $max_results) {
       $vars['xml'] = simplexml_load_file($full_path_xml);
     }
     else {
@@ -128,7 +129,8 @@ function blast_ui_reveal_secret($secret) {
   // Check that the job_id exists if it is an integer.
   if (is_numeric($job_id)) {
 
-    $exists = db_query('SELECT job_id FROM {tripal_jobs} WHERE job_id=:id', array(':id' => $job_id))->fetchField();
+    $exists = db_query('SELECT job_id FROM {tripal_jobs} WHERE job_id=:id', 
+                       array(':id' => $job_id))->fetchField();
     if (!$exists) {
       tripal_report_error(
         'blast_ui',
@@ -146,7 +148,8 @@ function blast_ui_reveal_secret($secret) {
 
     $job_id = base64_decode($secret);
     if (is_numeric($job_id)) {
-      $exists = db_query('SELECT job_id FROM {tripal_jobs} WHERE job_id=:id', array(':id' => $job_id))->fetchField();
+      $exists = db_query('SELECT job_id FROM {tripal_jobs} WHERE job_id=:id', 
+                         array(':id' => $job_id))->fetchField();
       if (!$exists) {
         tripal_report_error(
           'blast_ui',

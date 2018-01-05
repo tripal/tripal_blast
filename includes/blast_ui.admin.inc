@@ -31,7 +31,7 @@ function blast_ui_admin_form($form, $form_state) {
 
    $form['general']['eVal']= array(
     '#type' => 'textfield',
-    '#title' => t('e-Value (Expected Threshold)'),
+    '#title' => t('Default e-Value (Expected Threshold)'),
     '#description' => t('Expected number of chance matches in a random model. This number should be give in a decimal format.'),
      '#default_value' => variable_get('eVal', 0.001),
     //'#default_value' => variable_get('blast_threads', 1),
@@ -39,7 +39,7 @@ function blast_ui_admin_form($form, $form_state) {
 
   $form['general']['qRange']= array(
     '#type' => 'textfield',
-    '#title' => t('Max matches in a query range'),
+    '#title' => t('Default max matches in a query range'),
     '#description' => t('Limit the number of matches to a query range. This option is useful if many strong matches to one part of a query may prevent BLAST from presenting weaker matches to another part of the query.'),
     '#default_value' => variable_get('qRange', 0),
   );
@@ -55,6 +55,8 @@ function blast_ui_admin_form($form, $form_state) {
 
   $form['file_upload']['query_upload'] = array(
     '#type' => 'checkbox',
+    '#collapsible' => true,
+    '#collapsed' => true,
     '#title' => 'Enable Query Sequence Upload',
     '#description' => 'When checked, a query file upload field will be available on BLAST request forms.',
     '#default_value' => FALSE,
@@ -71,6 +73,8 @@ function blast_ui_admin_form($form, $form_state) {
 
   $form['example_sequence'] = array(
     '#type' => 'fieldset',
+    '#collapsible' => true,
+    '#collapsed' => true,
     '#title' => 'Set Example Sequences',
     '#description' => 'There is the ability to show example sequences built-in to the various BLAST forms. Use the following fields to set these example sequences. This allows you to provide more relevant examples to your users.'
   );
@@ -106,7 +110,7 @@ CTGTTTTTAT TCAACATATT TAATCACATG GATGAATTTT TGAACTGTTA';
     '#type' => 'textarea',
     '#title' => 'Nucleotide Example',
     '#description' => t('Enter a complete nucleotide FASTA record including the header. More information: <a href="@fasta-format-url" target="_blank">FASTA format</a>.',
-      array('@fasta-format-url' => 'http://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml')),
+      array('@fasta-format-url' => 'https://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml')),
     '#default_value' => variable_get(
         'blast_ui_nucleotide_example_sequence',
         $nucleotide_default
@@ -124,13 +128,30 @@ KRSLEEGLKTTGEGLDWGVLFGFGPGLTIETVVLRSVAI';
     '#type' => 'textarea',
     '#title' => 'Protein Example',
     '#description' => t('Enter a complete protein FASTA record including the header. More information: <a href="@fasta-format-url" target="_blank">FASTA format</a>.',
-      array('@fasta-format-url' => 'http://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml')),
+      array('@fasta-format-url' => 'https://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml')),
     '#default_value' => variable_get(
         'blast_ui_protein_example_sequence',
         $protein_default
       )
   );
 
+  // PROTECTION
+  $form['protection'] = array(
+    '#type' => 'fieldset',
+    '#collapsible' => true,
+    '#collapsed' => true,
+    '#title' => 'Protect against large jobs',
+    '#description' => 'Depending on the size and nature of your target databases, you may wish to constrain use of this module.',
+  );
+
+  $form['protection']['max_results_displayed'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Maximum number of results to show on report page',
+    '#description' => 'If there are more hits that this, the user is able to download but not visualize the results.',
+    '#default_value' => variable_get('blast_ui_max_results_displayed', 500)
+  );
+
+  // SUBMIT
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => 'Save Configuration'
@@ -143,6 +164,7 @@ KRSLEEGLKTTGEGLDWGVLFGFGPGLTIETVVLRSVAI';
  * Validate the Admin/Settings form.
  */
 function blast_ui_admin_form_validate($form, &$form_state) {
+  // Check path to BLAST executables
   $blast_path = $form_state['values']['blast_path'];
   $blast_path .= 'blastn';
   if(!empty($form_state['values']['blast_path'])) {
@@ -160,16 +182,21 @@ function blast_ui_admin_form_validate($form, &$form_state) {
  * Submit the Admin/settings form.
  */
 function blast_ui_admin_form_submit($form, $form_state) {
-
+  //General
   variable_set('blast_path', $form_state['values']['blast_path']);
   variable_set('blast_threads', $form_state['values']['blast_threads']);
 
   variable_set('eVal', $form_state['values']['eVal']);
   variable_set('qRange', $form_state['values']['qRange']);
 
+  // Uploads
   variable_set('blast_ui_allow_query_upload', $form_state['values']['query_upload']);
   variable_set('blast_ui_allow_target_upload', $form_state['values']['target_upload']);
 
+  // Example sequence
   variable_set('blast_ui_nucleotide_example_sequence', $form_state['values']['nucleotide_example']);
   variable_set('blast_ui_protein_example_sequence', $form_state['values']['protein_example']);
+  
+/**: added by safetybrake*/
+  variable_set('blast_ui_max_results_displayed', $form_state['values']['max_results_displayed']);
 }
