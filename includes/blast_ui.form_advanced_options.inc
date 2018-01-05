@@ -65,7 +65,7 @@ function blast_ui_blastn_advanced_options_form(&$form, $form_state) {
     '#default_value' => $defaults['evalue'],
     '#size' => 12,
     '#maxlength' => 20,
-    '#description' => t('Expected number of chance matches in a random model. This number should be give in a decimal format. <a href="http://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml#expect" target="_blank">More Information</a> | <a href="https://www.youtube.com/watch?v=nO0wJgZRZJs" target="_blank">Expect value video tutorial</a>'),
+    '#description' => t('Expected number of chance matches in a random model. This number should be give in a decimal format. <a href="https://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml#expect" target="_blank">More Information</a> | <a href="https://www.youtube.com/watch?v=nO0wJgZRZJs" target="_blank">Expect value video tutorial</a>'),
   );
 
   $form['ALG']['GParam']['wordSize'] = array(
@@ -105,7 +105,7 @@ function blast_ui_blastn_advanced_options_form(&$form, $form_state) {
    $form['ALG']['SParam']['gapCost'] = array(
     '#type' => 'select',
     '#title' => t('Gap Costs:'),
-    '#options' => _get_gap('blastn'),
+    '#options' => _get_gap_options('blastn'),
     '#default_value' => $defaults['gap'],
     '#description' => t('Cost to create and extend a gap in an alignment. Linear costs are available only with megablast and are determined by the match/mismatch scores.'),
   );
@@ -219,7 +219,7 @@ function blast_ui_blastx_advanced_options_form(&$form, $form_state) {
     '#default_value' => $defaults['evalue'],
     '#size' => 12,
     '#maxlength' => 20,
-    '#description' => t('Expected number of chance matches in a random model. This number should be give in a decimal format. <a href="http://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml#expect" target="_blank">More Information</a> | <a href="https://www.youtube.com/watch?v=nO0wJgZRZJs" target="_blank">Expect value vedio tutorial</a>'),
+    '#description' => t('Expected number of chance matches in a random model. This number should be give in a decimal format. <a href="https://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml#expect" target="_blank">More Information</a> | <a href="https://www.youtube.com/watch?v=nO0wJgZRZJs" target="_blank">Expect value vedio tutorial</a>'),
   );
 
 /*eksc- need to learn how this is implemented for blastx
@@ -483,6 +483,7 @@ function blast_ui_blastp_advanced_options_form_submit($form, $form_state) {
 
   $eVal = $form_state['values']['eVal'];
 
+
   $trgtKey = $form_state['values']['maxTarget'];
   $numAlign = $form['ALG']['GParam']['maxTarget']['#options'][$trgtKey];
 
@@ -493,360 +494,8 @@ function blast_ui_blastp_advanced_options_form_submit($form, $form_state) {
 
   // Expand Gap Cost key into open and extend penalties
   $matrix = $form_state['values']['Matrix'];
-  switch ($matrix) {
-   case 'PAM30':
-     $gapKey = $form_state['values']['gapCost'];
-     switch ($gapKey) {
-      case 0:
-         $gapOpen = 7;
-         $gapExtend = 2;
-         break;
-      case 1:
-         $gapOpen = 6;
-         $gapExtend = 2;
-         break;
-      case 2:
-         $gapOpen = 5;
-         $gapExtend = 2;
-         break;
-      case 3:
-         $gapOpen = 10;
-         $gapExtend = 1;
-         break;
-      case 4:
-         $gapOpen = 9;
-         $gapExtend = 1;
-         break;
-      case 5:
-         $gapOpen = 8;
-         $gapExtend = 1;
-         break;
-     }
-     break;
-   case 'PAM70':
-     $gapKey = $form_state['values']['gapCost'];
-     switch ($gapKey) {
-      case 0:
-         $gapOpen = 8;
-         $gapExtend = 2;
-         break;
-      case 1:
-         $gapOpen = 7;
-         $gapExtend = 2;
-         break;
-      case 2:
-         $gapOpen = 6;
-         $gapExtend = 2;
-         break;
-      case 3:
-         $gapOpen = 11;
-         $gapExtend = 1;
-         break;
-      case 4:
-         $gapOpen = 10;
-         $gapExtend = 1;
-         break;
-      case 5:
-         $gapOpen = 9;
-         $gapExtend = 1;
-         break;
-     }
-     break;
-   case 'PAM250':
-     $gapKey = $form_state['values']['gapCost'];
-     switch ($gapKey) {
-      case 0:
-         $gapOpen = 15;
-         $gapExtend = 3;
-         break;
-      case 1:
-         $gapOpen = 14;
-         $gapExtend = 3;
-         break;
-      case 2:
-         $gapOpen = 13;
-         $gapExtend = 3;
-         break;
-      case 3:
-         $gapOpen = 12;
-         $gapExtend = 3;
-         break;
-      case 4:
-         $gapOpen = 11;
-         $gapExtend = 3;
-         break;
-      case 5:
-         $gapOpen = 17;
-         $gapExtend = 2;
-         break;
-      case 6:
-         $gapOpen = 16;
-         $gapExtend = 2;
-         break;
-      case 7:
-         $gapOpen = 15;
-         $gapExtend = 2;
-         break;
-      case 8:
-         $gapOpen = 14;
-         $gapExtend = 2;
-         break;
-      case 9:
-         $gapOpen = 13;
-         $gapExtend = 2;
-         break;
-      case 10:
-         $gapOpen = 21;
-         $gapExtend = 1;
-         break;
-      case 11:
-         $gapOpen = 20;
-         $gapExtend = 1;
-         break;
-      case 12:
-         $gapOpen = 19;
-         $gapExtend = 1;
-         break;
-      case 13:
-         $gapOpen = 18;
-         $gapExtend = 1;
-         break;
-      case 14:
-         $gapOpen = 17;
-         $gapExtend = 1;
-         break;
-     }
-     break;
-   case 'BLOSUM80':
-     $gapKey = $form_state['values']['gapCost'];
-     switch ($gapKey) {
-      case 0:
-         $gapOpen = 8;
-         $gapExtend = 2;
-         break;
-      case 1:
-         $gapOpen = 7;
-         $gapExtend = 2;
-         break;
-      case 2:
-         $gapOpen = 6;
-         $gapExtend = 2;
-         break;
-      case 3:
-         $gapOpen = 11;
-         $gapExtend = 1;
-         break;
-      case 4:
-         $gapOpen = 10;
-         $gapExtend = 1;
-         break;
-      case 5:
-         $gapOpen = 9;
-         $gapExtend = 1;
-         break;
-     }
-      break;
-   case 'BLOSUM62':
-     $gapKey = $form_state['values']['gapCost'];
-     switch ($gapKey) {
-      case 0:
-         $gapOpen = 11;
-         $gapExtend = 2;
-         break;
-      case 1:
-         $gapOpen = 10;
-         $gapExtend = 2;
-         break;
-      case 2:
-         $gapOpen = 9;
-         $gapExtend = 2;
-         break;
-      case 3:
-         $gapOpen = 8;
-         $gapExtend = 2;
-         break;
-      case 4:
-         $gapOpen = 7;
-         $gapExtend = 2;
-         break;
-      case 5:
-         $gapOpen = 6;
-         $gapExtend = 2;
-         break;
-      case 6:
-         $gapOpen = 13;
-         $gapExtend = 1;
-         break;
-      case 7:
-         $gapOpen = 12;
-         $gapExtend = 1;
-         break;
-      case 8:
-         $gapOpen = 11;
-         $gapExtend = 1;
-         break;
-      case 9:
-         $gapOpen = 10;
-         $gapExtend = 1;
-         break;
-      case 10:
-         $gapOpen = 9;
-         $gapExtend = 1;
-         break;
-     }
-      break;
-   case 'BLOSUM45':
-     $gapKey = $form_state['values']['gapCost'];
-     switch ($gapKey) {
-      case 0:
-         $gapOpen = 13;
-         $gapExtend = 3;
-         break;
-      case 1:
-         $gapOpen = 12;
-         $gapExtend = 3;
-         break;
-      case 2:
-         $gapOpen = 11;
-         $gapExtend = 3;
-         break;
-      case 3:
-         $gapOpen = 10;
-         $gapExtend = 3;
-         break;
-      case 4:
-         $gapOpen = 15;
-         $gapExtend = 2;
-         break;
-      case 5:
-         $gapOpen = 14;
-         $gapExtend = 2;
-         break;
-      case 6:
-         $gapOpen = 13;
-         $gapExtend = 2;
-         break;
-      case 7:
-         $gapOpen = 12;
-         $gapExtend = 2;
-         break;
-      case 8:
-         $gapOpen = 19;
-         $gapExtend = 1;
-         break;
-      case 9:
-         $gapOpen = 18;
-         $gapExtend = 1;
-         break;
-      case 10:
-         $gapOpen = 17;
-         $gapExtend = 1;
-         break;
-      case 11:
-         $gapOpen = 16;
-         $gapExtend = 1;
-         break;
-     }
-     break;
-   case 'BLOSUM50':
-     $gapKey = $form_state['values']['gapCost'];
-     switch ($gapKey) {
-      case 0:
-         $gapOpen = 13;
-         $gapExtend = 3;
-         break;
-      case 1:
-         $gapOpen = 12;
-         $gapExtend = 3;
-         break;
-      case 2:
-         $gapOpen = 11;
-         $gapExtend = 3;
-         break;
-      case 3:
-         $gapOpen = 10;
-         $gapExtend = 3;
-         break;
-      case 4:
-         $gapOpen = 9;
-         $gapExtend = 3;
-         break;
-      case 5:
-         $gapOpen = 16;
-         $gapExtend = 2;
-         break;
-      case 6:
-         $gapOpen = 15;
-         $gapExtend = 2;
-         break;
-      case 7:
-         $gapOpen = 14;
-         $gapExtend = 2;
-         break;
-      case 8:
-         $gapOpen = 13;
-         $gapExtend = 2;
-         break;
-      case 9:
-         $gapOpen = 12;
-         $gapExtend = 2;
-         break;
-      case 10:
-         $gapOpen = 19;
-         $gapExtend = 1;
-         break;
-      case 11:
-         $gapOpen = 18;
-         $gapExtend = 1;
-         break;
-      case 12:
-         $gapOpen = 17;
-         $gapExtend = 1;
-         break;
-      case 13:
-         $gapOpen = 16;
-         $gapExtend = 1;
-         break;
-      case 14:
-         $gapOpen = 15;
-         $gapExtend = 1;
-         break;
-     }
-     break;
-   case 'BLOSUM90':
-     $gapKey = $form_state['values']['gapCost'];
-     switch ($gapKey) {
-      case 0:
-         $gapOpen = 9;
-         $gapExtend = 2;
-         break;
-      case 1:
-         $gapOpen = 8;
-         $gapExtend = 2;
-         break;
-      case 2:
-         $gapOpen = 7;
-         $gapExtend = 2;
-         break;
-      case 3:
-         $gapOpen = 6;
-         $gapExtend = 2;
-         break;
-      case 4:
-         $gapOpen = 11;
-         $gapExtend = 1;
-         break;
-      case 5:
-         $gapOpen = 10;
-         $gapExtend = 1;
-         break;
-      case 6:
-         $gapOpen = 9;
-         $gapExtend = 1;
-         break;
-     }
-     break;
-  }
+  $gapKey = $form_state['values']['gapCost'];
+  $gap    = getGap($matrix, $gapKey);
 
 //eksc- need to implement query range limit
 //  q_range
@@ -1049,7 +698,7 @@ function blast_ui_tblastn_advanced_options_form(&$form, $form_state) {
     '#default_value' => $defaults['evalue'],
     '#size' => 12,
     '#maxlength' => 20,
-    '#description' => t('Expected number of chance matches in a random model. This number should be give in a decimal format. <a href="http://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml#expect" target="_blank">More Information</a> | <a href="https://www.youtube.com/watch?v=nO0wJgZRZJs" target="_blank">Expect value vedio tutorial</a>'),
+    '#description' => t('Expected number of chance matches in a random model. This number should be give in a decimal format. <a href="https://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml#expect" target="_blank">More Information</a> | <a href="https://www.youtube.com/watch?v=nO0wJgZRZJs" target="_blank">Expect value vedio tutorial</a>'),
   );
 
 /*eksc- need to learn how this is implemented for tblastn
@@ -1297,10 +946,369 @@ function _get_match_mismatch($which) {
   }//switch
 }
 
+/** 
+ * Get gap values based on matrix and selected gap "key"
+ */
+function getGap($matrix, $gapkey) {
+   switch ($matrix) {
+      case 'PAM30':
+         switch ($gapKey) {
+            case 0:
+               $gapOpen   = 7;
+               $gapExtend = 2;
+               break;
+            case 1:
+               $gapOpen   = 6;
+               $gapExtend = 2;
+               break;
+            case 2:
+               $gapOpen   = 5;
+               $gapExtend = 2;
+               break;
+            case 3:
+               $gapOpen   = 10;
+               $gapExtend = 1;
+               break;
+            case 4:
+               $gapOpen   = 9;
+               $gapExtend = 1;
+               break;
+            case 5:
+               $gapOpen   = 8;
+               $gapExtend = 1;
+               break;
+         }
+         break;
+      case 'PAM70':
+         switch ($gapKey) {
+            case 0:
+               $gapOpen   = 8;
+               $gapExtend = 2;
+               break;
+            case 1:
+               $gapOpen   = 7;
+               $gapExtend = 2;
+               break;
+            case 2:
+               $gapOpen   = 6;
+               $gapExtend = 2;
+               break;
+            case 3:
+               $gapOpen   = 11;
+               $gapExtend = 1;
+               break;
+            case 4:
+               $gapOpen   = 10;
+               $gapExtend = 1;
+               break;
+            case 5:
+               $gapOpen   = 9;
+               $gapExtend = 1;
+               break;
+         }
+         break;
+      case 'PAM250':
+         switch ($gapKey) {
+            case 0:
+               $gapOpen   = 15;
+               $gapExtend = 3;
+               break;
+            case 1:
+               $gapOpen   = 14;
+               $gapExtend = 3;
+               break;
+            case 2:
+               $gapOpen   = 13;
+               $gapExtend = 3;
+               break;
+            case 3:
+               $gapOpen   = 12;
+               $gapExtend = 3;
+               break;
+            case 4:
+               $gapOpen   = 11;
+               $gapExtend = 3;
+               break;
+            case 5:
+               $gapOpen   = 17;
+               $gapExtend = 2;
+               break;
+            case 6:
+               $gapOpen   = 16;
+               $gapExtend = 2;
+               break;
+            case 7:
+               $gapOpen   = 15;
+               $gapExtend = 2;
+               break;
+            case 8:
+               $gapOpen   = 14;
+               $gapExtend = 2;
+               break;
+            case 9:
+               $gapOpen   = 13;
+               $gapExtend = 2;
+               break;
+            case 10:
+               $gapOpen   = 21;
+               $gapExtend = 1;
+               break;
+            case 11:
+               $gapOpen   = 20;
+               $gapExtend = 1;
+               break;
+            case 12:
+               $gapOpen   = 19;
+               $gapExtend = 1;
+               break;
+            case 13:
+               $gapOpen   = 18;
+               $gapExtend = 1;
+               break;
+            case 14:
+               $gapOpen   = 17;
+               $gapExtend = 1;
+               break;
+         }
+         break;
+      case 'BLOSUM80':
+         switch ($gapKey) {
+            case 0:
+               $gapOpen   = 8;
+               $gapExtend = 2;
+               break;
+            case 1:
+               $gapOpen   = 7;
+               $gapExtend = 2;
+               break;
+            case 2:
+               $gapOpen   = 6;
+               $gapExtend = 2;
+               break;
+            case 3:
+               $gapOpen   = 11;
+               $gapExtend = 1;
+               break;
+            case 4:
+               $gapOpen   = 10;
+               $gapExtend = 1;
+               break;
+            case 5:
+               $gapOpen   = 9;
+               $gapExtend = 1;
+               break;
+         }
+         break;
+      case 'BLOSUM62':
+         switch ($gapKey) {
+            case 0:
+               $gapOpen   = 11;
+               $gapExtend = 2;
+               break;
+            case 1:
+               $gapOpen   = 10;
+               $gapExtend = 2;
+               break;
+            case 2:
+               $gapOpen   = 9;
+               $gapExtend = 2;
+               break;
+            case 3:
+               $gapOpen   = 8;
+               $gapExtend = 2;
+               break;
+            case 4:
+               $gapOpen   = 7;
+               $gapExtend = 2;
+               break;
+            case 5:
+               $gapOpen   = 6;
+               $gapExtend = 2;
+               break;
+            case 6:
+               $gapOpen   = 13;
+               $gapExtend = 1;
+               break;
+            case 7:
+               $gapOpen   = 12;
+               $gapExtend = 1;
+               break;
+            case 8:
+               $gapOpen   = 11;
+               $gapExtend = 1;
+               break;
+            case 9:
+               $gapOpen   = 10;
+               $gapExtend = 1;
+               break;
+            case 10:
+               $gapOpen   = 9;
+               $gapExtend = 1;
+               break;
+         }
+         break;
+      case 'BLOSUM45':
+         switch ($gapKey) {
+            case 0:
+               $gapOpen   = 13;
+               $gapExtend = 3;
+               break;
+            case 1:
+               $gapOpen   = 12;
+               $gapExtend = 3;
+               break;
+            case 2:
+               $gapOpen   = 11;
+               $gapExtend = 3;
+               break;
+            case 3:
+               $gapOpen   = 10;
+               $gapExtend = 3;
+               break;
+            case 4:
+               $gapOpen   = 15;
+               $gapExtend = 2;
+               break;
+            case 5:
+               $gapOpen   = 14;
+               $gapExtend = 2;
+               break;
+            case 6:
+               $gapOpen   = 13;
+               $gapExtend = 2;
+               break;
+            case 7:
+               $gapOpen   = 12;
+               $gapExtend = 2;
+               break;
+            case 8:
+               $gapOpen   = 19;
+               $gapExtend = 1;
+               break;
+            case 9:
+               $gapOpen   = 18;
+               $gapExtend = 1;
+               break;
+            case 10:
+               $gapOpen   = 17;
+               $gapExtend = 1;
+               break;
+            case 11:
+               $gapOpen   = 16;
+               $gapExtend = 1;
+               break;
+         }
+         break;
+      case 'BLOSUM50':
+         switch ($gapKey) {
+            case 0:
+               $gapOpen   = 13;
+               $gapExtend = 3;
+               break;
+            case 1:
+               $gapOpen   = 12;
+               $gapExtend = 3;
+               break;
+            case 2:
+               $gapOpen   = 11;
+               $gapExtend = 3;
+               break;
+            case 3:
+               $gapOpen   = 10;
+               $gapExtend = 3;
+               break;
+            case 4:
+               $gapOpen   = 9;
+               $gapExtend = 3;
+               break;
+            case 5:
+               $gapOpen   = 16;
+               $gapExtend = 2;
+               break;
+            case 6:
+               $gapOpen   = 15;
+               $gapExtend = 2;
+               break;
+            case 7:
+               $gapOpen   = 14;
+               $gapExtend = 2;
+               break;
+            case 8:
+               $gapOpen   = 13;
+               $gapExtend = 2;
+               break;
+            case 9:
+               $gapOpen   = 12;
+               $gapExtend = 2;
+               break;
+            case 10:
+               $gapOpen   = 19;
+               $gapExtend = 1;
+               break;
+            case 11:
+               $gapOpen   = 18;
+               $gapExtend = 1;
+               break;
+            case 12:
+               $gapOpen   = 17;
+               $gapExtend = 1;
+               break;
+            case 13:
+               $gapOpen   = 16;
+               $gapExtend = 1;
+               break;
+            case 14:
+               $gapOpen   = 15;
+               $gapExtend = 1;
+               break;
+         }
+         break;
+      case 'BLOSUM90':
+         switch ($gapKey) {
+            case 0:
+               $gapOpen   = 9;
+               $gapExtend = 2;
+               break;
+            case 1:
+               $gapOpen   = 8;
+               $gapExtend = 2;
+               break;
+            case 2:
+               $gapOpen   = 7;
+               $gapExtend = 2;
+               break;
+            case 3:
+               $gapOpen   = 6;
+               $gapExtend = 2;
+               break;
+            case 4:
+               $gapOpen   = 11;
+               $gapExtend = 1;
+               break;
+            case 5:
+               $gapOpen   = 10;
+               $gapExtend = 1;
+               break;
+            case 6:
+               $gapOpen   = 9;
+               $gapExtend = 1;
+               break;
+         }
+         break;
+         
+   }
+   
+   return array(
+       'gapOpen' => $gapOpen,
+      'gapExtend' => $gapExtend 
+   );
+ }
+
+
 /**
  * Get a list of options for gaps.
  */
-function _get_gap($which) {
+function _get_gap_options($which) {
   switch ($which) {
     case 'blastn':
       return array(
