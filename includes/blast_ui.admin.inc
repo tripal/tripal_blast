@@ -46,6 +46,8 @@ function blast_ui_admin_form($form, $form_state) {
 
   $form['file_upload'] = array(
     '#type' => 'fieldset',
+    '#collapsible' => true,
+    '#collapsed' => true,
     '#title' => 'Allow File Upload',
     '#description' => 'The following options allow you to control whether your users can
       upload files for the query or target respectively. The ability to upload files allows
@@ -55,8 +57,6 @@ function blast_ui_admin_form($form, $form_state) {
 
   $form['file_upload']['query_upload'] = array(
     '#type' => 'checkbox',
-    '#collapsible' => true,
-    '#collapsed' => true,
     '#title' => 'Enable Query Sequence Upload',
     '#description' => 'When checked, a query file upload field will be available on BLAST request forms.',
     '#default_value' => FALSE,
