@@ -84,8 +84,8 @@ function get_blast_database_options($type) {
     }
   }
 
+  // Sort alphabetically
   asort($options);
-  $options[0] = 'Select a Dataset';
 
   return $options;
 }
@@ -185,7 +185,8 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
   // Strip the extension off the BLAST target
   $database = preg_replace("/(.*)\.[pn]\w\w$/", '$1', $database);
 
-  // The Blast executeable.
+
+  // The BLAST executeable.
   $program = $blast_path . $program;
   if (!file_exists($program)) {
     tripal_report_error(
@@ -790,7 +791,7 @@ function convert_tsv2gff3($blast_tsv,$blast_gff){
       $hsp=0;
     }
   
-   // every line is a new hsp
+    // every line is a new hsp
     $hsp++;
   
     // determine query strand to use in match_part line, no need to store, just print
