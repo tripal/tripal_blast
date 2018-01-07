@@ -51,7 +51,7 @@ function blast_ui_blastn_advanced_options_form(&$form, $form_state) {
     '#description' => t('Select the maximum number of unique target sequences per query sequence to show results for.'),
   );
 
-/*eksc- remove until we learn how this is implemented by NCBI
+/*eksc: remove until we learn how this is implemented by NCBI
   $form['ALG']['GParam']['shortQueries'] = array(
     '#type' => 'checkbox',
     '#title' => t('Automatically adjust parameters for short input sequences'),
@@ -76,6 +76,8 @@ function blast_ui_blastn_advanced_options_form(&$form, $form_state) {
     '#description' => t('The length of the seed that initiates an alignment'),
   );
 
+/*eksc: remove this as it is either the same as max_target_seqs, or miss-implemented
+       as culling_limit, which is something else entirely
   $form['ALG']['GParam']['qRange'] = array(
     '#type' => 'textfield',
     '#title' => t('Max matches in a query range'),
@@ -84,7 +86,7 @@ function blast_ui_blastn_advanced_options_form(&$form, $form_state) {
     '#maxlength' => 20,
     '#description' => t('Limit the number of matches to a query range. This option is useful if many strong matches to one part of a query may prevent BLAST from presenting weaker matches to another part of the query.'),
   );
-
+*/
   // Scoring parameters
   //.........................
 
@@ -127,12 +129,13 @@ function blast_ui_blastn_advanced_options_form_validate($form, $form_state) {
     form_set_error('eVal', 'The e-value should be a very small number (scientific notation is supported). For example, <em>0.001</em> or, even better, <em>1e-10</em>.');
   }
 
+/*eksc: removed until/unless it can be properly implemented
   // Next textfield up, "Max matches in a query range" which is also expected
   // to be a positive number.
   if (!is_numeric($form_state['values']['qRange'])) {
     form_set_error('qRange', 'The "Max matches in a query range" should be a positive integer.');
   }
-
+*/
 }
 
 /**
@@ -260,6 +263,8 @@ function blast_ui_blastx_advanced_options_form(&$form, $form_state) {
     ),
   );
 
+/*eksc: removed as this is either equivalent to max_target_sequences or mis-implemented
+       as culling_limit
   $form['ALG']['GParam']['qRange'] = array(
     '#type' => 'textfield',
     '#title' => t('Max matches in a query range'),
@@ -268,8 +273,9 @@ function blast_ui_blastx_advanced_options_form(&$form, $form_state) {
     '#maxlength' => 20,
     '#description' => t('Limit the number of matches to a query range. This option is useful if many strong matches to one part of a query may prevent BLAST from presenting weaker matches to another part of the query.'),
   );
+*/
 
-/*eksc- NOT match/mismatch but instead computational adjustments;
+/*eksc: NOT match/mismatch but instead computational adjustments;
         need to learn how there are implemented for blastx
   $form['ALG']['SParam']['M&MScores'] = array(
     '#type' => 'select',
@@ -302,12 +308,13 @@ function blast_ui_blastx_advanced_options_form_validate($form, $form_state) {
     form_set_error('eVal', 'The e-value should be a very small number (scientific notation is supported). For example, <em>0.001</em> or, even better, <em>1e-10</em>.');
   }
 
+/*eksc: removed until/unless we know how to properly implement
   // Next textfield up, "Max matches in a query range" which is also expected
   // to be a positive number.
   if (!is_numeric($form_state['values']['qRange'])) {
     form_set_error('qRange', 'The "Max matches in a query range" should be a positive integer.');
   }
-
+*/
 }
 
 /**
@@ -367,7 +374,7 @@ function blast_ui_blastp_advanced_options_form(&$form, $form_state) {
     '#description' => t('Select the maximum number of aligned sequences to display'),
   );
 
-/*eksc- remove until we learn how this is implemented
+/*eksc: remove until we learn how this is implemented
   $form['ALG']['GParam']['shortQueries'] = array(
    '#type' => 'checkbox',
    '#title' => t('Automatically adjust parameters for short input sequences'),
@@ -392,6 +399,8 @@ function blast_ui_blastp_advanced_options_form(&$form, $form_state) {
     '#description' => t('The length of the seed that initiates an alignment'),
   );
 
+/*eksc: remove this as it is either the same as max_target_seqs, or miss-implemented
+       as culling_limit, which is something else entirely
   $form['ALG']['GParam']['qRange'] = array(
     '#type' => 'textfield',
     '#title' => t('Max matches in a query range'),
@@ -400,7 +409,7 @@ function blast_ui_blastp_advanced_options_form(&$form, $form_state) {
     '#maxlength' => 20,
     '#description' => t('Limit the number of matches to a query range. This option is useful if many strong matches to one part of a query may prevent BLAST from presenting weaker matches to another part of the query.'),
   );
-
+*/
   // Scoring parameters
 
   $form['ALG']['SParam'] = array(
@@ -422,7 +431,7 @@ function blast_ui_blastp_advanced_options_form(&$form, $form_state) {
     ),
   );
 
-/*eksc- probably not used for blastp
+/*eksc: probably not used for blastp
   $form['ALG']['SParam']['gapCost'] = array(
     '#type' => 'select',
     '#title' => t('Gap Costs:'),
@@ -434,7 +443,7 @@ function blast_ui_blastp_advanced_options_form(&$form, $form_state) {
   );
 */
 
-/*eksc- NOT match/mismatch but instead computational adjustments;
+/*eksc: NOT match/mismatch but instead computational adjustments;
         need to learn how there are implemented for blastp
   $form['ALG']['SParam']['M&MScores'] = array(
     '#type' => 'select',
@@ -467,11 +476,13 @@ function blast_ui_blastp_advanced_options_form_validate($form, $form_state) {
     form_set_error('eVal', 'The e-value should be a very small number (scientific notation is supported). For example, <em>0.001</em> or, even better, <em>1e-10</em>.');
   }
 
+/*eksc: remove until/unless we know how to correctly implement it
   // Next textfield up, "Max matches in a query range" which is also expected
   // to be a positive number.
   if (!is_numeric($form_state['values']['qRange'])) {
     form_set_error('qRange', 'The "Max matches in a query range" should be a positive integer.');
   }
+*/
 }
 
 /**
@@ -701,7 +712,7 @@ function blast_ui_tblastn_advanced_options_form(&$form, $form_state) {
     '#description' => t('Expected number of chance matches in a random model. This number should be give in a decimal format. <a href="https://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml#expect" target="_blank">More Information</a> | <a href="https://www.youtube.com/watch?v=nO0wJgZRZJs" target="_blank">Expect value vedio tutorial</a>'),
   );
 
-/*eksc- need to learn how this is implemented for tblastn
+/*eksc: need to learn how this is implemented for tblastn
   $form['ALG']['GParam']['shortQueries'] = array(
     '#type' => 'checkbox',
     '#title' => t('Automatically adjust parameters for short input sequences'),
@@ -749,6 +760,8 @@ function blast_ui_tblastn_advanced_options_form(&$form, $form_state) {
     '#description' => t('Cost to create and extend a gap in an alignment.'),
   );
 
+/*eksc: remove this as it is either the same as max_target_seqs, or miss-implemented
+       as culling_limit, which is something else entirely
   $form['ALG']['GParam']['qRange'] = array(
     '#type' => 'textfield',
     '#title' => t('Max matches in a query range'),
@@ -757,6 +770,7 @@ function blast_ui_tblastn_advanced_options_form(&$form, $form_state) {
     '#maxlength' => 20,
     '#description' => t('Limit the number of matches to a query range. This option is useful if many strong matches to one part of a query may prevent BLAST from presenting weaker matches to another part of the query.'),
   );
+*/
 }
 
 /**
@@ -775,11 +789,13 @@ function blast_ui_tblastn_advanced_options_form_validate($form, $form_state) {
     form_set_error('eVal', 'The e-value should be a very small number (scientific notation is supported). For example, <em>0.001</em> or, even better, <em>1e-10</em>.');
   }
 
+/*eksc: remove until/unless we know how to correctly implement it
   // Next textfield up, "Max matches in a query range" which is also expected
   // to be a positive number.
   if (!is_numeric($form_state['values']['qRange'])) {
     form_set_error('qRange', 'The "Max matches in a query range" should be a positive integer.');
   }
+*/
 }
 
 /**
@@ -800,7 +816,7 @@ function blast_ui_tblastn_advanced_options_form_submit($form, $form_state) {
 function _get_default_values($options) {
   // restore previous values or set to default
   $max_target = (isset($options['max_target_seqs']))
-            ? $options['max_target_seqs'] : 0;
+            ? $options['max_target_seqs'] : 500;
   $short_queries = (isset($options['shortQueries']))
             ? $options['shortQueries'] : true;
   $evalue = (isset($options['evalue']))
@@ -808,7 +824,7 @@ function _get_default_values($options) {
   $word_size = (isset($options['word_size']))
             ? $options['word_size'] : 11;
   $qRange = (isset($options['culling_limit']))
-            ? $options['culling_limit'] : variable_get('qRange',0);
+            ? $options['culling_limit'] : variable_get('qRange', 0);
 
   $matchmiss = 0;
   $reward = (isset($options['reward']))
