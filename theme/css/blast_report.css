@@ -68,3 +68,20 @@ table#blast_report div.alignment-row{
 table#blast_report div.alignment-subrow{
   padding-bottom: 15px;
 }
+
+/* CViTjs support */
+.blast-top:after {
+   clear: both;
+   display: table;
+   content: "";
+}
+.blast-job-info {
+  float: left;
+}
+.cvitjs {
+  float: left;
+}
+.report-table {
+  clear: both;
+  position: static;
+}

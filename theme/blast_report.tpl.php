@@ -86,10 +86,41 @@ $no_hits = TRUE;
       </div>
     </div>
 
-    <br />
-    <div class="num-results">
-      <strong>Number of Results</strong>: <?php print $num_results; ?>
-    </div>
+    <?php
+      if (isset($blast_job->blastdb->cvitjs_enabled)
+            && $blast_job->blastdb->cvitjs_enabled == '1') {
+        $cvitjs_location = variable_get('blast_ui_cvitjs_location', '');
+    ?>
+      <!-- CViTjs image of BLAST hits, if enabled -->
+      <div class="cvitjs">
+        <div id="title-div"></div>
+        <div id="cvit-div"></div>
+      </div>
+      <?php
+        drupal_add_js(array(
+          'blast_ui'=> array(
+            'dataset' => $blast_job->blastdb->db_name)
+          ),
+          'setting'
+        );
+        drupal_add_js(array(
+          'blast_ui'=> array(
+            'gff' => '../../' . $blast_job->files->result->gff)),'setting'
+        );    
+        $base = drupal_get_path('module','blast_ui') 
+                . DIRECTORY_SEPARATOR . $cvitjs_location
+                . DIRECTORY_SEPARATOR . 'js'
+                . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR;
+echo "Base path for CViTjs is [$base]<br>";
+        drupal_add_css($base.'bootstrap/css/bootstrap.min.css',array('preprocess'=>FALSE));
+        drupal_add_css($base.'hopscotch/css/hopscotch.min.css',array('preprocess'=>FALSE));
+        drupal_add_css($base.'../../css/cvit.css',array('preprocess'=> FALSE));
+        drupal_add_js($base.'require/require.js',array('group'=>'JS_LIBRARY','type'=>'file'));
+        drupal_add_js($base.'require/blast_ui-config.js',array('group'=>'JS_THEME'));
+      ?>
+    <?php  
+      }
+    ?>
 
   </div>
   <br />

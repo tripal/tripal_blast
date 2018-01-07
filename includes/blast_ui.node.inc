@@ -233,6 +233,38 @@ function blastdb_form($node, &$form_state) {
     );
   }
     
+  // CViTjs settings, if enabled
+  if (variable_get('blast_ui_cvitjs_enabled', false)) {
+    $form['cvitjs'] = array(
+      '#type' => 'fieldset',
+      '#title' => 'Whole Genome Visualization',
+      '#description' => 'Settings for the display of BLAST hits on an entire genome assembly using CViTjs.',
+      '#prefix' => '<div id="cvitjs-settings">',
+      '#suffix' => '</div>',
+    );
+    
+    $form['cvitjs']['cvitjs_enabled'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Show BLAST hits on the genome in the results page.'),
+      '#description' => t('Uses CViTjs to display BLAST hits on the entire genome'),
+      '#default_value' => (isset($node->cvitjs_enabled)) ? $node->cvitjs_enabled : false,
+      '#ajax' => array(
+        'callback' => 'ajax_blast_ui_node_cvitjs_custom_callback',
+        'wrapper' => 'cvitjs-settings',
+      )
+    );
+
+    if (isset($form_state['values'])) {
+      $cvitjs_enabled = $form_state['values']['cvitjs_enabled'];
+    }
+    else if (isset($node->cvitjs_enabled))  {
+      $cvitjs_enabled = $node->cvitjs_enabled;
+    }
+    else {
+      $cvitjs_enabled = false;
+    }
+  }
+  
   return $form;
 }
 
@@ -303,6 +335,7 @@ function blastdb_insert($node) {
     'dbxref_id_regex'     => $regex,
     'dbxref_db_id'        => $db_id,
     'dbxref_linkout_type' => $node->dbxref_linkout_type,
+    'cvitjs_enabled'      => $node->cvitjs_enabled,
   ))->execute();
 }
 
@@ -349,6 +382,7 @@ function blastdb_update($node) {
     'dbxref_id_regex'     => $regex,
     'dbxref_db_id'        => $db_id,
     'dbxref_linkout_type' => $node->dbxref_linkout_type,
+    'cvitjs_enabled'      => $node->cvitjs_enabled,
   ))->condition('nid', $node->nid)->execute();
 }
 
@@ -376,7 +410,7 @@ function blastdb_load($nodes) {
 
   $sql = "
     SELECT nid, name, path, dbtype, dbxref_id_regex, dbxref_db_id, 
-           dbxref_linkout_type
+           dbxref_linkout_type, cvitjs_enabled
     FROM {blastdb} 
     WHERE nid IN (:nids)";
   $result = db_query($sql, array(':nids' => array_keys($nodes)));
@@ -388,6 +422,9 @@ function blastdb_load($nodes) {
     $nodes[$record->nid]->db_path = $record->path;
     $nodes[$record->nid]->title = $record->name;
     $nodes[$record->nid]->db_dbtype = $record->dbtype;
+
+    // CViTjs status
+    $nodes[$record->nid]->cvitjs_enabled  = $record->cvitjs_enabled;
 
     // Determine the type of link-out chosen.
     $types = module_invoke_all('blast_linkout_info');
@@ -419,7 +456,7 @@ function blastdb_load($nodes) {
       }
     }
 
-    // finally add information related to link-outs to the node.
+    // Add information related to link-outs to the node.
     if ($add_linkout) {
       $nodes[$record->nid]->linkout = new stdClass();
 
@@ -474,4 +511,15 @@ function blastdb_load($nodes) {
  */
 function ajax_blast_ui_node_linkout_custom_callback($form, $form_state) {
   return $form['dbxref'];
+}
+
+/**
+ * AJAX Callback: Update Node CViTjs fields.
+ *
+ * On BlastDB node form, if CViTjs is enabled, a number of additional settings are 
+ * required. This callback refreshes the CViTjs settings fields so the additional 
+ * fields are displayed if CViTjs is enable, hidden otherwise.
+ */
+function ajax_blast_ui_node_cvitjs_custom_callback($form, $form_state) {
+  return $form['cvitjs'];
 }

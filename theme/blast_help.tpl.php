@@ -16,7 +16,8 @@
 <p>This module provides a basic interface to allow your users to utilize your server's NCBI BLAST+.</p>
 
 <p>
-  <a href="#setup">Setup</a> | <a href="#function">Functionality</a>
+  <a href="#setup">Setup</a> | <a href="#function">Functionality</a> 
+  | <a href="#protection">Large jobs | <a href="#genomeview">Genome visualization</a>
 </p>
 
 <a name="setup"></a>
@@ -89,6 +90,8 @@
   </li>
 </ul>
 
+<a name="protection"</a></a>
+&mdash;
 <h3><b>Protection Against Large Jobs</b></h3>
 Depending on the size and nature of your target databases, you may wish to constrain use 
 of this module.
@@ -105,3 +108,55 @@ of this module.
   </li>
 </ol>
 
+<a name="genomeview"></a>
+&mdash;
+<h3><b>Whole Genome Visualization</b></h3>
+This module can be configured to use 
+<a href="https://github.com/LegumeFederation/cvitjs">CViTjs</a> to display BLAST hits on 
+a genome image. To configure this module to use CViTjs:
+<ol>
+  <li>
+    <a href="https://github.com/LegumeFederation/cvitjs">Download CViTjs</a> and copy
+    the code to your webserver. It might make the most sense to put the code directly into
+    this module's directory, in a subdirectory named <b>js</b>.
+  </li>
+  <li>
+    Enable CViTjs from the BLAST module administration page and provide the path to the
+    root directory for the CViTjs code relative to this module. For example, <b>js/cvitjs</b>.
+  </li>
+  <li>
+    CViTjs will have a config file in its root directory named cvit.conf. This file 
+    provides information for whole genome visualization for each genome BLAST target.
+    <b>Make sure the config file can be edited by your web server.</b>
+  </li>
+  <li>
+    Edit the configuration file to define each genome target. These will look like:
+    <pre>
+[data.Cajanus cajan - genome]
+conf = data/cajca/cajca.conf
+defaultData = data/cajca/cajca.gff</pre>
+    Where:<br>
+    &mdash;the section name, "data.Cajanus cajan - genome", consists of "data." followed
+    by the name of the BLAST target node,<br>
+    &mdash;the file "cajca.conf" is a cvit configuration file which describes how to draw the 
+    chromosomes and BLAST hits on the <i>Cajanus cajan</i> genome,<br>
+    &mdash;and the file "cajca.gff" is a GFF3 file that describes the <i>Cajanus cajan</i> 
+    chromosomes.<br>
+    You will have to put the target-specific conf and gff files (e.g. cajca.conf and 
+    cjca.gff) on your web server, in the directory, <b>js/cvitjs/data</b>. You may choose
+    to group files for each genome into subdirectories, for example, 
+    <b>js/cvitjs/data/cajca</b>.
+    <br><br>
+    At the top of the configuration file there must be a [general] section that defines
+    the default data set. For example:
+    <pre>
+[general]
+data_default = data.Cajanus cajan - genome</pre>
+  </li>
+  <li>
+    Edit the nodes for each genome target (nodes of type "Blast Database") and enable whole 
+    genome visualization. Remember that the names listed in the CViTjs config file must 
+    match the BLAST node name. In the example above, the BLAST database node for the
+    <i>Cajanus cajan</i> genome assembly is named "Cajanus cajan - genome"
+  </li>
+</ol>
