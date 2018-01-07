@@ -169,7 +169,6 @@ function blast_ui_blastn_advanced_options_form_submit($form, $form_state) {
     'gapextend'       => $gap['gapExtend'],
     'penalty'         => $m_m['penalty'],
     'reward'          => $m_m['reward'],
-    'culling_limit'   => $qRange,
   );
 }
 
@@ -515,9 +514,8 @@ function blast_ui_blastp_advanced_options_form_submit($form, $form_state) {
     'max_target_seqs' => $numAlign,
     'evalue'          => $eVal,
     'word_size'       => $wordSize,
-    'gapopen'         => $gapOpen,
-    'gapextend'       => $gapExtend,
-    'culling_limit'   => $qRange,
+    'gapopen'         => $gap['gapOpen'],
+    'gapextend'       => $gap['gapExtend'],
     'matrix'          => $matrix,
   );
 }//blast_ui_blastp_advanced_options_form_submit
@@ -823,8 +821,6 @@ function _get_default_values($options) {
             ? $options['evalue'] : variable_get('eVal', 0.001);
   $word_size = (isset($options['word_size']))
             ? $options['word_size'] : 11;
-  $qRange = (isset($options['culling_limit']))
-            ? $options['culling_limit'] : variable_get('qRange', 0);
 
   $matchmiss = 0;
   $reward = (isset($options['reward']))
@@ -869,9 +865,6 @@ function _get_default_values($options) {
       case 1: $gap = 6;
     }
   }
-
-// eksc- need to implement query range limit
-//  $q_range = 0;
 
   $matrix = (isset($options['matrix']))
             ? $options['matrix'] : 'PAM30';
