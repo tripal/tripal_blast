@@ -15,6 +15,11 @@
  */
 function blast_ui_per_blast_program_form($form, $form_state) {
 
+  // Add a warning, if need be (to be used for temporary messages like down-for-maintanence)
+  $form['warning'] = array(
+    '#markup' => t(''),
+  );
+  
   // CSS support to the form
   $form['#attached']['css'] = array(
     drupal_get_path('module', 'blast_ui') . '/theme/css/form.css',
