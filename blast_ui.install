@@ -248,3 +248,28 @@ function blast_ui_update_7103() {
   db_create_table('blastjob', $schema['blastjob']);
   
 }
+
+
+/**
+ * Add fields to blastp table for CViTjs support.
+ */
+function blast_ui_update_7104() {
+  db_add_field(
+    'blastdb',
+    'cvitjs_enabled',
+    array(
+      'description' => t('Indicate if CViTjs should be used to display hits on a whole genome'),
+      'type' => 'int',
+      'default' => 0
+    )
+  );
+  db_add_field(
+    'blastdb',
+    'cvitjs_config',
+    array(
+      'description' => t('CViTjs configuration file'),
+      'type' => 'text',
+      'default' => 0
+    )
+  );
+}
