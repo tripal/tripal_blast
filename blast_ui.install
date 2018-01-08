@@ -263,13 +263,4 @@ function blast_ui_update_7104() {
       'default' => 0
     )
   );
-  db_add_field(
-    'blastdb',
-    'cvitjs_config',
-    array(
-      'description' => t('CViTjs configuration file'),
-      'type' => 'text',
-      'default' => 0
-    )
-  );
 }
