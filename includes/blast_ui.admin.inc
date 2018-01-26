@@ -195,9 +195,12 @@ KRSLEEGLKTTGEGLDWGVLFGFGPGLTIETVVLRSVAI';
     $disabled = false;
   }
   
-  $description = 'This is the file that defines data directories and backbone GFF files '
-               . 'for each genome assembly target. It is named cvit.conf and is in the '
-               . 'root directory for the CViTjs javascript code.';
+  $description = 'This is the contents of the file that defines data directories and '
+               . 'backbone GFF files for each genome assembly target. It is named '
+               . 'cvit.conf and is in the root directory for the CViTjs javascript code. '
+               . 'This is NOT the config file that is used to build the display for each '
+               . 'individual genome. See the help tab for more information about '
+               . 'configuration files.';
   $form['cvitjs']['cvitjs_config'] = array(
     '#type' => 'textarea',
     '#title' => 'CViTjs configuration (empty until CViTjs path is saved)',
@@ -207,6 +210,27 @@ KRSLEEGLKTTGEGLDWGVLFGFGPGLTIETVVLRSVAI';
     '#disabled' => $disabled,
   );
 
+//eksc:
+  // WARNING
+  $description = 'This permits display of a temporary warning message at the top of the
+                  BLAST input form. Text can include HTML tags. Remember to remove the 
+                  message when it is no longer relevant.';
+  $form['warning'] = array(
+    '#type' => 'fieldset',
+    '#collapsible' => true,
+    '#collapsed' => true,
+    '#title' => 'Show warning text',
+    '#description' => $description,
+  );
+    $form['warning']['warning_text'] = array(
+    '#type' => 'textarea',
+    '#title' => 'Text to be displayed',
+    '#description' => $description,
+    '#default_value' => variable_get('blast_ui_warning_text', ''),
+    '#rows' => 10,
+  );
+
+  
   // SUBMIT
   $form['submit'] = array(
     '#type' => 'submit',
@@ -342,4 +366,8 @@ function blast_ui_admin_form_submit($form, $form_state) {
       drupal_set_message("Unable to open CViTjs conf file for writing: <pre>" . print_r(error_get_last(),true) . "</pre>");
     }
   }
+  
+//eksc:
+  // Warning text
+  variable_set('blast_ui_warning_text', $form_state['values']['warning_text']);
 }
