@@ -17,7 +17,10 @@ function blast_ui_per_blast_program_form($form, $form_state) {
 
   // Add a warning, if need be (to be used for temporary messages like down-for-maintanence)
   $form['warning'] = array(
-    '#markup' => t(''),
+    '#markup' => '<span class="warning">'
+               . t(variable_get('blast_ui_warning_text', '')
+               . '</span>'
+               ),
   );
   
   // CSS support to the form
