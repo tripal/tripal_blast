@@ -42,7 +42,7 @@
     ID is.
   </li>
   <li>
-    <a href="<?php print url('node/add/blastdb');?>">Create "Blast Database" 
+    <a href="<?php print url('node/add/blastdb');?>">Create "BLAST Database" 
     nodes</a> for each dataset you want to make available for your users to BLAST 
     against. BLAST databases should first be created using the command-line 
     <code>makeblastdb</code> program with the <code>-parse_seqids</code> flag.  
@@ -113,16 +113,17 @@ of this module.
 <h3><b>Whole Genome Visualization</b></h3>
 This module can be configured to use 
 <a href="https://github.com/LegumeFederation/cvitjs">CViTjs</a> to display BLAST hits on 
-a genome image. To configure this module to use CViTjs:
+a genome image. The process is as follows:
 <ol>
   <li>
     <a href="https://github.com/LegumeFederation/cvitjs">Download CViTjs</a> and copy
     the code to your webserver. It might make the most sense to put the code directly into
-    this module's directory, in a subdirectory named <b>js</b>.
+    this module's directory, in a subdirectory named <code>js</code>.
   </li>
   <li>
     Enable CViTjs from the BLAST module administration page and provide the path to the
-    root directory for the CViTjs code relative to this module. For example, <b>js/cvitjs</b>.
+    root directory for the CViTjs code relative to this module. For example, 
+    <code>js/cvitjs</code>.
   </li>
   <li>
     CViTjs will have a config file in its root directory named cvit.conf. This file 
@@ -136,16 +137,22 @@ a genome image. To configure this module to use CViTjs:
 conf = data/cajca/cajca.conf
 defaultData = data/cajca/cajca.gff</pre>
     Where:<br>
-    &mdash;the section name, "data.Cajanus cajan - genome", consists of "data." followed
-    by the name of the BLAST target node,<br>
-    &mdash;the file "cajca.conf" is a cvit configuration file which describes how to draw the 
-    chromosomes and BLAST hits on the <i>Cajanus cajan</i> genome,<br>
-    &mdash;and the file "cajca.gff" is a GFF3 file that describes the <i>Cajanus cajan</i> 
-    chromosomes.<br>
+    <ul>
+      <li>the section name, "data.Cajanus cajan - genome", consists of "data." followed
+          by the name of the BLAST target node,</li>
+      <li>the file "cajca.conf" is a cvit configuration file which describes how to draw the 
+          chromosomes and BLAST hits on the <i>Cajanus cajan</i> genome,</li>
+      <li>and the file "cajca.gff" is a GFF3 file that describes the <i>Cajanus cajan</i> 
+          chromosomes.</li>
+    </ul>
+    The .conf file for each genome can be modified to suit your needs and tastes. See the
+    sample configuration file, <code>data/test1/test1.conf</code>, and the CViTjs
+    <a href="https://github.com/LegumeFederation/cvitjs#using-cvitjs">documentation</a>
+    
     You will have to put the target-specific conf and gff files (e.g. cajca.conf and 
-    cjca.gff) on your web server, in the directory, <b>js/cvitjs/data</b>. You may choose
-    to group files for each genome into subdirectories, for example, 
-    <b>js/cvitjs/data/cajca</b>.
+    cjca.gff) on your web server, in the directory, <code>js/cvitjs/data</code>. You may 
+    choose to group files for each genome into subdirectories, for example, 
+    <code>js/cvitjs/data/cajca</code>.
     <br><br>
     At the top of the configuration file there must be a [general] section that defines
     the default data set. For example:
@@ -154,9 +161,15 @@ defaultData = data/cajca/cajca.gff</pre>
 data_default = data.Cajanus cajan - genome</pre>
   </li>
   <li>
-    Edit the nodes for each genome target (nodes of type "Blast Database") and enable whole 
+    Edit the nodes for each genome target (nodes of type "BLAST Database") and enable whole 
     genome visualization. Remember that the names listed in the CViTjs config file must 
     match the BLAST node name. In the example above, the BLAST database node for the
     <i>Cajanus cajan</i> genome assembly is named "Cajanus cajan - genome"
   </li>
 </ol>
+
+It is important to make sure that cvit.conf points to the correct data directory and the
+correct .gff and .conf files for the genome in question. For more information about how to 
+create the .gff file, see the 
+<a href="https://github.com/LegumeFederation/cvitjs#how-to">documentation</a>.
+
