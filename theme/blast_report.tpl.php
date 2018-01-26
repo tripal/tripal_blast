@@ -111,7 +111,6 @@ $no_hits = TRUE;
                 . DIRECTORY_SEPARATOR . $cvitjs_location
                 . DIRECTORY_SEPARATOR . 'js'
                 . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR;
-echo "Base path for CViTjs is [$base]<br>";
         drupal_add_css($base.'bootstrap/css/bootstrap.min.css',array('preprocess'=>FALSE));
         drupal_add_css($base.'hopscotch/css/hopscotch.min.css',array('preprocess'=>FALSE));
         drupal_add_css($base.'../../css/cvit.css',array('preprocess'=> FALSE));
