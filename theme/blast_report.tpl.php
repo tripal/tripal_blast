@@ -87,7 +87,8 @@ $no_hits = TRUE;
     </div>
 
     <?php
-      if (isset($blast_job->blastdb->cvitjs_enabled)
+      if (variable_get('blast_ui_cvitjs_enabled', false)
+            && isset($blast_job->blastdb->cvitjs_enabled)
             && $blast_job->blastdb->cvitjs_enabled == '1') {
         $cvitjs_location = variable_get('blast_ui_cvitjs_location', '');
     ?>

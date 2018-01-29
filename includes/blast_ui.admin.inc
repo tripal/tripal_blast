@@ -170,7 +170,7 @@ KRSLEEGLKTTGEGLDWGVLFGFGPGLTIETVVLRSVAI';
     '#markup' => t($description),
   );
 
-  $form['cvitjs']['cvitjs_enable'] = array(
+  $form['cvitjs']['cvitjs_enabled'] = array(
     '#type' => 'checkbox',
     '#title' => 'Enable CViTjs',
     '#description' => 'When checked, CViTjs will be enabled.',
@@ -257,7 +257,7 @@ function blast_ui_admin_form_validate($form, &$form_state) {
   }
 
   // Check path to CViTjs executable and make sure cvit.conf is writable
-  if ($form_state['values']['cvitjs_enable']) {
+  if ($form_state['values']['cvitjs_enabled']) {
     $cvit_path = blast_ui_get_cvit_conf($form_state['values']['cvitjs_location']);
     if (!$cvit_path || !file_exists($cvit_path)) {
       $msg = "The CViTjs configuration file, cvit.conf, does not exist at the path given (" 
@@ -352,9 +352,9 @@ function blast_ui_admin_form_submit($form, $form_state) {
   variable_set('blast_ui_max_results_displayed', $form_state['values']['max_results_displayed']);
 
   // Whole genome visualization - CViTjs
-  variable_set('blast_ui_cvitjs_enabled', $form_state['values']['cvitjs_enable']);
+  variable_set('blast_ui_cvitjs_enabled', $form_state['values']['cvitjs_enabled']);
   variable_set('blast_ui_cvitjs_location', $form_state['values']['cvitjs_location']);
-  if ($form_state['values']['cvitjs_enable'] && $form_state['values']['cvitjs_config']) {
+  if ($form_state['values']['cvitjs_enabled'] && $form_state['values']['cvitjs_config']) {
     // Need absolute path to conf file to write
     $cvit_conf_path = getcwd() . DIRECTORY_SEPARATOR
                     . blast_ui_get_cvit_conf($form_state['values']['cvitjs_location']);
