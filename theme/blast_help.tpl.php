@@ -121,14 +121,14 @@ a genome image. The process is as follows:
     this module's directory, in a subdirectory named <code>js</code>.
   </li>
   <li>
-    Enable CViTjs from the BLAST module administration page and provide the path to the
-    root directory for the CViTjs code relative to this module. For example, 
-    <code>js/cvitjs</code>.
-  </li>
-  <li>
     CViTjs will have a config file in its root directory named cvit.conf. This file 
     provides information for whole genome visualization for each genome BLAST target.
     <b>Make sure the config file can be edited by your web server.</b>
+  </li>
+  <li>
+    Enable CViTjs from the BLAST module administration page and provide the path to the
+    root directory for the CViTjs code relative to this module. For example, 
+    <code>js/cvitjs</code>.
   </li>
   <li>
     Edit the configuration file to define each genome target. These will look like:
