@@ -25,8 +25,7 @@ function blast_ui_install() {
  * needs to be called explicitly in hook_install().
  */
 function blast_ui_schema(){
-
-  // A table ot keep extra information related to blastdb nodes.
+  // A table to keep extra information related to blastdb nodes.
   $schema['blastdb'] = array(
     'description' => t('The base table for blastdb node'),
     'fields' => array(
@@ -68,6 +67,12 @@ function blast_ui_schema(){
         'length' => 50,
         'not null' => true,
         'default' => 'link'
+      ),
+      'cvitjs_enabled' => array(
+        'description' => t('Indicate if CViTjs should be used to display hits on a whole genome'),
+        'type' => 'int',
+        'not null' => false,
+        'default' => 0
       ),
     ),
     
@@ -260,6 +265,7 @@ function blast_ui_update_7104() {
     array(
       'description' => t('Indicate if CViTjs should be used to display hits on a whole genome'),
       'type' => 'int',
+      'not null' => false,
       'default' => 0
     )
   );
