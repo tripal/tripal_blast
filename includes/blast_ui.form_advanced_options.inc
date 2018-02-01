@@ -500,8 +500,10 @@ function blast_ui_blastp_advanced_options_form_submit($form, $form_state) {
   $wsKey = $form_state['values']['wordSize'];
   $wordSize = $form['ALG']['GParam']['wordSize']['#options'][$wsKey];
 
+/*eksc: removed as this is either equivalent to max_target_sequences or mis-implemented
+       as culling_limit
   $qRange = $form_state['values']['qRange'];
-
+*/
   // Expand Gap Cost key into open and extend penalties
   $matrix = $form_state['values']['Matrix'];
   $gapKey = $form_state['values']['gapCost'];
@@ -875,7 +877,7 @@ function _get_default_values($options) {
     'evalue'          => $evalue,
     'matchmiss'       => $matchmiss,
     'gap'             => $gap,
-    'qRange'          => $qRange,
+//    'qRange'          => $qRange,
     'matrix'          => $matrix,
   );
 }//_get_default_values
