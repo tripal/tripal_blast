@@ -118,7 +118,9 @@ a genome image. The process is as follows:
   <li>
     <a href="https://github.com/LegumeFederation/cvitjs">Download CViTjs</a> and copy
     the code to your webserver. It might make the most sense to put the code directly into
-    this module's directory, in a subdirectory named <code>js</code>.
+    this module's directory, in a subdirectory named <code>js/</code>. To download, execute 
+    the git command inside the <code>js/</code> subdirectory:<br>
+    <code>git clone https://github.com/LegumeFederation/cvitjs.git</code>
   </li>
   <li>
     CViTjs will have a config file in its root directory named cvit.conf. This file 
