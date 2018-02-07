@@ -330,7 +330,7 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
 function validate_fasta_sequence($type, $sequence) {
   //Includes IUPAC codes.
   $fastaSeqRegEx = ($type == 'nucleotide') 
-                   ? '/^[ATCGNUKMBVSWDYRHatcgnukmbvswdyrh\s\n\r]*$/' 
+                   ? '/^[ATCGNUKMBVSWDYRHatcgnukmbvswdyrh\[\/\]\s\n\r]*$/' 
                    : '/^[ABCDEFGHIKLMNPQRSTUVWYZXabcdefghiklmnpqrstuvwyzx\*\-\s\n\r]*$/';
   $defRegEx      = '/^>.*(\\n|\\r)(.*)$/sm';
   if (preg_match($defRegEx, $sequence, $matches)) {
@@ -404,23 +404,21 @@ function get_recent_blast_jobs($programs = array()) {
       $add = TRUE;
 
       $job_id = blast_ui_reveal_secret($job_secret);
-      $job = get_BLAST_job($job_id);
+      if ($job = get_BLAST_job($job_id)) {
 
-      // @TODO: Check that the results are still available.
-      // This is meant to replace the arbitrary only show jobs executed less than 48 hrs ago.
+        // @TODO: Check that the results are still available.
+        // This is meant to replace the arbitrary only show jobs executed less than 48 hrs ago.
 
-      // Remove jobs from the list that are not of the correct program.
-      if ($filter_jobs AND !in_array($job->program, $programs)) {
-        $add = FALSE;
+        // Remove jobs from the list that are not of the correct program.
+        if ($filter_jobs AND !in_array($job->program, $programs)) {
+          $add = FALSE;
+        }
+
+        if ($add) {
+          $job->query_summary = format_query_headers($job->files->query);
+          $jobs[] = $job;
+        }
       }
-
-      if ($add) {
-
-        $job->query_summary = format_query_headers($job->files->query);
-
-        $jobs[] = $job;
-      }
-
     }
 
     return $jobs;
