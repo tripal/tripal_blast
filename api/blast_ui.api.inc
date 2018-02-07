@@ -101,6 +101,11 @@ function get_blast_database_options($type) {
 function get_BLAST_job($job_id) {
 
   $blastjob = db_query('SELECT * FROM blastjob WHERE job_id=:id', array(':id' => $job_id))->fetchObject();
+  
+  if (!$blastjob) {
+    return false;
+  }
+  
   $tripal_job = tripal_get_job($job_id);
 
   $job = new stdClass();
