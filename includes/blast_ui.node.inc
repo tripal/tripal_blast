@@ -325,7 +325,11 @@ function blastdb_insert($node) {
   if (!$node->dbxref_linkout_type) {
     $node->dbxref_linkout_type = 'none';
   }
-  
+
+  if (!$node->cvitjs_enabled) {
+    $node->cvitjs_enabled = 0;
+  }
+    
   // Actually insert the record.
   db_insert('blastdb')->fields(array(
     'nid'                 => $node->nid,
