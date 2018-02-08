@@ -374,6 +374,10 @@ function blastdb_update($node) {
     $db_id = $node->db_id;
   }
 
+  if (!$node->cvitjs_enabled) {
+    $node->cvitjs_enabled = 0;
+  }
+    
   if (!$node->dbxref_linkout_type) {
     $node->dbxref_linkout_type = 'none';
   }
