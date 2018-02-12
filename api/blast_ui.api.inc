@@ -47,24 +47,9 @@ function get_blast_database($identifiers) {
  */
 function get_blast_database_options($type) {
   global $user;
-
-  // Use the Entity API to get a list of BLAST Nodes to load
-  // We use this function in order respect node access control so that
-  // administrators can use this module in combination with a node access module
-  // of their choice to limit access to specific BLAST databases.
-  $query = new EntityFieldQuery();
-  $query->entityCondition('entity_type', 'node')
-    // Restrict to BLASTDB nodes.
-    ->entityCondition('bundle', 'blastdb')
-    // Restrict to Published nodes.
-    ->propertyCondition('status', 1)
-    // Restrict to nodes the current user has permission to view.
-    ->addTag('node_access');
-  $entities = $query->execute();
-
-
+  
   // Get all BlastDB nodes
-  $nodes  = node_load_multiple(array_keys($entities['node']));
+  $nodes = get_blast_database_nodes(); 
 
   // Support obsolete database type n/p
   $obs_type = '';
@@ -89,6 +74,26 @@ function get_blast_database_options($type) {
 
   return $options;
 }
+
+function get_blast_database_nodes() {
+  // Use the Entity API to get a list of BLAST Nodes to load
+  // We use this function in order respect node access control so that
+  // administrators can use this module in combination with a node access module
+  // of their choice to limit access to specific BLAST databases.
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'node')
+    // Restrict to BLASTDB nodes.
+    ->entityCondition('bundle', 'blastdb')
+    // Restrict to Published nodes.
+    ->propertyCondition('status', 1)
+    // Restrict to nodes the current user has permission to view.
+    ->addTag('node_access');
+  $entities = $query->execute();
+
+  // Get all BlastDB nodes
+  return node_load_multiple(array_keys($entities['node']));
+}
+
 
 /**
  * Retrieve all the information for a blast job in a standardized node-like format.
