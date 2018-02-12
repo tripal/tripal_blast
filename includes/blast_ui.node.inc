@@ -326,7 +326,7 @@ function blastdb_insert($node) {
     $node->dbxref_linkout_type = 'none';
   }
 
-  if (!$node->cvitjs_enabled) {
+  if (!isset($node->cvitjs_enabled)) {
     $node->cvitjs_enabled = 0;
   }
     
