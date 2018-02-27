@@ -49,32 +49,52 @@
         $coord_length = strlen($hsp['Hsp_hit-from']) + 3;
         $coord_length = (strlen($hsp['Hsp_query-to']) + 3 > $coord_length) ? strlen($hsp['Hsp_query-to']) + 3 : $coord_length;
 
+         // use blast program type to determine multiplier for coords
+         $query_multiplier = 1;
+         $hit_multiplier = 1;
+         // only need to do this when the query and sbj are of different types
+         if ($blast_program == 'tblastn'){
+           $hit_multiplier = 3;
+         } elseif ($blast_program == 'blastx'){
+           $query_multiplier = 3;
+         }
+
+         $h_from = $hsp['Hsp_hit-from'];
+         $h_to = $hsp['Hsp_hit-to'];
+         $q_from = $hsp['Hsp_query-from'];
+         $q_to = $hsp['Hsp_query-to'];
+         if ( $h_from > $h_to){
+           $h_to = $hsp['Hsp_hit-from'];
+           $h_from = $hsp['Hsp_hit-to'];
+         }
+         if ( $q_from > $q_to){
+           $q_to = $hsp['Hsp_query-from'];
+           $q_from = $hsp['Hsp_query-to'];
+         }
+
         // Now foreach chink determined above...
         foreach (array_keys($query) as $k) {
           // Determine the current coordinates.
-          $coord['qstart'] = $hsp['Hsp_query-from'] + ($k * 60);
-          $coord['qstart'] = ($k == 0) ? $coord['qstart'] : $coord['qstart'];
-        
-          // code added to fix the range issue
-          // Cordinates can increase or decrease
-          if($hsp['Hsp_hit-from'] < $hsp['Hsp_hit-to']) {
-              $coord['hstart'] = $hsp['Hsp_hit-from'] + ($k * 60);    
-            }
-            else {
-              $coord['hstart'] = $hsp['Hsp_hit-from'] - ($k * 60);
-            }
-            $coord['qstop'] = $hsp['Hsp_query-from'] + (($k + 1) * 60) - 1;
-            $coord['qstop'] = ($coord['qstop'] > $hsp['Hsp_query-to']) ? $hsp['Hsp_query-to'] : $coord['qstop'];
-      
-            if ($hsp['Hsp_hit-from'] < $hsp['Hsp_hit-to']) {
-              $coord['hstop'] = $hsp['Hsp_hit-from'] + (($k + 1) * 60) - 1;
-              $coord['hstop'] = ($coord['hstop'] > $hsp['Hsp_hit-to']) ? $hsp['Hsp_hit-to'] : $coord['hstop'];
-          
-            }
-            else {
-              $coord['hstop'] = $hsp['Hsp_hit-from'] - (($k + 1) * 60) + 1;
-              $coord['hstop'] = ($coord['hstop'] < $hsp['Hsp_hit-to']) ? $hsp['Hsp_hit-to'] : $coord['hstop'];
-            }
+          $qgap_count = substr_count($query[$k],'-');
+          $hgap_count = substr_count($hit[$k],'-');
+          if($hsp['Hsp_query-frame'] >= 0){
+            $coord['qstart'] = ($k == 0) ? $q_from : $coord['qstop'] + 1;
+            $coord['qstop'] = $coord['qstart'] + strlen($query[$k]) * $query_multiplier - $qgap_count - 1;
+          }else{
+            $coord['qstart'] = ($k == 0) ? $q_to : $coord['qstop'] - 1;
+            $coord['qstop'] = $coord['qstart'] - strlen($query[$k]) * $query_multiplier - $qgap_count + 1;
+          }
+
+          if($hsp['Hsp_hit-frame'] >= 0){
+            $coord['hstart'] = ($k == 0) ? $h_from : $coord['hstop'] + 1;
+            $coord['hstop'] = $coord['hstart'] + strlen($hit[$k]) * $hit_multiplier - $hgap_count - 1;
+          }else{
+            $coord['hstart'] = ($k == 0) ? $h_to : $coord['hstop'] - 1;
+            $coord['hstop'] = $coord['hstart'] - strlen($hit[$k]) * $hit_multiplier - $hgap_count + 1;
+          }
+
+
+
           
             // Pad these coordinates to ensure columned display.
             foreach ($coord as $ck => $val) {
