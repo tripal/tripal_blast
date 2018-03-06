@@ -128,6 +128,12 @@ a genome image. The process is as follows:
     <b>Make sure the config file can be edited by your web server.</b>
   </li>
   <li>
+    <i>(This step will be removed when the CViTjs code is repaired -03/06/18)</i>
+    There is a hard-coded path in the CViTjs file js/lib/require/blast_ui-config.js.
+    Set this line to the correct path for your server:
+    <pre>baseUrl: '../../sites/all/modules/blast_ui/js/cvitjs/js/lib',</pre>
+  </li>
+  <li>
     Enable CViTjs from the BLAST module administration page and provide the path to the
     root directory for the CViTjs code relative to this module. For example, 
     <code>js/cvitjs</code>.
