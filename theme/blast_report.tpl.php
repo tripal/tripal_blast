@@ -182,6 +182,7 @@ $no_hits = TRUE;
               // the def to provide the original FASTA header.
               // @todo Deepak changed this to use just the hit_def; inquire as to why.
               $hit_name = (preg_match('/BL_ORD_ID/', $hit->{'Hit_id'})) ? $hit->{'Hit_def'} : $hit->{'Hit_id'};
+
               // Used for the hit visualization to ensure the name isn't truncated.
               $hit_name_short = (preg_match('/^([^\s]+)/', $hit_name, $matches)) ? $matches[1] : $hit_name;
 
@@ -284,6 +285,7 @@ $no_hits = TRUE;
                   $hit_name = call_user_func(
                     $url_function,
                     $linkout_urlprefix,
+                    $linkout_regex,
                     $hit,
                     array(
                       'query_name' => $query_name,
