@@ -485,7 +485,7 @@ function blastdb_load($nodes) {
       }
 
       // If the link-out type requires a db then provide one.
-      if ($type['require_db']) {
+      if (isset($type['require_db'])) {
         $nodes[$record->nid]->linkout->db_id = tripal_get_db(array('db_id' => $record->dbxref_db_id));
       }
       else {
