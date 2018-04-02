@@ -12,7 +12,7 @@
 <div class="alignment-row-section hit-visualization" title="Your query sequence is shown at the bottom and the target sequence it aligned to is shown at the top. The shape connecting them indicates how much of the target and query are represented by the hit.">
   <div class="title">Hit Visualization</div>
   <img src="data:image/png;base64,<?php print $hit_visualization;?>"/>
-  <p>The image above shows the relationship between query and target for this 
+  <p>The image above shows the relationship between query and target for this
     particular BLAST hit.</p>
 </div>
 <div class="alignment-row-section alignment">
@@ -39,7 +39,7 @@
     </div>
     <div class="alignment">
       <div class="alignment-row">
-        <?php 
+        <?php
         // We want to display the alignment with a max 60 residues per line with line numbers indicated.
         // First break up the strings.
         $query = str_split($hsp['Hsp_qseq'], 60);
@@ -49,59 +49,75 @@
         $coord_length = strlen($hsp['Hsp_hit-from']) + 3;
         $coord_length = (strlen($hsp['Hsp_query-to']) + 3 > $coord_length) ? strlen($hsp['Hsp_query-to']) + 3 : $coord_length;
 
-         // use blast program type to determine multiplier for coords
-         $query_multiplier = 1;
-         $hit_multiplier = 1;
-         // only need to do this when the query and sbj are of different types
-         if ($blast_program == 'tblastn'){
-           $hit_multiplier = 3;
-         } elseif ($blast_program == 'blastx'){
-           $query_multiplier = 3;
-         }
+        // We need to take into account that 3 nucleotides encode 1 amino acid when we are
+        // carying out a BLAST where query and subject types are different.
+        // Thus we use the blast program here to determine if the type of query != subject.
+        $query_multiplier = 1;
+        $hit_multiplier = 1;
+        // tblastn: query = protein, subject = nucleotide.
+        // Thus we need to adjust the hit/subject coordinates.
+        if ($blast_program == 'tblastn'){
+          $hit_multiplier = 3;
+        }
+        // blastx: query = nucleotide, subject = protein.
+        // Thus we need to adjust the query coordinates.
+        elseif ($blast_program == 'blastx'){
+          $query_multiplier = 3;
+        }
 
-         $h_from = $hsp['Hsp_hit-from'];
-         $h_to = $hsp['Hsp_hit-to'];
-         $q_from = $hsp['Hsp_query-from'];
-         $q_to = $hsp['Hsp_query-to'];
-         if ( $h_from > $h_to){
-           $h_to = $hsp['Hsp_hit-from'];
-           $h_from = $hsp['Hsp_hit-to'];
-         }
-         if ( $q_from > $q_to){
-           $q_to = $hsp['Hsp_query-from'];
-           $q_from = $hsp['Hsp_query-to'];
-         }
+        // Take into account that coordinates can increase or decrease
+        // from start to finish of the match (either query and/or subject/hit).
+        // By default, we assume everything is increasing then adjust as neccessary.
+        $h_from = $hsp['Hsp_hit-from'];
+        $h_to = $hsp['Hsp_hit-to'];
+        $q_from = $hsp['Hsp_query-from'];
+        $q_to = $hsp['Hsp_query-to'];
+        if ( $h_from > $h_to){
+          $h_to = $hsp['Hsp_hit-from'];
+          $h_from = $hsp['Hsp_hit-to'];
+        }
+        if ( $q_from > $q_to){
+          $q_to = $hsp['Hsp_query-from'];
+          $q_from = $hsp['Hsp_query-to'];
+        }
 
         // Now foreach chink determined above...
         foreach (array_keys($query) as $k) {
-          // Determine the current coordinates.
+
+          // Determine the query coordinates.
           $qgap_count = substr_count($query[$k],'-');
-          $hgap_count = substr_count($hit[$k],'-');
-          if($hsp['Hsp_query-frame'] >= 0){
+          // We also need to take into account the frame when determining the direction
+          // of the match. This if the frame is positive then when go from -> to...
+          if ($hsp['Hsp_query-frame'] >= 0){
             $coord['qstart'] = ($k == 0) ? $q_from : $coord['qstop'] + 1;
             $coord['qstop'] = $coord['qstart'] + strlen($query[$k]) * $query_multiplier - $qgap_count - 1;
-          }else{
+          }
+          // whereas, if the frame is negative then we go to -> from.
+          else{
             $coord['qstart'] = ($k == 0) ? $q_to : $coord['qstop'] - 1;
             $coord['qstop'] = $coord['qstart'] - strlen($query[$k]) * $query_multiplier - $qgap_count + 1;
           }
 
-          if($hsp['Hsp_hit-frame'] >= 0){
+          // Determine the subject/hit coordinates.
+          $hgap_count = substr_count($hit[$k],'-');
+          // We also need to take into account the frame when determining the direction
+          // of the match. This if the frame is positive then when go from -> to...
+          if ($hsp['Hsp_hit-frame'] >= 0){
             $coord['hstart'] = ($k == 0) ? $h_from : $coord['hstop'] + 1;
             $coord['hstop'] = $coord['hstart'] + strlen($hit[$k]) * $hit_multiplier - $hgap_count - 1;
-          }else{
+          }
+          // whereas, if the frame is negative then we go to -> from.
+          else{
             $coord['hstart'] = ($k == 0) ? $h_to : $coord['hstop'] - 1;
             $coord['hstop'] = $coord['hstart'] - strlen($hit[$k]) * $hit_multiplier - $hgap_count + 1;
           }
 
-
-
-          
-            // Pad these coordinates to ensure columned display.
-            foreach ($coord as $ck => $val) {
-              $pad_type = (preg_match('/start/', $ck)) ? STR_PAD_LEFT : STR_PAD_RIGHT;
-              $coord[$ck] = str_pad($val, $coord_length, '#', $pad_type);
-              $coord[$ck] =  str_replace('#', '&nbsp', $coord[$ck]);
-            }
+          // Pad these coordinates to ensure columned display.
+          foreach ($coord as $ck => $val) {
+            $pad_type = (preg_match('/start/', $ck)) ? STR_PAD_LEFT : STR_PAD_RIGHT;
+            $coord[$ck] = str_pad($val, $coord_length, '#', $pad_type);
+            $coord[$ck] =  str_replace('#', '&nbsp', $coord[$ck]);
+          }
         ?>
           <div class="alignment-subrow">
             <div class="query">
