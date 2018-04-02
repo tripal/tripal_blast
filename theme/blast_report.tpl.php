@@ -180,7 +180,6 @@ $no_hits = TRUE;
               // If the id is of the form gnl|BL_ORD_ID|### then the parseids flag
               // to makeblastdb did a really poor job. In thhis case we want to use
               // the def to provide the original FASTA header.
-              // @todo Deepak changed this to use just the hit_def; inquire as to why.
               $hit_name = (preg_match('/BL_ORD_ID/', $hit->{'Hit_id'})) ? $hit->{'Hit_def'} : $hit->{'Hit_id'};
 
               // Used for the hit visualization to ensure the name isn't truncated.
@@ -277,6 +276,7 @@ $no_hits = TRUE;
                 // First extract the linkout text using the regex provided through
                 // the Tripal blast database node.
                 if (preg_match($linkout_regex, $hit_name, $linkout_match)) {
+
                   $hit->{'linkout_id'} = $linkout_match[1];
                   $hit->{'hit_name'} = $hit_name;
 
@@ -285,7 +285,6 @@ $no_hits = TRUE;
                   $hit_name = call_user_func(
                     $url_function,
                     $linkout_urlprefix,
-                    $linkout_regex,
                     $hit,
                     array(
                       'query_name' => $query_name,
@@ -293,6 +292,7 @@ $no_hits = TRUE;
                       'e-value'    => $evalue,
                       'HSPs'       => $HSPs,
                       'Target'     => $blast_job->blastdb->db_name,
+                      'RegEx'      => $linkout_regex,
                     )
                   );
                 }
