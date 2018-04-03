@@ -47,9 +47,9 @@ function get_blast_database($identifiers) {
  */
 function get_blast_database_options($type) {
   global $user;
-  
+
   // Get all BlastDB nodes
-  $nodes = get_blast_database_nodes(); 
+  $nodes = get_blast_database_nodes();
 
   // Support obsolete database type n/p
   $obs_type = '';
@@ -75,6 +75,12 @@ function get_blast_database_options($type) {
   return $options;
 }
 
+/**
+ * Returns all blast database nodes.
+ *
+ * @return
+ *   An array of nodes.
+ */
 function get_blast_database_nodes() {
   // Use the Entity API to get a list of BLAST Nodes to load
   // We use this function in order respect node access control so that
@@ -106,11 +112,11 @@ function get_blast_database_nodes() {
 function get_BLAST_job($job_id) {
 
   $blastjob = db_query('SELECT * FROM blastjob WHERE job_id=:id', array(':id' => $job_id))->fetchObject();
-  
+
   if (!$blastjob) {
     return false;
   }
-  
+
   $tripal_job = tripal_get_job($job_id);
 
   $job = new stdClass();
@@ -339,8 +345,8 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
  */
 function validate_fasta_sequence($type, $sequence) {
   //Includes IUPAC codes.
-  $fastaSeqRegEx = ($type == 'nucleotide') 
-                   ? '/^[ATCGNUKMBVSWDYRHatcgnukmbvswdyrh\[\/\]\s\n\r]*$/' 
+  $fastaSeqRegEx = ($type == 'nucleotide')
+                   ? '/^[ATCGNUKMBVSWDYRHatcgnukmbvswdyrh\[\/\]\s\n\r]*$/'
                    : '/^[ABCDEFGHIKLMNPQRSTUVWYZXabcdefghiklmnpqrstuvwyzx\*\-\s\n\r]*$/';
   $defRegEx      = '/^>.*(\\n|\\r)(.*)$/sm';
   if (preg_match($defRegEx, $sequence, $matches)) {
@@ -351,7 +357,7 @@ function validate_fasta_sequence($type, $sequence) {
   else if ($sequence != '' && preg_match($defRegEx, $sequence)) {
     return true;
   }
-  
+
   return false;
 }
 
@@ -753,7 +759,7 @@ function convert_tsv2gff3($blast_tsv,$blast_gff){
   $last_s = NULL;
   $hsp = NULL;
   $HitResult=array();
-  
+
   while(!feof($tsv)) {
     $line = fgets($tsv);
     $line = rtrim($line);
@@ -788,9 +794,9 @@ function convert_tsv2gff3($blast_tsv,$blast_gff){
     $qs = $parts[6];
     $qe = $parts[7];
     $e = $parts[10];
-     
 
-    // if this is a new hit print the last and 
+
+    // if this is a new hit print the last and
     // empty the $HitResult array and
     // reset hsp counter
     if ($last_s != NULL and $s != $last_s ) {
@@ -798,10 +804,10 @@ function convert_tsv2gff3($blast_tsv,$blast_gff){
       $HitResult = array();
       $hsp=0;
     }
-  
+
     // every line is a new hsp
     $hsp++;
-  
+
     // determine query strand to use in match_part line, no need to store, just print
     $q_strand = '+';
     if ($qs > $qe) {
@@ -816,12 +822,12 @@ function convert_tsv2gff3($blast_tsv,$blast_gff){
        list($start,$end) = array($se,$ss);
        $HitResult["$s,$q"]['strand']='-';
      }
-  
+
     // store smallest start
      if (!array_key_exists('SS',$HitResult["$s,$q"]) or $ss < $HitResult["$s,$q"]['SS']) {
        $HitResult["$s,$q"]['SS'] = $ss;
      }
-    
+
     // store largest end
      if (!array_key_exists('SE',$HitResult["$s,$q"]) or $se > $HitResult["$s,$q"]['SE']) {
        $HitResult["$s,$q"]['SE'] = $se;
@@ -830,8 +836,8 @@ function convert_tsv2gff3($blast_tsv,$blast_gff){
      // store best evalue
      if (!array_key_exists('E',$HitResult["$s,$q"]) or $e < $HitResult["$s,$q"]['E']) {
        $HitResult["$s,$q"]['E'] = $e;
-     }   
-    
+     }
+
      // generate the match_part line for each hsp
      $HitResult["$s,$q"]['HSPs'][] = join("\t", array($s, "BLASTRESULT" , "match_part" , $start , $end , $e , $HitResult["$s,$q"]['strand'] , '.' , "ID=$s.$q.$hsp;Parent=$s.$q;Target=$q $qs $qe $q_strand"));
      $last_s = $s;
@@ -855,7 +861,6 @@ function convert_tsv2gff3($blast_tsv,$blast_gff){
  *
  *
  */
-
 function printGFF_parent_children ($gff,$blast_feature_array){
   foreach ($blast_feature_array as $sq => $value ) {
     list ($s,$q) = preg_split('/,/' , $sq);
@@ -865,4 +870,41 @@ function printGFF_parent_children ($gff,$blast_feature_array){
     fwrite($gff,$parent);
     fwrite($gff,$child);
   }
+}
+
+/**
+ * Get text from cvitjs conf file, if possible.
+ *
+ * @return
+ *   A string containing the entire contents of the cvitjs configuration file. FALSE otherwise.
+ */
+function blast_ui_get_cvit_conf_text() {
+  if ($cvit_conf=blast_ui_get_cvit_conf(variable_get('blast_ui_cvitjs_location', false))) {
+    if ($contents=file_get_contents($cvit_conf)) {
+      return $contents;
+    }
+  }
+
+  return false;
+}
+
+
+/**
+ * Get path to cvitjs conf file.
+ *
+ * ASSUMPTION: Assumes the code is contained within the blast ui module.
+ *
+ * @return
+ *  The path to the CViTjs codebase.
+ */
+function blast_ui_get_cvit_conf($cvitjs_location) {
+  if (!$cvitjs_location) {
+    return false;
+  }
+
+  $cvit_conf_path = drupal_get_path('module','blast_ui')
+                  . DIRECTORY_SEPARATOR . $cvitjs_location
+                  . DIRECTORY_SEPARATOR . 'cvit.conf';
+
+  return $cvit_conf_path;
 }

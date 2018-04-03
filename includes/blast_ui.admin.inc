@@ -194,7 +194,7 @@ KRSLEEGLKTTGEGLDWGVLFGFGPGLTIETVVLRSVAI';
   else {
     $disabled = false;
   }
-  
+
   $description = 'This is the contents of the file that defines data directories and '
                . 'backbone GFF files for each genome assembly target. It is named '
                . 'cvit.conf and is in the root directory for the CViTjs javascript code. '
@@ -213,7 +213,7 @@ KRSLEEGLKTTGEGLDWGVLFGFGPGLTIETVVLRSVAI';
 //eksc:
   // WARNING
   $description = 'This permits display of a temporary warning message at the top of the
-                  BLAST input form. Text can include HTML tags. Remember to remove the 
+                  BLAST input form. Text can include HTML tags. Remember to remove the
                   message when it is no longer relevant.';
   $form['warning'] = array(
     '#type' => 'fieldset',
@@ -230,7 +230,7 @@ KRSLEEGLKTTGEGLDWGVLFGFGPGLTIETVVLRSVAI';
     '#rows' => 10,
   );
 
-  
+
   // SUBMIT
   $form['submit'] = array(
     '#type' => 'submit',
@@ -260,20 +260,20 @@ function blast_ui_admin_form_validate($form, &$form_state) {
   if ($form_state['values']['cvitjs_enabled']) {
     $cvit_path = blast_ui_get_cvit_conf($form_state['values']['cvitjs_location']);
     if (!$cvit_path || !file_exists($cvit_path)) {
-      $msg = "The CViTjs configuration file, cvit.conf, does not exist at the path given (" 
+      $msg = "The CViTjs configuration file, cvit.conf, does not exist at the path given ("
            . $form_state['values']['cvitjs_location']
            . "). Please check your path. "
            . "If you have not yet downloaded CViTjs, see the help tab for more information.";
       form_set_error('cvitjs_location', t($msg));
     }
-    
+
     if (!is_writable($cvit_path)) {
       $msg = "The file $cvit_path is not writable by this page. "
            . "Please enable write access for apache then try saving these settings again.";
       form_set_error('cvitjs_location', t($msg));
     }
   }
-  
+
   // Empty contents of cvitjs_config textarea if it is disabled
   if ($form['cvitjs']['cvitjs_config']['#disabled']) {
     $form_state['values']['cvitjs_config'] = '';
@@ -289,45 +289,14 @@ function blast_ui_admin_form_validate($form, &$form_state) {
     form_set_error('cvitjs_config', t($msg));
   }
   if ($form_state['values']['cvitjs_config']
-        && !preg_match('/\[.*\]\s*\nconf = .*\ndefaultData =.*/m', 
+        && !preg_match('/\[.*\]\s*\nconf = .*\ndefaultData =.*/m',
                        $form_state['values']['cvitjs_config'])) {
     $msg = "The CViTjs configuration text looks incorrect. "
          . "It should contain one section for each genome target. "
          . "See the help tab for more information.";
     form_set_error('cvitjs_config', t($msg));
-  }    
-}
-
-
-/**
- * Get text from cvitjs conf file, if possible.
- */
-function blast_ui_get_cvit_conf_text() {
-  if ($cvit_conf=blast_ui_get_cvit_conf(variable_get('blast_ui_cvitjs_location', false))) {
-    if ($contents=file_get_contents($cvit_conf)) {
-      return $contents;
-    }
   }
-  
-  return false;
 }
-
-
-/**
- * Get path to cvitjs conf file.
- */
-function blast_ui_get_cvit_conf($cvitjs_location) {
-  if (!$cvitjs_location) {
-    return false;
-  }
-  
-  $cvit_conf_path = drupal_get_path('module','blast_ui') 
-                  . DIRECTORY_SEPARATOR . $cvitjs_location
-                  . DIRECTORY_SEPARATOR . 'cvit.conf';
-             
-  return $cvit_conf_path;
-}
-
 
 /**
  * Submit the Admin/settings form.
@@ -347,7 +316,7 @@ function blast_ui_admin_form_submit($form, $form_state) {
   // Example sequence
   variable_set('blast_ui_nucleotide_example_sequence', $form_state['values']['nucleotide_example']);
   variable_set('blast_ui_protein_example_sequence', $form_state['values']['protein_example']);
-  
+
   // Protect against large result sets
   variable_set('blast_ui_max_results_displayed', $form_state['values']['max_results_displayed']);
 
@@ -366,7 +335,7 @@ function blast_ui_admin_form_submit($form, $form_state) {
       drupal_set_message("Unable to open CViTjs conf file for writing: <pre>" . print_r(error_get_last(),true) . "</pre>");
     }
   }
-  
+
 //eksc:
   // Warning text
   variable_set('blast_ui_warning_text', $form_state['values']['warning_text']);
