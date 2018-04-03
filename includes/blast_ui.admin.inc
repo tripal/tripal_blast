@@ -152,13 +152,14 @@ KRSLEEGLKTTGEGLDWGVLFGFGPGLTIETVVLRSVAI';
   );
 
   // CVITJS
+  $cvitjs_enabled = variable_get('blast_ui_cvitjs_enabled', FALSE);
   $description = 'The JavaScript program CViTjs enables users to see BLAST hits on an '
                . 'entire genome assembly. See the help tab for information on how to '
                . 'download and set up CViTjs.';
   $form['cvitjs'] = array(
     '#type' => 'fieldset',
     '#collapsible' => true,
-    '#collapsed' => true,
+    '#collapsed' => !$cvitjs_enabled,
     '#title' => 'Enable and configure genome visualization',
     '#description' => $description,
   );
@@ -170,18 +171,20 @@ KRSLEEGLKTTGEGLDWGVLFGFGPGLTIETVVLRSVAI';
     '#markup' => t($description),
   );
 
+
   $form['cvitjs']['cvitjs_enabled'] = array(
     '#type' => 'checkbox',
     '#title' => 'Enable CViTjs',
     '#description' => 'When checked, CViTjs will be enabled.',
-    '#default_value' => variable_get('blast_ui_cvitjs_enabled', FALSE)
+    '#default_value' => $cvitjs_enabled,
   );
 
   $form['cvitjs']['cvitjs_location'] = array(
     '#type' => 'textfield',
     '#title' => 'Path to CViTjs code',
     '#description' => 'Path is relative to the location of this module. Example: js/cvitjs',
-    '#default_value' => variable_get('blast_ui_cvitjs_location', '')
+    '#default_value' => variable_get('blast_ui_cvitjs_location', ''),
+    '#disabled' => !$cvitjs_enabled,
   );
 
   // Get CViTjs confuration text, if possible.
