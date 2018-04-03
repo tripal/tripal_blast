@@ -127,11 +127,8 @@ function blastdb_form($node, &$form_state) {
       should point to a GBrowse instance if you choose GBrowse here).',
     '#options' => $options,
     '#default_value' => $linkout_type,
-    '#ajax' => array(
-      'callback' => 'ajax_blast_ui_node_linkout_custom_callback',
-      'wrapper' => 'link-outs',
-    )
   );
+  
   // Add information about each format to the description.
   if ($linkout_type) {
     $form['dbxref']['dbxref_linkout_type']['#description'] .= '
@@ -248,10 +245,10 @@ function blastdb_form($node, &$form_state) {
       '#title' => t('Show BLAST hits on the genome in the results page.'),
       '#description' => t('Uses CViTjs to display BLAST hits on the entire genome'),
       '#default_value' => (isset($node->cvitjs_enabled)) ? $node->cvitjs_enabled : false,
-      '#ajax' => array(
-        'callback' => 'ajax_blast_ui_node_cvitjs_custom_callback',
-        'wrapper' => 'cvitjs-settings',
-      )
+//      '#ajax' => array(
+//        'callback' => 'ajax_blast_ui_node_cvitjs_custom_callback',
+//        'wrapper' => 'cvitjs-settings',
+//      )
     );
 
     if (isset($form_state['values'])) {
@@ -521,13 +518,3 @@ function ajax_blast_ui_node_linkout_custom_callback($form, $form_state) {
   return $form['dbxref'];
 }
 
-/**
- * AJAX Callback: Update Node CViTjs fields.
- *
- * On BlastDB node form, if CViTjs is enabled, a number of additional settings are 
- * required. This callback refreshes the CViTjs settings fields so the additional 
- * fields are displayed if CViTjs is enable, hidden otherwise.
- */
-function ajax_blast_ui_node_cvitjs_custom_callback($form, $form_state) {
-  return $form['cvitjs'];
-}
