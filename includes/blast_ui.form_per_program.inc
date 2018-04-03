@@ -16,13 +16,14 @@
 function blast_ui_per_blast_program_form($form, $form_state) {
 
   // Add a warning, if need be (to be used for temporary messages like down-for-maintanence)
-  $form['warning'] = array(
-    '#markup' => '<span class="warning">'
-               . t(variable_get('blast_ui_warning_text', '')
-               . '</span>'
-               ),
-  );
-  
+  if ($warning = variable_get('blast_ui_warning_text', '')) {
+    $form['warning'] = array(
+      '#markup' => t($warning),
+      '#prefix' => '<div class="messages warning">',
+      '#suffix' => '</div>',
+    );
+  }
+
   // CSS support to the form
   $form['#attached']['css'] = array(
     drupal_get_path('module', 'blast_ui') . '/theme/css/form.css',
@@ -452,9 +453,9 @@ function blast_ui_per_blast_program_form_submit($form, &$form_state) {
       drupal_set_message(t('Unable to generate a BLAST database from your uploaded FASTA '
                           .'sequence. Please check that your file is a valid FASTA file '
                           .'and that if your sequence headers include pipes (i.e.: | ) '
-                          .' they adhere to ') 
-                          .l('NCBI standards.', 
-                             'http://www.ncbi.nlm.nih.gov/books/NBK21097/table/A632/?report=objectonly', 
+                          .' they adhere to ')
+                          .l('NCBI standards.',
+                             'http://www.ncbi.nlm.nih.gov/books/NBK21097/table/A632/?report=objectonly',
                              array('attributes' => array('target' => '_blank'))
                           ),
         'error'
