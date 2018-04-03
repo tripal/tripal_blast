@@ -105,6 +105,7 @@
       <tr><th>RegEx</th><td><?php print $node->linkout->regex; ?></td></tr>
       <tr><th>Link-out Type</th><td><?php print $node->linkout->type; ?></td></tr>
 <?php } ?>
+      <tr><th>Whole Genome Viewer</th><td><?php print ($node->cvitjs_enabled) ? 'Enabled' : 'Disabled'; ?></td></tr>
     </table>
 
     <?php
