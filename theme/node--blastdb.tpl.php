@@ -108,6 +108,28 @@
       <tr><th>Whole Genome Viewer</th><td><?php print ($node->cvitjs_enabled) ? 'Enabled' : 'Disabled'; ?></td></tr>
     </table>
 
+
+    <?php
+      if ($node->cvitjs_enabled) {
+
+        print '<h3>Whole Genome Viewer</h3>';
+
+        $conf_section = blast_ui_get_cvit_conf_text('data.'.$node->db_name);
+
+        if (!$conf_section) {
+
+          print '<div class="messages warning">There is no section for this genome target defined in the CViTjs
+            configuration file. <strong>No genome visualization will be shown until you define a
+            configuration section, "[data.'.$form_state['values']['db_name'].']", at '
+            .l('Admin > Tripal > Extensions > Tripal BLAST > BLAST UI', 'admin/tripal/extension/tripal_blast')
+            .'</strong>.</div>';
+        }
+        else {
+          print '<h4>Configuration</h4>'
+            . '<pre>'.$conf_section.'</pre>';
+        }
+    }
+    ?>
     <?php
       // Add in any remaining content
       print render($content);

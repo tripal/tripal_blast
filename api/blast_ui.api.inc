@@ -875,13 +875,52 @@ function printGFF_parent_children ($gff,$blast_feature_array){
 /**
  * Get text from cvitjs conf file, if possible.
  *
+ * @param $genome_target
+ *   The section of the config to return. Should consist of "data."+[blastdb name].
+ *
  * @return
  *   A string containing the entire contents of the cvitjs configuration file. FALSE otherwise.
  */
-function blast_ui_get_cvit_conf_text() {
-  if ($cvit_conf=blast_ui_get_cvit_conf(variable_get('blast_ui_cvitjs_location', false))) {
-    if ($contents=file_get_contents($cvit_conf)) {
+function blast_ui_get_cvit_conf_text($genome_target = FALSE) {
+
+  // Retrieve the full path and filename of the conf.
+  $cvit_conf = blast_ui_get_cvit_conf(variable_get('blast_ui_cvitjs_location', false));
+  if ($cvit_conf) {
+
+    // Retrieve the contents of the file.
+    $contents = file_get_contents($cvit_conf);
+
+    // If no genome target was provided then return the full file.
+    if ($contents && $genome_target == FALSE) {
       return $contents;
+    }
+
+    // If a genome target was provided, then only return that section.
+    if ($genome_target) {
+      $section = array();
+      $in_section = FALSE;
+
+      // For each line of the configuration file...
+      $section_header = '['.$genome_target.']';
+      $lines = preg_split('/\r\n|\n|\r/', trim($contents));
+      foreach($lines as $l) {
+
+        // Are we in the section for this genome target?
+        if (trim($l) == $section_header) {
+          $in_section = TRUE; }
+
+        // Id so and we haven't fallen out of it through an empty line,
+        // then add it to saved section for returning.
+        if ($in_section) {
+          if (trim($l) == '') { break; }
+          $section[] = trim($l);
+        }
+      }
+
+      // If we found the section, then return it ;-).
+      if (!empty($section)) {
+        return implode("\n", $section);
+      }
     }
   }
 

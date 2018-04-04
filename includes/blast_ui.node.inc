@@ -245,24 +245,25 @@ function blastdb_form($node, &$form_state) {
       '#title' => t('Show BLAST hits on the genome in the results page.'),
       '#description' => t('Uses CViTjs to display BLAST hits on the entire genome'),
       '#default_value' => (isset($node->cvitjs_enabled)) ? $node->cvitjs_enabled : false,
-//      '#ajax' => array(
-//        'callback' => 'ajax_blast_ui_node_cvitjs_custom_callback',
-//        'wrapper' => 'cvitjs-settings',
-//      )
     );
-    $form['cvitjs']['cvitjs_enabled']['#description'] .= '
-        <p class="blastdb-extra-info">Target Genome Configuration should be under <strong>[data.'.$node->db_name.']</strong> in the main cvit.conf.</p>';
+    $cvitjs_msg_class = 'blastdb-extra-info';
+    $cvitjs_msg = 'Target Genome Configuration should be under <strong>[data.'.$node->db_name.']</strong> in the main cvit.conf.';
 
-
-    if (isset($form_state['values'])) {
-      $cvitjs_enabled = $form_state['values']['cvitjs_enabled'];
-    }
-    else if (isset($node->cvitjs_enabled))  {
-      $cvitjs_enabled = $node->cvitjs_enabled;
+    $conf_section = blast_ui_get_cvit_conf_text('data.'.$node->db_name);
+    if (!$conf_section) {
+      $cvitjs_msg_class .= ' messages warning';
+      $cvitjs_msg .= '<br /><br />There is no section for this genome target defined in the CViTjs
+        configuration file. <strong>No genome visualization will be shown until you define a
+        configuration section, "[data.'.$form_state['values']['db_name'].']", at '
+        .l('Admin > Tripal > Extensions > Tripal BLAST > BLAST UI', 'admin/tripal/extension/tripal_blast')
+        .'</strong>.';
     }
     else {
-      $cvitjs_enabled = false;
+      $cvitjs_msg .= '<br /><br /><strong>Current Configuration:</strong><pre>'.$conf_section.'</pre>';
     }
+
+    $form['cvitjs']['cvitjs_enabled']['#description'] .= '<div class="'.$cvitjs_msg_class.'">'.$cvitjs_msg.'</p>';
+
   }
 
   return $form;
@@ -297,6 +298,19 @@ function blastdb_form_validate($form, $form_state) {
             array('attributes' => array('target' => '_blank')))
         . ' to include a URL prefix before continuing'
       );
+    }
+  }
+
+  // Check that there is a cvitjs section for the current
+  if ($form_state['values']['cvitjs_enabled']) {
+    $conf_section = blast_ui_get_cvit_conf_text('data.'.$form_state['values']['db_name']);
+    if (!$conf_section) {
+      drupal_set_message('There is no section for this genome target defined in the CViTjs
+        configuration file. <strong>No genome visualization will be shown until you define a
+        configuration section, "[data.'.$form_state['values']['db_name'].']", at '
+        .l('Admin > Tripal > Extensions > Tripal BLAST > BLAST UI', 'admin/tripal/extension/tripal_blast')
+        .'</strong>.',
+      'warning');
     }
   }
 }
