@@ -62,7 +62,6 @@ $no_hits = TRUE;
 
 <div class="blast-report">
 
-  <div class="blast-job-info">
     <!-- Provide Information to the user about their blast job -->
     <div class="blast-job-info">
       <div class="blast-download-info"><strong>Download</strong>:
@@ -91,14 +90,14 @@ $no_hits = TRUE;
     ?>
       <!-- CViTjs image of BLAST hits, if enabled -->
       <div class="cvitjs">
-        <div id="title-div"></div>
+        <div id="title-div"><h2>Whole Genome Visualization of BLAST hits</h2></div>
         <div id="cvit-div"></div>
       </div>
+
     <?php
       }
     ?>
 
-  </div>
   <br />
 
   <div class="report-table">
@@ -110,6 +109,8 @@ $no_hits = TRUE;
 
     if ($xml) {
     ?>
+
+    <h2>Resulting BLAST hits</h2>
 
     <p>The following table summarizes the results of your BLAST.
     Click on a <em>triangle </em> on the left to see the alignment and a visualization of the hit,

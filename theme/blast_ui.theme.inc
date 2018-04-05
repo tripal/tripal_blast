@@ -45,7 +45,7 @@ function blast_ui_preprocess_show_blast_report(&$vars) {
            . DIRECTORY_SEPARATOR . $cvitjs_location
            . DIRECTORY_SEPARATOR . 'js'
            . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR;
-    drupal_add_css($base.'bootstrap/css/bootstrap.min.css',array('preprocess'=>FALSE));
+    drupal_add_css($base.'bootstrap_embed/css/bootstrap.min.css',array('preprocess'=>FALSE));
     drupal_add_css($base.'hopscotch/css/hopscotch.min.css',array('preprocess'=>FALSE));
     drupal_add_css($base.'../../css/cvit.css',array('preprocess'=> FALSE));
     drupal_add_js($base.'require/require.js',array('group'=>'JS_LIBRARY','type'=>'file'));
