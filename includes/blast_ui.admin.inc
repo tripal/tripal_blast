@@ -152,36 +152,45 @@ KRSLEEGLKTTGEGLDWGVLFGFGPGLTIETVVLRSVAI';
   );
 
   // CVITJS
+  $cvitjs_enabled = variable_get('blast_ui_cvitjs_enabled', FALSE);
+  $cvitjs_location = variable_get('blast_ui_cvitjs_location', '');
   $description = 'The JavaScript program CViTjs enables users to see BLAST hits on an '
                . 'entire genome assembly. See the help tab for information on how to '
                . 'download and set up CViTjs.';
+
   $form['cvitjs'] = array(
     '#type' => 'fieldset',
     '#collapsible' => true,
-    '#collapsed' => true,
+    '#collapsed' => !$cvitjs_enabled,
     '#title' => 'Enable and configure genome visualization',
     '#description' => $description,
   );
 
-  $description = 'CViTjs is only applicable for genome BLAST targets. After it is '
+  $absolute_cvitjs_data_path = DRUPAL_ROOT . '/' . drupal_get_path('module','blast_ui') . '/' . $cvitjs_location . '/data';
+  $description = '<div class ="messages warning">CViTjs is only applicable for genome BLAST targets. After it is '
                . 'enabled here, CViTjs will need to be enabled for each applicable BLAST '
-              . 'target node.';
+              . 'target node.</div>'
+              . '<div class="messages status"><strong>CViTjs Data Location: '.$absolute_cvitjs_data_path.'</strong>'
+              . '<br />The GFF3 and Genome Target-specific CViTjs configuration files should be located'
+              . 'at the above system path. Feel free to organize this directory further.</div>';
   $form['cvitjs']['explanation'] = array(
     '#markup' => t($description),
   );
+
 
   $form['cvitjs']['cvitjs_enabled'] = array(
     '#type' => 'checkbox',
     '#title' => 'Enable CViTjs',
     '#description' => 'When checked, CViTjs will be enabled.',
-    '#default_value' => variable_get('blast_ui_cvitjs_enabled', FALSE)
+    '#default_value' => $cvitjs_enabled,
   );
 
   $form['cvitjs']['cvitjs_location'] = array(
     '#type' => 'textfield',
     '#title' => 'Path to CViTjs code',
     '#description' => 'Path is relative to the location of this module. Example: js/cvitjs',
-    '#default_value' => variable_get('blast_ui_cvitjs_location', '')
+    '#default_value' => $cvitjs_location,
+    '#disabled' => !$cvitjs_enabled,
   );
 
   // Get CViTjs confuration text, if possible.

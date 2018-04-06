@@ -77,9 +77,15 @@ table#blast_report div.alignment-subrow{
 }
 .blast-job-info {
   float: left;
+  margin-bottom: 25px;
 }
 .cvitjs {
   float: left;
+  margin-top: 10px;
+  margin-bottom: 25px;
+}
+.cvitjs #cvit-div{
+  padding: 5px 0 0 0;
 }
 .report-table {
   clear: both;

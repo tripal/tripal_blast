@@ -62,7 +62,6 @@ $no_hits = TRUE;
 
 <div class="blast-report">
 
-  <div class="blast-job-info">
     <!-- Provide Information to the user about their blast job -->
     <div class="blast-job-info">
       <div class="blast-download-info"><strong>Download</strong>:
@@ -72,13 +71,13 @@ $no_hits = TRUE;
         <a href="<?php print '../../' . $blast_job->files->result->gff; ?>">GFF3</a>
       </div>
       <br />
-      <div class="blast-query-info"><strong>Query Information</strong>: 
+      <div class="blast-query-info"><strong>Query Information</strong>:
         <?php print $blast_job->files->query;?></div>
-      <div class="blast-target-info"><strong>Search Target</strong>: 
+      <div class="blast-target-info"><strong>Search Target</strong>:
         <?php print $blast_job->blastdb->db_name;?></div>
-      <div class="blast-date-info"><strong>Submission Date</strong>: 
+      <div class="blast-date-info"><strong>Submission Date</strong>:
         <?php print format_date($blast_job->date_submitted, 'medium');?></div>
-      <div class="blast-cmd-info"><strong>BLAST Command executed</strong>: 
+      <div class="blast-cmd-info"><strong>BLAST Command executed</strong>:
         <?php print $blast_job->blast_cmd;?></div>
       <br />
       <div class="num-results">
@@ -87,42 +86,18 @@ $no_hits = TRUE;
     </div>
 
     <?php
-      if (variable_get('blast_ui_cvitjs_enabled', false)
-            && isset($blast_job->blastdb->cvitjs_enabled)
-            && $blast_job->blastdb->cvitjs_enabled == '1') {
-        $cvitjs_location = variable_get('blast_ui_cvitjs_location', '');
+      if ($show_cvit_diagram) {
     ?>
       <!-- CViTjs image of BLAST hits, if enabled -->
       <div class="cvitjs">
-        <div id="title-div"></div>
+        <div id="title-div"><h2>Whole Genome Visualization of BLAST hits</h2></div>
         <div id="cvit-div"></div>
       </div>
-      <?php
-        drupal_add_js(array(
-          'blast_ui'=> array(
-            'dataset' => $blast_job->blastdb->db_name)
-          ),
-          'setting'
-        );
-        drupal_add_js(array(
-          'blast_ui'=> array(
-            'gff' => '../../' . $blast_job->files->result->gff)),'setting'
-        );    
-        $base = drupal_get_path('module','blast_ui') 
-                . DIRECTORY_SEPARATOR . $cvitjs_location
-                . DIRECTORY_SEPARATOR . 'js'
-                . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR;
-        drupal_add_css($base.'bootstrap/css/bootstrap.min.css',array('preprocess'=>FALSE));
-        drupal_add_css($base.'hopscotch/css/hopscotch.min.css',array('preprocess'=>FALSE));
-        drupal_add_css($base.'../../css/cvit.css',array('preprocess'=> FALSE));
-        drupal_add_js($base.'require/require.js',array('group'=>'JS_LIBRARY','type'=>'file'));
-        drupal_add_js($base.'require/blast_ui-config.js',array('group'=>'JS_THEME'));
-      ?>
-    <?php  
+
+    <?php
       }
     ?>
 
-  </div>
   <br />
 
   <div class="report-table">
@@ -134,6 +109,8 @@ $no_hits = TRUE;
 
     if ($xml) {
     ?>
+
+    <h2>Resulting BLAST hits</h2>
 
     <p>The following table summarizes the results of your BLAST.
     Click on a <em>triangle </em> on the left to see the alignment and a visualization of the hit,
@@ -243,7 +220,7 @@ $no_hits = TRUE;
                               ';';
                 $Hsp_bit_score .=   $hsp_xml->{'Hsp_bit-score'} .';';
               }
-              
+
               // Finally record the range.
               // @todo figure out why we arbitrarily subtract 50,000 here...
               // @more removing the 50,000 and using track start/end appears to cause no change...
