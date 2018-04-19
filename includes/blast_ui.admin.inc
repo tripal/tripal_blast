@@ -171,8 +171,9 @@ KRSLEEGLKTTGEGLDWGVLFGFGPGLTIETVVLRSVAI';
                . 'enabled here, CViTjs will need to be enabled for each applicable BLAST '
               . 'target node.</div>'
               . '<div class="messages status"><strong>CViTjs Data Location: '.$absolute_cvitjs_data_path.'</strong>'
-              . '<br />The GFF3 and Genome Target-specific CViTjs configuration files should be located'
-              . 'at the above system path. Feel free to organize this directory further.</div>';
+              . '<br />The GFF3 and Genome Target-specific CViTjs configuration files should be located '
+              . 'at the above system path. Feel free to organize this directory further. '
+              . 'See the "Help" tab for more information.</div>';
   $form['cvitjs']['explanation'] = array(
     '#markup' => t($description),
   );
@@ -196,7 +197,7 @@ KRSLEEGLKTTGEGLDWGVLFGFGPGLTIETVVLRSVAI';
   // Get CViTjs confuration text, if possible.
   if (!$default_value = blast_ui_get_cvit_conf_text()) {
     $default_value = 'Unable to get CViTjs configuration information. '
-                   . 'You will need to enable whole genome views and set and save the '
+                   . 'You will need to enable CViTjs and set and save the '
                    . 'path to CViTjs before you can edit the CViTjs configuration text.';
     $disabled = true;
   }
