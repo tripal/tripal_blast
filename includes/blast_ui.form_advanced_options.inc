@@ -306,7 +306,7 @@ function blast_ui_blastp_advanced_options_form(&$form, $form_state) {
   // We want to pull up the details from a previous blast and fill them in as defaults
   // for this blast.
   if (isset($form_state['prev_blast'])) {
-    $defaults = _get_default_values($form_state['prev_blast']->options, 'blastn');
+    $defaults = _get_default_values($form_state['prev_blast']->options, 'blastp');
   }
   else {
     $defaults = _get_default_values(array(), 'blastp');
