@@ -232,11 +232,17 @@ $no_hits = TRUE;
               $hit_img = generate_blast_hit_image($target_name, $Hsp_bit_score, $hit_hsps,
                                        $target_size, $query_size, $q_name, $hit_name_short);
 
+
+              // get blast program
+              $blast_cmd_arr = explode(' ',trim($blast_job->blast_cmd));
+              $blast_cmd_program =  $blast_cmd_arr[0];
+
+
               // State what should be in the alignment row for theme_table() later.
               $alignment_row = array(
                 'data' => array(
                   'arrow' => array(
-                    'data' => theme('blast_report_alignment_row', array('HSPs' => $HSPs, 'hit_visualization' => $hit_img)),
+                    'data' => theme('blast_report_alignment_row', array('HSPs' => $HSPs, 'hit_visualization' => $hit_img, 'blast_program' => $blast_cmd_program)),
                     'colspan' => 5,
                   ),
                 ),

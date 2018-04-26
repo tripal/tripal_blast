@@ -38,9 +38,9 @@ function blast_ui_blastn_advanced_options_form(&$form, $form_state) {
   //.........................
 
   $form['ALG']['GParam'] = array(
-   '#type' => 'fieldset',
-   '#title' => t('General parameters'),
-   '#collapsible' => FALSE,
+    '#type' => 'fieldset',
+    '#title' => t('General parameters'),
+    '#collapsible' => FALSE,
   );
 
   $form['ALG']['GParam']['maxTarget'] = array(
@@ -51,13 +51,13 @@ function blast_ui_blastn_advanced_options_form(&$form, $form_state) {
     '#description' => t('Select the maximum number of unique target sequences per query sequence to show results for.'),
   );
 
-/*eksc: remove until we learn how this is implemented by NCBI
-  $form['ALG']['GParam']['shortQueries'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Automatically adjust parameters for short input sequences'),
-    '#default_value' => $short_queries,
-  );
-*/
+  /*eksc: remove until we learn how this is implemented by NCBI
+    $form['ALG']['GParam']['shortQueries'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Automatically adjust parameters for short input sequences'),
+      '#default_value' => $short_queries,
+    );
+  */
 
   $form['ALG']['GParam']['eVal'] = array(
     '#type' => 'textfield',
@@ -76,17 +76,17 @@ function blast_ui_blastn_advanced_options_form(&$form, $form_state) {
     '#description' => t('The length of the seed that initiates an alignment'),
   );
 
-/*eksc: remove this as it is either the same as max_target_seqs, or miss-implemented
-       as culling_limit, which is something else entirely
-  $form['ALG']['GParam']['qRange'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Max matches in a query range'),
-    '#default_value' => $defaults['qRange'],
-    '#size' => 12,
-    '#maxlength' => 20,
-    '#description' => t('Limit the number of matches to a query range. This option is useful if many strong matches to one part of a query may prevent BLAST from presenting weaker matches to another part of the query.'),
-  );
-*/
+  /*eksc: remove this as it is either the same as max_target_seqs, or miss-implemented
+         as culling_limit, which is something else entirely
+    $form['ALG']['GParam']['qRange'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Max matches in a query range'),
+      '#default_value' => $defaults['qRange'],
+      '#size' => 12,
+      '#maxlength' => 20,
+      '#description' => t('Limit the number of matches to a query range. This option is useful if many strong matches to one part of a query may prevent BLAST from presenting weaker matches to another part of the query.'),
+    );
+  */
   // Scoring parameters
   //.........................
 
@@ -102,14 +102,25 @@ function blast_ui_blastn_advanced_options_form(&$form, $form_state) {
     '#options' => _get_match_mismatch('blastn'),
     '#default_value' => $defaults['matchmiss'],
     '#description' => t('Reward and penalty for matching and mismatching bases.'),
-   );
+    '#ajax' => array(
+      'callback' => 'gap_cost_callback',
+      'wrapper' => 'gap_cost_wrapper',
+    ),
+  );
 
-   $form['ALG']['SParam']['gapCost'] = array(
+  $m_m_set = $defaults['matchmiss'];
+  if (isset($form_state['values']) && isset($form_state['values']['M&MScores'])) {
+    $m_m_set = $form_state['values']['M&MScores'];
+  }
+
+  $form['ALG']['SParam']['gapCost'] = array(
     '#type' => 'select',
     '#title' => t('Gap Costs:'),
-    '#options' => _get_gap_options('blastn'),
+    '#options' => _get_gap_options('blastn', $m_m_set),
     '#default_value' => $defaults['gap'],
     '#description' => t('Cost to create and extend a gap in an alignment. Linear costs are available only with megablast and are determined by the match/mismatch scores.'),
+    '#prefix' => '<div id="gap_cost_wrapper">',
+    '#suffix' => '</div>',
   );
 }
 
@@ -129,13 +140,14 @@ function blast_ui_blastn_advanced_options_form_validate($form, $form_state) {
     form_set_error('eVal', 'The e-value should be a very small number (scientific notation is supported). For example, <em>0.001</em> or, even better, <em>1e-10</em>.');
   }
 
-/*eksc: removed until/unless it can be properly implemented
-  // Next textfield up, "Max matches in a query range" which is also expected
-  // to be a positive number.
-  if (!is_numeric($form_state['values']['qRange'])) {
-    form_set_error('qRange', 'The "Max matches in a query range" should be a positive integer.');
-  }
-*/
+
+  /*eksc: removed until/unless it can be properly implemented
+    // Next textfield up, "Max matches in a query range" which is also expected
+    // to be a positive number.
+    if (!is_numeric($form_state['values']['qRange'])) {
+      form_set_error('qRange', 'The "Max matches in a query range" should be a positive integer.');
+    }
+  */
 }
 
 /**
@@ -163,12 +175,12 @@ function blast_ui_blastn_advanced_options_form_submit($form, $form_state) {
 
   return array(
     'max_target_seqs' => $numAlign,
-    'evalue'          => $eVal,
-    'word_size'       => $wordSize,
-    'gapopen'         => $gap['gapOpen'],
-    'gapextend'       => $gap['gapExtend'],
-    'penalty'         => $m_m['penalty'],
-    'reward'          => $m_m['reward'],
+    'evalue' => $eVal,
+    'word_size' => $wordSize,
+    'gapopen' => $gap['gapOpen'],
+    'gapextend' => $gap['gapExtend'],
+    'penalty' => $m_m['penalty'],
+    'reward' => $m_m['reward'],
   );
 }
 
@@ -201,10 +213,10 @@ function blast_ui_blastx_advanced_options_form(&$form, $form_state) {
     $defaults = _get_default_values(array(), 'blastx');
   }
 
-   $form['ALG']['GParam'] = array(
-   '#type' => 'fieldset',
-   '#title' => t('General parameters'),
-   '#collapsible' => FALSE,
+  $form['ALG']['GParam'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('General parameters'),
+    '#collapsible' => FALSE,
   );
 
   $form['ALG']['GParam']['maxTarget'] = array(
@@ -224,13 +236,13 @@ function blast_ui_blastx_advanced_options_form(&$form, $form_state) {
     '#description' => t('Expected number of chance matches in a random model. This number should be give in a decimal format. <a href="https://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml#expect" target="_blank">More Information</a> | <a href="https://www.youtube.com/watch?v=nO0wJgZRZJs" target="_blank">Expect value vedio tutorial</a>'),
   );
 
-/*eksc- need to learn how this is implemented for blastx
-  $form['ALG']['GParam']['shortQueries'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Automatically adjust parameters for short input sequences'),
-    '#default_value' => TRUE,
-  );
-*/
+  /*eksc- need to learn how this is implemented for blastx
+    $form['ALG']['GParam']['shortQueries'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Automatically adjust parameters for short input sequences'),
+      '#default_value' => TRUE,
+    );
+  */
 
   $form['ALG']['GParam']['wordSize'] = array(
     '#type' => 'select',
@@ -262,33 +274,33 @@ function blast_ui_blastx_advanced_options_form(&$form, $form_state) {
     ),
   );
 
-/*eksc: removed as this is either equivalent to max_target_sequences or mis-implemented
-       as culling_limit
-  $form['ALG']['GParam']['qRange'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Max matches in a query range'),
-    '#default_value' => $defaults['qRange'],
-    '#size' => 12,
-    '#maxlength' => 20,
-    '#description' => t('Limit the number of matches to a query range. This option is useful if many strong matches to one part of a query may prevent BLAST from presenting weaker matches to another part of the query.'),
-  );
-*/
+  /*eksc: removed as this is either equivalent to max_target_sequences or mis-implemented
+         as culling_limit
+    $form['ALG']['GParam']['qRange'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Max matches in a query range'),
+      '#default_value' => $defaults['qRange'],
+      '#size' => 12,
+      '#maxlength' => 20,
+      '#description' => t('Limit the number of matches to a query range. This option is useful if many strong matches to one part of a query may prevent BLAST from presenting weaker matches to another part of the query.'),
+    );
+  */
 
-/*eksc: NOT match/mismatch but instead computational adjustments;
-        need to learn how there are implemented for blastx
-  $form['ALG']['SParam']['M&MScores'] = array(
-    '#type' => 'select',
-    '#title' => t('Match/Mismatch Scores:'),
-    '#options' => array(
-        0 => t('No adjustment'),
-        1 => t('Composition-based statistics'),
-        2 => t('Conditional compositional score matrix adjustment'),
-        3 => t('Universal composition score matrix adjustment '),
-      ),
-    '#default_value' => 2,
-    '#description' => t('Matrix adjustment method to compensate for amino acid composition of sequences'),
-  );
-*/
+  /*eksc: NOT match/mismatch but instead computational adjustments;
+          need to learn how there are implemented for blastx
+    $form['ALG']['SParam']['M&MScores'] = array(
+      '#type' => 'select',
+      '#title' => t('Match/Mismatch Scores:'),
+      '#options' => array(
+          0 => t('No adjustment'),
+          1 => t('Composition-based statistics'),
+          2 => t('Conditional compositional score matrix adjustment'),
+          3 => t('Universal composition score matrix adjustment '),
+        ),
+      '#default_value' => 2,
+      '#description' => t('Matrix adjustment method to compensate for amino acid composition of sequences'),
+    );
+  */
 }
 
 /**
@@ -307,13 +319,13 @@ function blast_ui_blastx_advanced_options_form_validate($form, $form_state) {
     form_set_error('eVal', 'The e-value should be a very small number (scientific notation is supported). For example, <em>0.001</em> or, even better, <em>1e-10</em>.');
   }
 
-/*eksc: removed until/unless we know how to properly implement
-  // Next textfield up, "Max matches in a query range" which is also expected
-  // to be a positive number.
-  if (!is_numeric($form_state['values']['qRange'])) {
-    form_set_error('qRange', 'The "Max matches in a query range" should be a positive integer.');
-  }
-*/
+  /*eksc: removed until/unless we know how to properly implement
+    // Next textfield up, "Max matches in a query range" which is also expected
+    // to be a positive number.
+    if (!is_numeric($form_state['values']['qRange'])) {
+      form_set_error('qRange', 'The "Max matches in a query range" should be a positive integer.');
+    }
+  */
 }
 
 /**
@@ -373,13 +385,13 @@ function blast_ui_blastp_advanced_options_form(&$form, $form_state) {
     '#description' => t('Select the maximum number of aligned sequences to display'),
   );
 
-/*eksc: remove until we learn how this is implemented
-  $form['ALG']['GParam']['shortQueries'] = array(
-   '#type' => 'checkbox',
-   '#title' => t('Automatically adjust parameters for short input sequences'),
-   '#default_value' => TRUE,
-  );
-*/
+  /*eksc: remove until we learn how this is implemented
+    $form['ALG']['GParam']['shortQueries'] = array(
+     '#type' => 'checkbox',
+     '#title' => t('Automatically adjust parameters for short input sequences'),
+     '#default_value' => TRUE,
+    );
+  */
 
   $form['ALG']['GParam']['eVal'] = array(
     '#type' => 'textfield',
@@ -398,23 +410,23 @@ function blast_ui_blastp_advanced_options_form(&$form, $form_state) {
     '#description' => t('The length of the seed that initiates an alignment'),
   );
 
-/*eksc: remove this as it is either the same as max_target_seqs, or miss-implemented
-       as culling_limit, which is something else entirely
-  $form['ALG']['GParam']['qRange'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Max matches in a query range'),
-    '#default_value' => $defaults['qRange'],
-    '#size' => 12,
-    '#maxlength' => 20,
-    '#description' => t('Limit the number of matches to a query range. This option is useful if many strong matches to one part of a query may prevent BLAST from presenting weaker matches to another part of the query.'),
-  );
-*/
+  /*eksc: remove this as it is either the same as max_target_seqs, or miss-implemented
+         as culling_limit, which is something else entirely
+    $form['ALG']['GParam']['qRange'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Max matches in a query range'),
+      '#default_value' => $defaults['qRange'],
+      '#size' => 12,
+      '#maxlength' => 20,
+      '#description' => t('Limit the number of matches to a query range. This option is useful if many strong matches to one part of a query may prevent BLAST from presenting weaker matches to another part of the query.'),
+    );
+  */
   // Scoring parameters
 
   $form['ALG']['SParam'] = array(
-   '#type' => 'fieldset',
-   '#title' => t('Scoring parameters'),
-   '#collapsible' => FALSE,
+    '#type' => 'fieldset',
+    '#title' => t('Scoring parameters'),
+    '#collapsible' => FALSE,
   );
 
   $matrix_options = _get_matrix_options();
@@ -430,33 +442,33 @@ function blast_ui_blastp_advanced_options_form(&$form, $form_state) {
     ),
   );
 
-/*eksc: probably not used for blastp
-  $form['ALG']['SParam']['gapCost'] = array(
-    '#type' => 'select',
-    '#title' => t('Gap Costs:'),
-    '#prefix' => '<div id="dropdown-second-replace">',
-    '#suffix' => '</div>',
-    '#options' => _get_gap_for_matrix($selected),
-    '#default_value' => 2,
-    '#description' => t('Cost to create and extend a gap in an alignment.'),
-  );
-*/
+  /*eksc: probably not used for blastp
+    $form['ALG']['SParam']['gapCost'] = array(
+      '#type' => 'select',
+      '#title' => t('Gap Costs:'),
+      '#prefix' => '<div id="dropdown-second-replace">',
+      '#suffix' => '</div>',
+      '#options' => _get_gap_for_matrix($selected),
+      '#default_value' => 2,
+      '#description' => t('Cost to create and extend a gap in an alignment.'),
+    );
+  */
 
-/*eksc: NOT match/mismatch but instead computational adjustments;
-        need to learn how there are implemented for blastp
-  $form['ALG']['SParam']['M&MScores'] = array(
-    '#type' => 'select',
-    '#title' => t('Match/Mismatch Scores:'),
-    '#options' => array(
-      0 => t('No adjustment'),
-      1 => t('Composition-based statistics'),
-      2 => t('Conditional compositional score matrix adjustment'),
-      3 => t('Universal composition score matrix adjustment '),
-    ),
-    '#default_value' => 2,
-    '#description' => t('Matrix adjustment method to compensate for amino acid composition of sequences'),
-  );
-*/
+  /*eksc: NOT match/mismatch but instead computational adjustments;
+          need to learn how there are implemented for blastp
+    $form['ALG']['SParam']['M&MScores'] = array(
+      '#type' => 'select',
+      '#title' => t('Match/Mismatch Scores:'),
+      '#options' => array(
+        0 => t('No adjustment'),
+        1 => t('Composition-based statistics'),
+        2 => t('Conditional compositional score matrix adjustment'),
+        3 => t('Universal composition score matrix adjustment '),
+      ),
+      '#default_value' => 2,
+      '#description' => t('Matrix adjustment method to compensate for amino acid composition of sequences'),
+    );
+  */
 }
 
 /**
@@ -475,13 +487,13 @@ function blast_ui_blastp_advanced_options_form_validate($form, $form_state) {
     form_set_error('eVal', 'The e-value should be a very small number (scientific notation is supported). For example, <em>0.001</em> or, even better, <em>1e-10</em>.');
   }
 
-/*eksc: remove until/unless we know how to correctly implement it
-  // Next textfield up, "Max matches in a query range" which is also expected
-  // to be a positive number.
-  if (!is_numeric($form_state['values']['qRange'])) {
-    form_set_error('qRange', 'The "Max matches in a query range" should be a positive integer.');
-  }
-*/
+  /*eksc: remove until/unless we know how to correctly implement it
+    // Next textfield up, "Max matches in a query range" which is also expected
+    // to be a positive number.
+    if (!is_numeric($form_state['values']['qRange'])) {
+      form_set_error('qRange', 'The "Max matches in a query range" should be a positive integer.');
+    }
+  */
 }
 
 /**
@@ -507,18 +519,19 @@ function blast_ui_blastp_advanced_options_form_submit($form, $form_state) {
   // Expand Gap Cost key into open and extend penalties
   $matrix = $form_state['values']['Matrix'];
   $gapKey = $form_state['values']['gapCost'];
-  $gap    = _set_protein_gap($matrix, $gapKey);
+  $gap = _set_protein_gap($matrix, $gapKey);
 
 //eksc- need to implement query range limit
 //  q_range
 
   return array(
     'max_target_seqs' => $numAlign,
-    'evalue'          => $eVal,
-    'word_size'       => $wordSize,
-    'gapopen'         => $gap['gapOpen'],
-    'gapextend'       => $gap['gapExtend'],
-    'matrix'          => $matrix,
+    'evalue' => $eVal,
+    'word_size' => $wordSize,
+    'gapopen' => $gapOpen,
+    'gapextend' => $gapExtend,
+    'culling_limit' => $qRange,
+    'matrix' => $matrix,
   );
 }//blast_ui_blastp_advanced_options_form_submit
 
@@ -542,10 +555,12 @@ function _get_matrix_options() {
 }
 
 /**
- * Fill the gap penalty dropdown list with appropriate options given selected matrix
+ * Fill the gap penalty dropdown list with appropriate options given selected
+ * matrix
  *
  * @return
- * An array containing open and extension gap values for the chosen matrix (to fill the second dropdown list)
+ * An array containing open and extension gap values for the chosen matrix (to
+ *   fill the second dropdown list)
  */
 function _get_gap_for_matrix($key = '') {
   $options = array(
@@ -556,7 +571,7 @@ function _get_gap_for_matrix($key = '') {
       t('Existence: 10 Extension: 1'),
       t('Existence: 9 Extension: 1'),
       t('Existence: 8 Extension: 1'),
-     )),
+    )),
     t('PAM70') => drupal_map_assoc(array(
       t('Existence: 8 Extension: 2'),
       t('Existence: 7 Extension: 2'),
@@ -660,6 +675,7 @@ function ajax_dependent_dropdown_callback($form, $form_state) {
   return $form['ALG']['SParam']['gapCost'];
 }
 
+
 /**
  * @section
  * tBLASTn: Search translated nucleotide database using a protein query.
@@ -690,9 +706,9 @@ function blast_ui_tblastn_advanced_options_form(&$form, $form_state) {
   }
 
   $form['ALG']['GParam'] = array(
-   '#type' => 'fieldset',
-   '#title' => t('General parameters'),
-   '#collapsible' => FALSE,
+    '#type' => 'fieldset',
+    '#title' => t('General parameters'),
+    '#collapsible' => FALSE,
   );
 
   $form['ALG']['GParam']['maxTarget'] = array(
@@ -712,13 +728,13 @@ function blast_ui_tblastn_advanced_options_form(&$form, $form_state) {
     '#description' => t('Expected number of chance matches in a random model. This number should be give in a decimal format. <a href="https://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml#expect" target="_blank">More Information</a> | <a href="https://www.youtube.com/watch?v=nO0wJgZRZJs" target="_blank">Expect value vedio tutorial</a>'),
   );
 
-/*eksc: need to learn how this is implemented for tblastn
-  $form['ALG']['GParam']['shortQueries'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Automatically adjust parameters for short input sequences'),
-    '#default_value' => TRUE,
-  );
-*/
+  /*eksc: need to learn how this is implemented for tblastn
+    $form['ALG']['GParam']['shortQueries'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Automatically adjust parameters for short input sequences'),
+      '#default_value' => TRUE,
+    );
+  */
 
   $form['ALG']['GParam']['wordSize'] = array(
     '#type' => 'select',
@@ -760,17 +776,17 @@ function blast_ui_tblastn_advanced_options_form(&$form, $form_state) {
     '#description' => t('Cost to create and extend a gap in an alignment.'),
   );
 
-/*eksc: remove this as it is either the same as max_target_seqs, or miss-implemented
-       as culling_limit, which is something else entirely
-  $form['ALG']['GParam']['qRange'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Max matches in a query range'),
-    '#default_value' => $defaults['qRange'],
-    '#size' => 12,
-    '#maxlength' => 20,
-    '#description' => t('Limit the number of matches to a query range. This option is useful if many strong matches to one part of a query may prevent BLAST from presenting weaker matches to another part of the query.'),
-  );
-*/
+  /*eksc: remove this as it is either the same as max_target_seqs, or miss-implemented
+         as culling_limit, which is something else entirely
+    $form['ALG']['GParam']['qRange'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Max matches in a query range'),
+      '#default_value' => $defaults['qRange'],
+      '#size' => 12,
+      '#maxlength' => 20,
+      '#description' => t('Limit the number of matches to a query range. This option is useful if many strong matches to one part of a query may prevent BLAST from presenting weaker matches to another part of the query.'),
+    );
+  */
 }
 
 /**
@@ -789,13 +805,13 @@ function blast_ui_tblastn_advanced_options_form_validate($form, $form_state) {
     form_set_error('eVal', 'The e-value should be a very small number (scientific notation is supported). For example, <em>0.001</em> or, even better, <em>1e-10</em>.');
   }
 
-/*eksc: remove until/unless we know how to correctly implement it
-  // Next textfield up, "Max matches in a query range" which is also expected
-  // to be a positive number.
-  if (!is_numeric($form_state['values']['qRange'])) {
-    form_set_error('qRange', 'The "Max matches in a query range" should be a positive integer.');
-  }
-*/
+  /*eksc: remove until/unless we know how to correctly implement it
+    // Next textfield up, "Max matches in a query range" which is also expected
+    // to be a positive number.
+    if (!is_numeric($form_state['values']['qRange'])) {
+      form_set_error('qRange', 'The "Max matches in a query range" should be a positive integer.');
+    }
+  */
 }
 
 /**
@@ -816,69 +832,96 @@ function blast_ui_tblastn_advanced_options_form_submit($form, $form_state) {
 function _get_default_values($options) {
   // restore previous values or set to default
   $max_target = (isset($options['max_target_seqs']))
-            ? $options['max_target_seqs'] : 500;
+    ? $options['max_target_seqs'] : 500;
   $short_queries = (isset($options['shortQueries']))
-            ? $options['shortQueries'] : true;
+    ? $options['shortQueries'] : TRUE;
   $evalue = (isset($options['evalue']))
-            ? $options['evalue'] : variable_get('eVal', 0.001);
+    ? $options['evalue'] : variable_get('eVal', 0.001);
   $word_size = (isset($options['word_size']))
-            ? $options['word_size'] : 11;
+    ? $options['word_size'] : 11;
 
   $matchmiss = 0;
   $reward = (isset($options['reward']))
-            ? $options['reward'] : 1;
+    ? $options['reward'] : 1;
   $penalty = (isset($options['penalty']))
-            ? $options['penalty'] : -2;
+    ? $options['penalty'] : -2;
   if ($reward == 1) {
     switch ($penalty) {
-      case -1: $matchmiss = 5; break;
-      case -2: $matchmiss = 0; break;
-      case -3: $matchmiss = 1; break;
-      case -4: $matchmiss = 2; break;
+      case -1:
+        $matchmiss = 5;
+        break;
+      case -2:
+        $matchmiss = 0;
+        break;
+      case -3:
+        $matchmiss = 1;
+        break;
+      case -4:
+        $matchmiss = 2;
+        break;
     }
   }
-  else if ($reward == 2) {
-    $matchmiss = 3;
-  }
-  else if ($reward == 3) {
-     $matchmis = 4;
-  }
-  else if ($eward == 4) {
-     $matchmiss = 5;
+  else {
+    if ($reward == 2) {
+      $matchmiss = 3;
+    }
+    else {
+      if ($reward == 3) {
+        $matchmis = 4;
+      }
+      else {
+        if ($reward == 4) {
+          $matchmiss = 5;
+        }
+      }
+    }
   }
 
   $gap = 0;
   $gapopen = (isset($options['gapopen']))
-            ? $options['gapopen'] : 5;
+    ? $options['gapopen'] : 5;
   $gapextend = (isset($options['gapextend']))
-            ? $options['gapextend'] : 2;
+    ? $options['gapextend'] : 2;
   if ($gapextend == 2) {
     switch ($gapopen) {
-      case 5: $gap = 0; break;
-      case 2: $gap = 1; break;
-      case 1: $gap = 2; break;
-      case 0: $gap = 3; break;
+      case 5:
+        $gap = 0;
+        break;
+      case 2:
+        $gap = 1;
+        break;
+      case 1:
+        $gap = 2;
+        break;
+      case 0:
+        $gap = 3;
+        break;
     }
   }
-  else if ($gapextend == 1) {
-    switch ($gapopen) {
-      case 3: $gap = 4;
-      case 2: $gap = 5;
-      case 1: $gap = 6;
+  else {
+    if ($gapextend == 1) {
+      switch ($gapopen) {
+        case 3:
+          $gap = 4;
+        case 2:
+          $gap = 5;
+        case 1:
+          $gap = 6;
+      }
     }
   }
 
   $matrix = (isset($options['matrix']))
-            ? $options['matrix'] : 'PAM30';
+    ? $options['matrix'] : 'PAM30';
+
   return array(
     'max_target_seqs' => $max_target,
-    'short_queries'   => $short_queries,
-    'word_size'       => $word_size,
-    'evalue'          => $evalue,
-    'matchmiss'       => $matchmiss,
-    'gap'             => $gap,
-//    'qRange'          => $qRange,
-    'matrix'          => $matrix,
+    'short_queries' => $short_queries,
+    'word_size' => $word_size,
+    'evalue' => $evalue,
+    'matchmiss' => $matchmiss,
+    'gap' => $gap,
+    'matrix' => $matrix,
   );
 }//_get_default_values
 
@@ -915,25 +958,25 @@ function _get_max_target($which) {
 function _get_word_size($which) {
   switch ($which) {
     case 'blastn':
-       return array(
-         7 => t('7'),
-         11 => t('11'),
-         15 => t('15'),
-         16 => t('16'),
-         20 => t('20'),
-         24 => t('24'),
-         28 => t('28'),
-         32 => t('32'),
-         48 => t('48'),
-         64 => t('64'),
-          128 => t('128'),
-         256 => t('256'),
+      return array(
+        7 => t('7'),
+        11 => t('11'),
+        15 => t('15'),
+        16 => t('16'),
+        20 => t('20'),
+        24 => t('24'),
+        28 => t('28'),
+        32 => t('32'),
+        48 => t('48'),
+        64 => t('64'),
+        128 => t('128'),
+        256 => t('256'),
       );
     case 'blastx':
     case 'blastp':
     case 'tblastn':
       return array(
-      //  2 => t('2'),
+        //  2 => t('2'),
         3 => t('3'),
         6 => t('6'),
       );
@@ -947,23 +990,28 @@ function _get_match_mismatch($which) {
   switch ($which) {
     case 'blastn':
       return array(
-         0 => t('1,-2'),
-         1 => t('1,-3'),
-         2 => t('1,-4'),
-         3 => t('2,-3'),
-         4 => t('4,-5'),
-         5 => t('1,-1'),
+        0 => t('1,-2'),
+        1 => t('1,-3'),
+        2 => t('1,-4'),
+        3 => t('2,-3'),
+        4 => t('4,-5'),
+        5 => t('1,-1'),
       );
   }//switch
 }
 
 /**
- * Get a list of options for gaps.
+ * @param $which - the blast program being run
+ * @param $m_m - the match mismatch scores.
+ *
+ * @return array
  */
-function _get_gap_options($which) {
+function _get_gap_options($which, $m_m) {
+
   switch ($which) {
     case 'blastn':
-      return array(
+
+      $base = array(
         0 => t('Existence: 5 Extension: 2'),
         1 => t('Existence: 2 Extension: 2'),
         2 => t('Existence: 1 Extension: 2'),
@@ -972,42 +1020,128 @@ function _get_gap_options($which) {
         5 => t('Existence: 2 Extension: 1'),
         6 => t('Existence: 1 Extension: 1'),
       );
-   }//switch
+
+      $two_neg_three = [
+        0 => t('Existence: 5 Extension: 2'),
+        1 => t('Existence: 2 Extension: 2'),
+        7 => t('Existence: 4 Extension: 4'),
+        8 => t('Existence: 2 Extension: 4'),
+        9 => t('Existence: 0 Extension: 4'),
+        10 => t('Existence: 3 Extension: 3'),
+        11 => t('Existence: 6 Extension: 3'),
+        12 => t('Existence: 4 Extension: 2'),
+      ];
+
+      $four_neg_five = [
+        13 => t('Existence: 12 Extension: 8'),
+        14 => t('Existence: 6 Extension: 5'),
+        15 => t('Existence: 5 Extension: 5'),
+        16 => t('Existence: 4 Extension: 5'),
+        17 => t('Existence: 3 Extension: 5'),
+      ];
+
+
+      switch ($m_m) {
+        case 0: //1, -2
+          return $base;
+        case 1: //1, -3
+          unset($base[4]);
+          return $base;
+        case 2: // 1, -4
+          unset($base[1]);
+          unset($base[4]);
+          return $base;
+        case 3://2, -3
+          return $two_neg_three;
+        case 4://4, -5
+          return $four_neg_five;
+        case 5: //1, -1
+          unset($base[6]);
+          $base[18]= t("Existence: 3 Extension 2");
+          $base[19]= t("Existence: 4 Extension 1");
+          return $base;
+      }
+  }
 }
 
 /**
  * Translate above gap options into blast gap open and extend costs.
  */
 function _set_gap($gap_key) {
- switch ($gap_key) {
-   case 0:
+  switch ($gap_key) {
+    case 0:
       $gapOpen = 5;
       $gapExtend = 2;
       break;
-   case 1:
+    case 1:
       $gapOpen = 2;
       $gapExtend = 2;
       break;
-   case 2:
+    case 2:
       $gapOpen = 1;
       $gapExtend = 2;
       break;
-   case 3:
+    case 3:
       $gapOpen = 0;
       $gapExtend = 2;
       break;
-   case 4:
+    case 4:
       $gapOpen = 3;
       $gapExtend = 1;
       break;
-   case 5:
+    case 5:
       $gapOpen = 2;
       $gapExtend = 1;
       break;
-   case 6:
+    case 6:
       $gapOpen = 1;
       $gapExtend = 1;
       break;
+    case 7:
+      $gapOpen = 4;
+      $gapExtend = 4;
+      break;
+    case 8:
+      $gapOpen = 2;
+      $gapExtend = 4;
+      break;
+    case 9:
+      $gapOpen = 0;
+      $gapExtend = 4;
+      break;
+    case 10:
+      $gapOpen = 3;
+      $gapExtend = 3;
+      break;
+    case 11:
+      $gapOpen = 6;
+      $gapExtend = 3;
+      break;
+    case 12:
+      $gapOpen = 4;
+      $gapExtend = 2;
+      break;
+    case 13:
+      $gapOpen = 12;
+      $gapExtend = 8;
+      break;
+    case 14:
+      $gapOpen = 6;
+      $gapExtend = 5;
+      break;
+    case 15:
+      $gapOpen = 5;
+      $gapExtend = 5;
+      break;
+    case 16:
+      $gapOpen = 4;
+      $gapExtend = 5;
+      break;
+    case 17:
+      $gapOpen = 3;
+      $gapExtend = 5;
+      break;
+
   }//switch
 
   return array('gapOpen' => $gapOpen, 'gapExtend' => $gapExtend);
@@ -1018,27 +1152,27 @@ function _set_gap($gap_key) {
  */
 function _set_match_mismatch($m_m) {
   switch ($m_m) {
-   case 0:
+    case 0:
       $penalty = -2;
       $reward = 1;
       break;
-   case 1:
+    case 1:
       $penalty = -3;
       $reward = 1;
       break;
-   case 2:
+    case 2:
       $penalty = -4;
       $reward = 1;
       break;
-   case 3:
+    case 3:
       $penalty = -3;
       $reward = 2;
       break;
-   case 4:
+    case 4:
       $penalty = -5;
       $reward = 4;
       break;
-   case 5:
+    case 5:
       $penalty = -1;
       $reward = 1;
       break;
@@ -1048,361 +1182,373 @@ function _set_match_mismatch($m_m) {
 }
 
 
-/** 
+/**
  * Get gap values based on matrix and selected gap "key"
  */
-function _set_protein_gap($matrix, $gapkey) {
+function _set_protein_gap($matrix, $gapKey) {
   switch ($matrix) {
     case 'PAM30':
       switch ($gapKey) {
         case 0:
-             $gapOpen   = 7;
-             $gapExtend = 2;
-             break;
+          $gapOpen = 7;
+          $gapExtend = 2;
+          break;
         case 1:
-             $gapOpen   = 6;
-             $gapExtend = 2;
-             break;
+          $gapOpen = 6;
+          $gapExtend = 2;
+          break;
         case 2:
-             $gapOpen   = 5;
-             $gapExtend = 2;
-             break;
+          $gapOpen = 5;
+          $gapExtend = 2;
+          break;
         case 3:
-             $gapOpen   = 10;
-             $gapExtend = 1;
-             break;
+          $gapOpen = 10;
+          $gapExtend = 1;
+          break;
         case 4:
-             $gapOpen   = 9;
-             $gapExtend = 1;
-             break;
+          $gapOpen = 9;
+          $gapExtend = 1;
+          break;
         case 5:
-             $gapOpen   = 8;
-             $gapExtend = 1;
-             break;
+          $gapOpen = 8;
+          $gapExtend = 1;
+          break;
       }
       break;
     case 'PAM70':
       switch ($gapKey) {
         case 0:
-             $gapOpen   = 8;
-             $gapExtend = 2;
-             break;
+          $gapOpen = 8;
+          $gapExtend = 2;
+          break;
         case 1:
-             $gapOpen   = 7;
-             $gapExtend = 2;
-             break;
+          $gapOpen = 7;
+          $gapExtend = 2;
+          break;
         case 2:
-             $gapOpen   = 6;
-             $gapExtend = 2;
-             break;
+          $gapOpen = 6;
+          $gapExtend = 2;
+          break;
         case 3:
-             $gapOpen   = 11;
-             $gapExtend = 1;
-             break;
+          $gapOpen = 11;
+          $gapExtend = 1;
+          break;
         case 4:
-             $gapOpen   = 10;
-             $gapExtend = 1;
-             break;
+          $gapOpen = 10;
+          $gapExtend = 1;
+          break;
         case 5:
-             $gapOpen   = 9;
-             $gapExtend = 1;
-             break;
+          $gapOpen = 9;
+          $gapExtend = 1;
+          break;
       }
       break;
     case 'PAM250':
-       switch ($gapKey) {
-          case 0:
-               $gapOpen   = 15;
-               $gapExtend = 3;
-               break;
-          case 1:
-               $gapOpen   = 14;
-               $gapExtend = 3;
-               break;
-          case 2:
-               $gapOpen   = 13;
-               $gapExtend = 3;
-               break;
-          case 3:
-               $gapOpen   = 12;
-               $gapExtend = 3;
-               break;
-          case 4:
-               $gapOpen   = 11;
-               $gapExtend = 3;
-               break;
-          case 5:
-               $gapOpen   = 17;
-               $gapExtend = 2;
-               break;
-          case 6:
-               $gapOpen   = 16;
-               $gapExtend = 2;
-               break;
-          case 7:
-               $gapOpen   = 15;
-               $gapExtend = 2;
-               break;
-          case 8:
-               $gapOpen   = 14;
-               $gapExtend = 2;
-               break;
-          case 9:
-               $gapOpen   = 13;
-               $gapExtend = 2;
-               break;
-          case 10:
-               $gapOpen   = 21;
-               $gapExtend = 1;
-               break;
-          case 11:
-               $gapOpen   = 20;
-               $gapExtend = 1;
-               break;
-          case 12:
-               $gapOpen   = 19;
-               $gapExtend = 1;
-               break;
-          case 13:
-               $gapOpen   = 18;
-               $gapExtend = 1;
-               break;
-          case 14:
-               $gapOpen   = 17;
-               $gapExtend = 1;
-               break;
+      switch ($gapKey) {
+        case 0:
+          $gapOpen = 15;
+          $gapExtend = 3;
+          break;
+        case 1:
+          $gapOpen = 14;
+          $gapExtend = 3;
+          break;
+        case 2:
+          $gapOpen = 13;
+          $gapExtend = 3;
+          break;
+        case 3:
+          $gapOpen = 12;
+          $gapExtend = 3;
+          break;
+        case 4:
+          $gapOpen = 11;
+          $gapExtend = 3;
+          break;
+        case 5:
+          $gapOpen = 17;
+          $gapExtend = 2;
+          break;
+        case 6:
+          $gapOpen = 16;
+          $gapExtend = 2;
+          break;
+        case 7:
+          $gapOpen = 15;
+          $gapExtend = 2;
+          break;
+        case 8:
+          $gapOpen = 14;
+          $gapExtend = 2;
+          break;
+        case 9:
+          $gapOpen = 13;
+          $gapExtend = 2;
+          break;
+        case 10:
+          $gapOpen = 21;
+          $gapExtend = 1;
+          break;
+        case 11:
+          $gapOpen = 20;
+          $gapExtend = 1;
+          break;
+        case 12:
+          $gapOpen = 19;
+          $gapExtend = 1;
+          break;
+        case 13:
+          $gapOpen = 18;
+          $gapExtend = 1;
+          break;
+        case 14:
+          $gapOpen = 17;
+          $gapExtend = 1;
+          break;
       }
       break;
     case 'BLOSUM80':
-       switch ($gapKey) {
-          case 0:
-               $gapOpen   = 8;
-               $gapExtend = 2;
-               break;
-          case 1:
-               $gapOpen   = 7;
-               $gapExtend = 2;
-               break;
-          case 2:
-               $gapOpen   = 6;
-               $gapExtend = 2;
-               break;
-          case 3:
-               $gapOpen   = 11;
-               $gapExtend = 1;
-               break;
-          case 4:
-               $gapOpen   = 10;
-               $gapExtend = 1;
-               break;
-          case 5:
-               $gapOpen   = 9;
-               $gapExtend = 1;
-               break;
+      switch ($gapKey) {
+        case 0:
+          $gapOpen = 8;
+          $gapExtend = 2;
+          break;
+        case 1:
+          $gapOpen = 7;
+          $gapExtend = 2;
+          break;
+        case 2:
+          $gapOpen = 6;
+          $gapExtend = 2;
+          break;
+        case 3:
+          $gapOpen = 11;
+          $gapExtend = 1;
+          break;
+        case 4:
+          $gapOpen = 10;
+          $gapExtend = 1;
+          break;
+        case 5:
+          $gapOpen = 9;
+          $gapExtend = 1;
+          break;
       }
       break;
     case 'BLOSUM62':
-       switch ($gapKey) {
-          case 0:
-               $gapOpen   = 11;
-               $gapExtend = 2;
-               break;
-          case 1:
-               $gapOpen   = 10;
-               $gapExtend = 2;
-               break;
-          case 2:
-               $gapOpen   = 9;
-               $gapExtend = 2;
-               break;
-          case 3:
-               $gapOpen   = 8;
-               $gapExtend = 2;
-               break;
-          case 4:
-               $gapOpen   = 7;
-               $gapExtend = 2;
-               break;
-          case 5:
-               $gapOpen   = 6;
-               $gapExtend = 2;
-               break;
-          case 6:
-               $gapOpen   = 13;
-               $gapExtend = 1;
-               break;
-          case 7:
-               $gapOpen   = 12;
-               $gapExtend = 1;
-               break;
-          case 8:
-               $gapOpen   = 11;
-               $gapExtend = 1;
-               break;
-          case 9:
-               $gapOpen   = 10;
-               $gapExtend = 1;
-               break;
-          case 10:
-               $gapOpen   = 9;
-               $gapExtend = 1;
-               break;
+      switch ($gapKey) {
+        case 0:
+          $gapOpen = 11;
+          $gapExtend = 2;
+          break;
+        case 1:
+          $gapOpen = 10;
+          $gapExtend = 2;
+          break;
+        case 2:
+          $gapOpen = 9;
+          $gapExtend = 2;
+          break;
+        case 3:
+          $gapOpen = 8;
+          $gapExtend = 2;
+          break;
+        case 4:
+          $gapOpen = 7;
+          $gapExtend = 2;
+          break;
+        case 5:
+          $gapOpen = 6;
+          $gapExtend = 2;
+          break;
+        case 6:
+          $gapOpen = 13;
+          $gapExtend = 1;
+          break;
+        case 7:
+          $gapOpen = 12;
+          $gapExtend = 1;
+          break;
+        case 8:
+          $gapOpen = 11;
+          $gapExtend = 1;
+          break;
+        case 9:
+          $gapOpen = 10;
+          $gapExtend = 1;
+          break;
+        case 10:
+          $gapOpen = 9;
+          $gapExtend = 1;
+          break;
       }
       break;
     case 'BLOSUM45':
-       switch ($gapKey) {
-          case 0:
-               $gapOpen   = 13;
-               $gapExtend = 3;
-               break;
-          case 1:
-               $gapOpen   = 12;
-               $gapExtend = 3;
-               break;
-          case 2:
-               $gapOpen   = 11;
-               $gapExtend = 3;
-               break;
-          case 3:
-               $gapOpen   = 10;
-               $gapExtend = 3;
-               break;
-          case 4:
-               $gapOpen   = 15;
-               $gapExtend = 2;
-               break;
-          case 5:
-               $gapOpen   = 14;
-               $gapExtend = 2;
-               break;
-          case 6:
-               $gapOpen   = 13;
-               $gapExtend = 2;
-               break;
-          case 7:
-               $gapOpen   = 12;
-               $gapExtend = 2;
-               break;
-          case 8:
-               $gapOpen   = 19;
-               $gapExtend = 1;
-               break;
-          case 9:
-               $gapOpen   = 18;
-               $gapExtend = 1;
-               break;
-          case 10:
-               $gapOpen   = 17;
-               $gapExtend = 1;
-               break;
-          case 11:
-               $gapOpen   = 16;
-               $gapExtend = 1;
-               break;
+      switch ($gapKey) {
+        case 0:
+          $gapOpen = 13;
+          $gapExtend = 3;
+          break;
+        case 1:
+          $gapOpen = 12;
+          $gapExtend = 3;
+          break;
+        case 2:
+          $gapOpen = 11;
+          $gapExtend = 3;
+          break;
+        case 3:
+          $gapOpen = 10;
+          $gapExtend = 3;
+          break;
+        case 4:
+          $gapOpen = 15;
+          $gapExtend = 2;
+          break;
+        case 5:
+          $gapOpen = 14;
+          $gapExtend = 2;
+          break;
+        case 6:
+          $gapOpen = 13;
+          $gapExtend = 2;
+          break;
+        case 7:
+          $gapOpen = 12;
+          $gapExtend = 2;
+          break;
+        case 8:
+          $gapOpen = 19;
+          $gapExtend = 1;
+          break;
+        case 9:
+          $gapOpen = 18;
+          $gapExtend = 1;
+          break;
+        case 10:
+          $gapOpen = 17;
+          $gapExtend = 1;
+          break;
+        case 11:
+          $gapOpen = 16;
+          $gapExtend = 1;
+          break;
       }
       break;
     case 'BLOSUM50':
-       switch ($gapKey) {
-          case 0:
-               $gapOpen   = 13;
-               $gapExtend = 3;
-               break;
-          case 1:
-               $gapOpen   = 12;
-               $gapExtend = 3;
-               break;
-          case 2:
-               $gapOpen   = 11;
-               $gapExtend = 3;
-               break;
-          case 3:
-               $gapOpen   = 10;
-               $gapExtend = 3;
-               break;
-          case 4:
-               $gapOpen   = 9;
-               $gapExtend = 3;
-               break;
-          case 5:
-               $gapOpen   = 16;
-               $gapExtend = 2;
-               break;
-          case 6:
-               $gapOpen   = 15;
-               $gapExtend = 2;
-               break;
-          case 7:
-               $gapOpen   = 14;
-               $gapExtend = 2;
-               break;
-          case 8:
-               $gapOpen   = 13;
-               $gapExtend = 2;
-               break;
-          case 9:
-               $gapOpen   = 12;
-               $gapExtend = 2;
-               break;
-          case 10:
-               $gapOpen   = 19;
-               $gapExtend = 1;
-               break;
-          case 11:
-               $gapOpen   = 18;
-               $gapExtend = 1;
-               break;
-          case 12:
-               $gapOpen   = 17;
-               $gapExtend = 1;
-               break;
-          case 13:
-               $gapOpen   = 16;
-               $gapExtend = 1;
-               break;
-          case 14:
-               $gapOpen   = 15;
-               $gapExtend = 1;
-               break;
+      switch ($gapKey) {
+        case 0:
+          $gapOpen = 13;
+          $gapExtend = 3;
+          break;
+        case 1:
+          $gapOpen = 12;
+          $gapExtend = 3;
+          break;
+        case 2:
+          $gapOpen = 11;
+          $gapExtend = 3;
+          break;
+        case 3:
+          $gapOpen = 10;
+          $gapExtend = 3;
+          break;
+        case 4:
+          $gapOpen = 9;
+          $gapExtend = 3;
+          break;
+        case 5:
+          $gapOpen = 16;
+          $gapExtend = 2;
+          break;
+        case 6:
+          $gapOpen = 15;
+          $gapExtend = 2;
+          break;
+        case 7:
+          $gapOpen = 14;
+          $gapExtend = 2;
+          break;
+        case 8:
+          $gapOpen = 13;
+          $gapExtend = 2;
+          break;
+        case 9:
+          $gapOpen = 12;
+          $gapExtend = 2;
+          break;
+        case 10:
+          $gapOpen = 19;
+          $gapExtend = 1;
+          break;
+        case 11:
+          $gapOpen = 18;
+          $gapExtend = 1;
+          break;
+        case 12:
+          $gapOpen = 17;
+          $gapExtend = 1;
+          break;
+        case 13:
+          $gapOpen = 16;
+          $gapExtend = 1;
+          break;
+        case 14:
+          $gapOpen = 15;
+          $gapExtend = 1;
+          break;
       }
       break;
     case 'BLOSUM90':
-       switch ($gapKey) {
-          case 0:
-               $gapOpen   = 9;
-               $gapExtend = 2;
-               break;
-          case 1:
-               $gapOpen   = 8;
-               $gapExtend = 2;
-               break;
-          case 2:
-               $gapOpen   = 7;
-               $gapExtend = 2;
-               break;
-          case 3:
-               $gapOpen   = 6;
-               $gapExtend = 2;
-               break;
-          case 4:
-               $gapOpen   = 11;
-               $gapExtend = 1;
-               break;
-          case 5:
-               $gapOpen   = 10;
-               $gapExtend = 1;
-               break;
-          case 6:
-               $gapOpen   = 9;
-               $gapExtend = 1;
-               break;
+      switch ($gapKey) {
+        case 0:
+          $gapOpen = 9;
+          $gapExtend = 2;
+          break;
+        case 1:
+          $gapOpen = 8;
+          $gapExtend = 2;
+          break;
+        case 2:
+          $gapOpen = 7;
+          $gapExtend = 2;
+          break;
+        case 3:
+          $gapOpen = 6;
+          $gapExtend = 2;
+          break;
+        case 4:
+          $gapOpen = 11;
+          $gapExtend = 1;
+          break;
+        case 5:
+          $gapOpen = 10;
+          $gapExtend = 1;
+          break;
+        case 6:
+          $gapOpen = 9;
+          $gapExtend = 1;
+          break;
       }
       break;
-   }
-   
-   return array(
-       'gapOpen' => $gapOpen,
-      'gapExtend' => $gapExtend 
-   );
- }
+  }
+
+  return array(
+    'gapOpen' => $gapOpen,
+    'gapExtend' => $gapExtend,
+  );
+}
+
+/**
+ * AJAX callback for match and gap cost.
+ * @param $form
+ * @param $form_state
+ *
+ * @return mixed
+ */
+function gap_cost_callback($form, &$form_state) {
+
+  return $form['B']['ALG']['SParam']['gapCost'];
+}
 
 
