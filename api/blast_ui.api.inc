@@ -884,7 +884,7 @@ function printGFF_parent_children ($gff,$blast_feature_array){
 function blast_ui_get_cvit_conf_text($genome_target = FALSE) {
 
   // Retrieve the full path and filename of the conf.
-  $cvit_conf = blast_ui_get_cvit_conf(variable_get('blast_ui_cvitjs_location', false));
+  $cvit_conf = blast_ui_get_cvit_conf();
   if ($cvit_conf) {
 
     // Retrieve the contents of the file.
@@ -931,19 +931,15 @@ function blast_ui_get_cvit_conf_text($genome_target = FALSE) {
 /**
  * Get path to cvitjs conf file.
  *
- * ASSUMPTION: Assumes the code is contained within the blast ui module.
- *
  * @return
  *  The path to the CViTjs codebase.
  */
-function blast_ui_get_cvit_conf($cvitjs_location) {
+function blast_ui_get_cvit_conf($cvitjs_location = NULL) {
   if (!$cvitjs_location) {
-    return false;
+    $cvitjs_location = libraries_get_path('cvitjs') . DIRECTORY_SEPARATOR;
   }
 
-  $cvit_conf_path = drupal_get_path('module','blast_ui')
-                  . DIRECTORY_SEPARATOR . $cvitjs_location
-                  . DIRECTORY_SEPARATOR . 'cvit.conf';
+  $cvit_conf_path = $cvitjs_location . 'cvit.conf';
 
   return $cvit_conf_path;
 }

@@ -40,16 +40,12 @@ function blast_ui_preprocess_show_blast_report(&$vars) {
     $vars['show_cvit_diagram'] = TRUE;
 
     // Add the CSS/JS.
-    $cvitjs_location = variable_get('blast_ui_cvitjs_location', '');
-    $base = drupal_get_path('module','blast_ui')
-           . DIRECTORY_SEPARATOR . $cvitjs_location
-           . DIRECTORY_SEPARATOR . 'js'
-           . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR;
-    drupal_add_css($base.'bootstrap_embed/css/bootstrap.min.css',array('preprocess'=>FALSE));
-    drupal_add_css($base.'hopscotch/css/hopscotch.min.css',array('preprocess'=>FALSE));
-    drupal_add_css($base.'../../css/cvit.css',array('preprocess'=> FALSE));
-    drupal_add_js($base.'require/require.js',array('group'=>'JS_LIBRARY','type'=>'file'));
-    drupal_add_js($base.'require/blast_ui-config.js',array('group'=>'JS_THEME'));
+    $cvitjs_lib_path = libraries_get_path('cvitjs') . DIRECTORY_SEPARATOR;
+    drupal_add_css($cvitjs_lib_path . 'js/lib/bootstrap_embed/css/bootstrap.min.css',array('preprocess'=>FALSE));
+    drupal_add_css($cvitjs_lib_path . 'js/lib/hopscotch/css/hopscotch.min.css',array('preprocess'=>FALSE));
+    drupal_add_css($cvitjs_lib_path . 'css/cvit.css',array('preprocess'=> FALSE));
+    drupal_add_js($cvitjs_lib_path . 'js/lib/require/require.js',array('group'=>'JS_LIBRARY','type'=>'file'));
+    drupal_add_js($cvitjs_lib_path . 'js/lib/require/blast_ui-config.js',array('group'=>'JS_THEME'));
 
     // Add the JS settings.
     global $base_url;
