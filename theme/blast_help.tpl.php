@@ -119,9 +119,8 @@ a genome image.
 <ol>
   <li>
     <a href="https://github.com/LegumeFederation/cvitjs">Download CViTjs</a> and copy
-    the code to your webserver. It might make the most sense to put the code directly into
-    this module's directory, in a subdirectory named <code>js/</code>. To download, execute
-    the git command inside the <code>js/</code> subdirectory:<br>
+    the code to your webserver. It needs to be placed in <code>[your drupal root]/sites/all/libraries</code>. To download, execute
+    the git command inside the <code>libraries/</code> directory:<br>
     <code>git clone https://github.com/LegumeFederation/cvitjs.git</code>
   </li>
   <li>
@@ -130,15 +129,7 @@ a genome image.
     <b>Make sure the config file can be edited by your web server.</b>
   </li>
   <li>
-    <i>(This step will be removed when the CViTjs code is repaired -03/06/18)</i>
-    There is a hard-coded path in the CViTjs file js/lib/require/blast_ui-config.js.
-    Set this line to the correct path for your server:
-    <pre>baseUrl: '../../sites/all/modules/blast_ui/js/cvitjs/js/lib',</pre>
-  </li>
-  <li>
-    Enable CViTjs from the BLAST module administration page and provide the path to the
-    root directory for the CViTjs code relative to this module. For example,
-    <code>js/cvitjs</code>.
+    Enable CViTjs from the BLAST module administration page.
   </li>
   <li>
     Edit the configuration file to define each genome target. These will look like:
@@ -182,9 +173,9 @@ shape = rect
 color   = #FF00FF
 width = 5</pre></li>
 <li>You will have to put the target-specific conf and gff files (e.g. cajca.conf and
-  cjca.gff) on your web server, in the directory, <code>js/cvitjs/data</code>. You may
+  cjca.gff) on your web server, in the directory, <code>sites/all/libraries/cvitjs/data</code>. You may
   choose to group files for each genome into subdirectories, for example,
-  <code>js/cvitjs/data/cajca</code>.</li>
+  <code>sites/all/libraries/cvitjs/data/cajca</code>.</li>
 <li>It is important to make sure that cvit.conf points to the correct data directory and the
   correct .gff and .conf files for the genome in question. For more information about how to
   create the .gff file, see the

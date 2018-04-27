@@ -153,7 +153,6 @@ KRSLEEGLKTTGEGLDWGVLFGFGPGLTIETVVLRSVAI';
 
   // CVITJS
   $cvitjs_enabled = variable_get('blast_ui_cvitjs_enabled', FALSE);
-  $cvitjs_location = variable_get('blast_ui_cvitjs_location', '');
   $description = 'The JavaScript program CViTjs enables users to see BLAST hits on an '
                . 'entire genome assembly. See the help tab for information on how to '
                . 'download and set up CViTjs.';
@@ -166,7 +165,7 @@ KRSLEEGLKTTGEGLDWGVLFGFGPGLTIETVVLRSVAI';
     '#description' => $description,
   );
 
-  $absolute_cvitjs_data_path = DRUPAL_ROOT . '/' . drupal_get_path('module','blast_ui') . '/' . $cvitjs_location . '/data';
+  $absolute_cvitjs_data_path = DRUPAL_ROOT . '/sites/all/libraries/cvitjs/data';
   $description = '<div class ="messages warning">CViTjs is only applicable for genome BLAST targets. After it is '
                . 'enabled here, CViTjs will need to be enabled for each applicable BLAST '
               . 'target node.</div>'
@@ -184,14 +183,6 @@ KRSLEEGLKTTGEGLDWGVLFGFGPGLTIETVVLRSVAI';
     '#title' => 'Enable CViTjs',
     '#description' => 'When checked, CViTjs will be enabled.',
     '#default_value' => $cvitjs_enabled,
-  );
-
-  $form['cvitjs']['cvitjs_location'] = array(
-    '#type' => 'textfield',
-    '#title' => 'Path to CViTjs code',
-    '#description' => 'Path is relative to the location of this module. Example: js/cvitjs',
-    '#default_value' => $cvitjs_location,
-    '#disabled' => !$cvitjs_enabled,
   );
 
   // Get CViTjs confuration text, if possible.
@@ -268,7 +259,7 @@ function blast_ui_admin_form_validate($form, &$form_state) {
 
   // Check path to CViTjs executable and make sure cvit.conf is writable
   if ($form_state['values']['cvitjs_enabled']) {
-    $cvit_path = blast_ui_get_cvit_conf($form_state['values']['cvitjs_location']);
+    $cvit_path = blast_ui_get_cvit_conf();
     if (!$cvit_path || !file_exists($cvit_path)) {
       $msg = "The CViTjs configuration file, cvit.conf, does not exist at the path given ("
            . $form_state['values']['cvitjs_location']
@@ -332,7 +323,6 @@ function blast_ui_admin_form_submit($form, $form_state) {
 
   // Whole genome visualization - CViTjs
   variable_set('blast_ui_cvitjs_enabled', $form_state['values']['cvitjs_enabled']);
-  variable_set('blast_ui_cvitjs_location', $form_state['values']['cvitjs_location']);
   if ($form_state['values']['cvitjs_enabled'] && $form_state['values']['cvitjs_config']) {
     // Need absolute path to conf file to write
     $cvit_conf_path = getcwd() . DIRECTORY_SEPARATOR
