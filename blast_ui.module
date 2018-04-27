@@ -168,14 +168,14 @@ function blast_ui_theme() {
     'variables' => array('hsps' => NULL),
     'path' => "$path/theme",
   );
-  
+
   // Lists the recent blast jobs for a given user/session.
   $items['blast_recent_jobs'] = array(
     'template' => 'blast_recent_jobs',
     'variables' => array('programs' => NULL),
     'path' => "$path/theme",
   );
-  
+
   // Module Help
   $items['blast_help'] = array(
     'template' => 'blast_help',
@@ -208,6 +208,22 @@ function blast_ui_help($path, $arg) {
   if ($path == 'admin/help#blast_ui') {
     return theme('blast_help');
   }
+}
+
+/**
+ * Implements hook_libraries_info().
+ */
+function blast_ui_libraries_info() {
+
+  // Tell the libraries API about CViTjs
+  $libraries['cvitjs'] = array(
+    'name' => 'CViTjs',
+    'vendor url' => 'https://github.com/awilkey/cvitjs',
+    'version' => '0.0.1',
+    'download url' => 'https://github.com/awilkey/cvitjs/archive/master.zip',
+  );
+
+  return $libraries;
 }
 
 /**
@@ -259,11 +275,11 @@ function show_blast_output($job_string) {
  * Enable web services API
  *
  * @param $owner
- *   
+ *
  * @param $api
  *
  * @return $result
- *  
+ *
  */
 function blast_ui_ctools_plugin_api($owner, $api) {
   if ($owner == 'services' && $api == 'services') {

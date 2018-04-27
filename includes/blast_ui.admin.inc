@@ -31,7 +31,7 @@ function blast_ui_admin_form($form, $form_state) {
 
    $form['general']['eVal']= array(
     '#type' => 'textfield',
-    '#title' => t('Default e-Value (Expected Threshold)'),
+    '#title' => t('Default e-value (Expected Threshold)'),
     '#description' => t('Expected number of chance matches in a random model. This number should be give in a decimal format.'),
      '#default_value' => variable_get('eVal', 0.001),
     //'#default_value' => variable_get('blast_threads', 1),
@@ -151,6 +151,87 @@ KRSLEEGLKTTGEGLDWGVLFGFGPGLTIETVVLRSVAI';
     '#default_value' => variable_get('blast_ui_max_results_displayed', 500)
   );
 
+  // CVITJS
+  $cvitjs_enabled = variable_get('blast_ui_cvitjs_enabled', FALSE);
+  $description = 'The JavaScript program CViTjs enables users to see BLAST hits on an '
+               . 'entire genome assembly. See the help tab for information on how to '
+               . 'download and set up CViTjs.';
+
+  $form['cvitjs'] = array(
+    '#type' => 'fieldset',
+    '#collapsible' => true,
+    '#collapsed' => !$cvitjs_enabled,
+    '#title' => 'Enable and configure genome visualization',
+    '#description' => $description,
+  );
+
+  $absolute_cvitjs_data_path = DRUPAL_ROOT . '/sites/all/libraries/cvitjs/data';
+  $description = '<div class ="messages warning">CViTjs is only applicable for genome BLAST targets. After it is '
+               . 'enabled here, CViTjs will need to be enabled for each applicable BLAST '
+              . 'target node.</div>'
+              . '<div class="messages status"><strong>CViTjs Data Location: '.$absolute_cvitjs_data_path.'</strong>'
+              . '<br />The GFF3 and Genome Target-specific CViTjs configuration files should be located '
+              . 'at the above system path. Feel free to organize this directory further. '
+              . 'See the "Help" tab for more information.</div>';
+  $form['cvitjs']['explanation'] = array(
+    '#markup' => t($description),
+  );
+
+
+  $form['cvitjs']['cvitjs_enabled'] = array(
+    '#type' => 'checkbox',
+    '#title' => 'Enable CViTjs',
+    '#description' => 'When checked, CViTjs will be enabled.',
+    '#default_value' => $cvitjs_enabled,
+  );
+
+  // Get CViTjs confuration text, if possible.
+  if (!$default_value = blast_ui_get_cvit_conf_text()) {
+    $default_value = 'Unable to get CViTjs configuration information. '
+                   . 'You will need to enable CViTjs and set and save the '
+                   . 'path to CViTjs before you can edit the CViTjs configuration text.';
+    $disabled = true;
+  }
+  else {
+    $disabled = false;
+  }
+
+  $description = 'This is the contents of the file that defines data directories and '
+               . 'backbone GFF files for each genome assembly target. It is named '
+               . 'cvit.conf and is in the root directory for the CViTjs javascript code. '
+               . 'This is NOT the config file that is used to build the display for each '
+               . 'individual genome. See the help tab for more information about '
+               . 'configuration files.';
+  $form['cvitjs']['cvitjs_config'] = array(
+    '#type' => 'textarea',
+    '#title' => 'CViTjs configuration (empty until CViTjs path is saved)',
+    '#description' => $description,
+    '#default_value' => $default_value,
+    '#rows' => 10,
+    '#disabled' => $disabled,
+  );
+
+//eksc:
+  // WARNING
+  $description = 'This permits display of a temporary warning message at the top of the
+                  BLAST input form. Text can include HTML tags. Remember to remove the
+                  message when it is no longer relevant.';
+  $form['warning'] = array(
+    '#type' => 'fieldset',
+    '#collapsible' => true,
+    '#collapsed' => true,
+    '#title' => 'Show warning text',
+    '#description' => $description,
+  );
+    $form['warning']['warning_text'] = array(
+    '#type' => 'textarea',
+    '#title' => 'Text to be displayed',
+    '#description' => $description,
+    '#default_value' => variable_get('blast_ui_warning_text', ''),
+    '#rows' => 10,
+  );
+
+
   // SUBMIT
   $form['submit'] = array(
     '#type' => 'submit',
@@ -176,6 +257,46 @@ function blast_ui_admin_form_validate($form, &$form_state) {
     }
   }
 
+  // Check path to CViTjs executable and make sure cvit.conf is writable
+  if ($form_state['values']['cvitjs_enabled']) {
+    $cvit_path = blast_ui_get_cvit_conf();
+    if (!$cvit_path || !file_exists($cvit_path)) {
+      $msg = "The CViTjs configuration file, cvit.conf, does not exist at the path given ("
+           . $form_state['values']['cvitjs_location']
+           . "). Please check your path. "
+           . "If you have not yet downloaded CViTjs, see the help tab for more information.";
+      form_set_error('cvitjs_location', t($msg));
+    }
+
+    if (!is_writable($cvit_path)) {
+      $msg = "The file $cvit_path is not writable by this page. "
+           . "Please enable write access for apache then try saving these settings again.";
+      form_set_error('cvitjs_location', t($msg));
+    }
+  }
+
+  // Empty contents of cvitjs_config textarea if it is disabled
+  if ($form['cvitjs']['cvitjs_config']['#disabled']) {
+    $form_state['values']['cvitjs_config'] = '';
+  }
+
+  // Check CViTjs configuration text
+  if ($form_state['values']['cvitjs_config']
+        && !preg_match('/\[general\]\s*\ndata_default =.*/m',
+                       $form_state['values']['cvitjs_config'])) {
+    $msg = "The CViTjs configuration text looks incorrect. "
+         . "It should contain a [general] section. "
+         . "See the help tab for more information.";
+    form_set_error('cvitjs_config', t($msg));
+  }
+  if ($form_state['values']['cvitjs_config']
+        && !preg_match('/\[.*\]\s*\nconf = .*\ndefaultData =.*/m',
+                       $form_state['values']['cvitjs_config'])) {
+    $msg = "The CViTjs configuration text looks incorrect. "
+         . "It should contain one section for each genome target. "
+         . "See the help tab for more information.";
+    form_set_error('cvitjs_config', t($msg));
+  }
 }
 
 /**
@@ -196,7 +317,26 @@ function blast_ui_admin_form_submit($form, $form_state) {
   // Example sequence
   variable_set('blast_ui_nucleotide_example_sequence', $form_state['values']['nucleotide_example']);
   variable_set('blast_ui_protein_example_sequence', $form_state['values']['protein_example']);
-  
-/**: added by safetybrake*/
+
+  // Protect against large result sets
   variable_set('blast_ui_max_results_displayed', $form_state['values']['max_results_displayed']);
+
+  // Whole genome visualization - CViTjs
+  variable_set('blast_ui_cvitjs_enabled', $form_state['values']['cvitjs_enabled']);
+  if ($form_state['values']['cvitjs_enabled'] && $form_state['values']['cvitjs_config']) {
+    // Need absolute path to conf file to write
+    $cvit_conf_path = getcwd() . DIRECTORY_SEPARATOR
+                    . blast_ui_get_cvit_conf($form_state['values']['cvitjs_location']);
+    if ($fh = fopen($cvit_conf_path, 'w')) {
+      fwrite($fh, $form_state['values']['cvitjs_config']);
+      fclose($fh);
+    }
+    else {
+      drupal_set_message("Unable to open CViTjs conf file for writing: <pre>" . print_r(error_get_last(),true) . "</pre>");
+    }
+  }
+
+//eksc:
+  // Warning text
+  variable_set('blast_ui_warning_text', $form_state['values']['warning_text']);
 }

@@ -181,7 +181,6 @@ function blast_ui_blastn_advanced_options_form_submit($form, $form_state) {
     'gapextend' => $gap['gapExtend'],
     'penalty' => $m_m['penalty'],
     'reward' => $m_m['reward'],
-    'culling_limit' => $qRange,
   );
 }
 
@@ -513,8 +512,10 @@ function blast_ui_blastp_advanced_options_form_submit($form, $form_state) {
   $wsKey = $form_state['values']['wordSize'];
   $wordSize = $form['ALG']['GParam']['wordSize']['#options'][$wsKey];
 
+/*eksc: removed as this is either equivalent to max_target_sequences or mis-implemented
+       as culling_limit
   $qRange = $form_state['values']['qRange'];
-
+*/
   // Expand Gap Cost key into open and extend penalties
   $matrix = $form_state['values']['Matrix'];
   $gapKey = $form_state['values']['gapCost'];
@@ -838,8 +839,6 @@ function _get_default_values($options) {
     ? $options['evalue'] : variable_get('eVal', 0.001);
   $word_size = (isset($options['word_size']))
     ? $options['word_size'] : 11;
-  $qRange = (isset($options['culling_limit']))
-    ? $options['culling_limit'] : variable_get('qRange', 0);
 
   $matchmiss = 0;
   $reward = (isset($options['reward']))
@@ -912,9 +911,6 @@ function _get_default_values($options) {
     }
   }
 
-// eksc- need to implement query range limit
-//  $q_range = 0;
-
   $matrix = (isset($options['matrix']))
     ? $options['matrix'] : 'PAM30';
 
@@ -925,7 +921,6 @@ function _get_default_values($options) {
     'evalue' => $evalue,
     'matchmiss' => $matchmiss,
     'gap' => $gap,
-    'qRange' => $qRange,
     'matrix' => $matrix,
   );
 }//_get_default_values
