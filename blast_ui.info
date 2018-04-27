@@ -5,4 +5,4 @@ project = tripal_blast
 package = Tripal Extensions
 core = 7.x
 
-dependencies[] = libraries_api
+dependencies[] = libraries
