@@ -142,9 +142,6 @@ function blast_ui_blastn_advanced_options_form_submit($form, $form_state) {
   // Expand Match/Mismatch option into penalty/reward values
   $m_m = _set_match_mismatch($form_state['values']['M&MScores']);
 
-  // Limit number of query hits
-  $qRange = $form_state['values']['qRange'];
-
   return array(
     'max_target_seqs' => $numAlign,
     'evalue' => $eVal,
@@ -415,12 +412,16 @@ function blast_ui_blastp_advanced_options_form_submit($form, $form_state) {
   $wsKey = $form_state['values']['wordSize'];
   $wordSize = $form['ALG']['GParam']['wordSize']['#options'][$wsKey];
 
-  $qRange = $form_state['values']['qRange'];
+  //$qRange = $form_state['values']['qRange'];
 
   // Expand Gap Cost key into open and extend penalties
   $matrix = $form_state['values']['Matrix'];
   $gapKey = $form_state['values']['gapCost'];
-  $gap = _set_protein_gap($matrix, $gapKey);
+
+
+  $gap = _set_gap($gapKey);
+  $gapOpen = $gap['gapOpen'];
+  $gapExtend = $gap['gapExtend'];
 
   return array(
     'max_target_seqs' => $numAlign,
@@ -428,7 +429,7 @@ function blast_ui_blastp_advanced_options_form_submit($form, $form_state) {
     'word_size' => $wordSize,
     'gapopen' => $gapOpen,
     'gapextend' => $gapExtend,
-    'culling_limit' => $qRange,
+    //'culling_limit' => $qRange,
     'matrix' => $matrix,
   );
 }//blast_ui_blastp_advanced_options_form_submit
@@ -642,8 +643,8 @@ function _get_default_values($options, $program) {
     ? $options['evalue'] : variable_get('eVal', 0.001);
   $word_size = (isset($options['word_size']))
     ? $options['word_size'] : 11;
-  $qRange = (isset($options['culling_limit']))
-    ? $options['culling_limit'] : variable_get('qRange', 0);
+//  $qRange = (isset($options['culling_limit']))
+//    ? $options['culling_limit'] : variable_get('qRange', 0);
 
   // match/mismatch
   $matchmiss = 0;
@@ -673,7 +674,7 @@ function _get_default_values($options, $program) {
     }
     else {
       if ($reward == 3) {
-        $matchmis = 4;
+        $matchmiss = 4;
       }
       else {
         if ($reward == 4) {
@@ -716,7 +717,7 @@ function _get_default_values($options, $program) {
     'evalue' => $evalue,
     'matchmiss' => $matchmiss,
     'gap' => $gap,
-    'qRange' => $qRange,
+   // 'qRange' => $qRange,
     'matrix' => $matrix,
   );
 }//_get_default_values
@@ -886,6 +887,7 @@ function _set_match_mismatch($m_m) {
  * Get gap values based on matrix and selected gap "key"
  */
 function _set_protein_gap($matrix, $gapKey) {
+
   switch ($matrix) {
     case 'PAM30':
       switch ($gapKey) {
