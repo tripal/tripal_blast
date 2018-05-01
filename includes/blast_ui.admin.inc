@@ -204,7 +204,7 @@ KRSLEEGLKTTGEGLDWGVLFGFGPGLTIETVVLRSVAI';
                . 'configuration files.';
   $form['cvitjs']['cvitjs_config'] = array(
     '#type' => 'textarea',
-    '#title' => 'CViTjs configuration (empty until CViTjs path is saved)',
+    '#title' => 'CViTjs configuration',
     '#description' => $description,
     '#default_value' => $default_value,
     '#rows' => 10,
