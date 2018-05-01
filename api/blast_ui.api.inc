@@ -48,23 +48,8 @@ function get_blast_database($identifiers) {
 function get_blast_database_options($type) {
   global $user;
 
-  // Use the Entity API to get a list of BLAST Nodes to load
-  // We use this function in order respect node access control so that
-  // administrators can use this module in combination with a node access module
-  // of their choice to limit access to specific BLAST databases.
-  $query = new EntityFieldQuery();
-  $query->entityCondition('entity_type', 'node')
-    // Restrict to BLASTDB nodes.
-    ->entityCondition('bundle', 'blastdb')
-    // Restrict to Published nodes.
-    ->propertyCondition('status', 1)
-    // Restrict to nodes the current user has permission to view.
-    ->addTag('node_access');
-  $entities = $query->execute();
-
-
   // Get all BlastDB nodes
-  $nodes  = node_load_multiple(array_keys($entities['node']));
+  $nodes = get_blast_database_nodes();
 
   // Support obsolete database type n/p
   $obs_type = '';
@@ -91,6 +76,32 @@ function get_blast_database_options($type) {
 }
 
 /**
+ * Returns all blast database nodes.
+ *
+ * @return
+ *   An array of nodes.
+ */
+function get_blast_database_nodes() {
+  // Use the Entity API to get a list of BLAST Nodes to load
+  // We use this function in order respect node access control so that
+  // administrators can use this module in combination with a node access module
+  // of their choice to limit access to specific BLAST databases.
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'node')
+    // Restrict to BLASTDB nodes.
+    ->entityCondition('bundle', 'blastdb')
+    // Restrict to Published nodes.
+    ->propertyCondition('status', 1)
+    // Restrict to nodes the current user has permission to view.
+    ->addTag('node_access');
+  $entities = $query->execute();
+
+  // Get all BlastDB nodes
+  return node_load_multiple(array_keys($entities['node']));
+}
+
+
+/**
  * Retrieve all the information for a blast job in a standardized node-like format.
  *
  * @param $job_id
@@ -101,6 +112,11 @@ function get_blast_database_options($type) {
 function get_BLAST_job($job_id) {
 
   $blastjob = db_query('SELECT * FROM blastjob WHERE job_id=:id', array(':id' => $job_id))->fetchObject();
+
+  if (!$blastjob) {
+    return false;
+  }
+
   $tripal_job = tripal_get_job($job_id);
 
   $job = new stdClass();
@@ -329,8 +345,8 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
  */
 function validate_fasta_sequence($type, $sequence) {
   //Includes IUPAC codes.
-  $fastaSeqRegEx = ($type == 'nucleotide') 
-                   ? '/^[ATCGNUKMBVSWDYRHatcgnukmbvswdyrh\s\n\r]*$/' 
+  $fastaSeqRegEx = ($type == 'nucleotide')
+                   ? '/^[ATCGNUKMBVSWDYRHatcgnukmbvswdyrh\[\/\]\s\n\r]*$/'
                    : '/^[ABCDEFGHIKLMNPQRSTUVWYZXabcdefghiklmnpqrstuvwyzx\*\-\s\n\r]*$/';
   $defRegEx      = '/^>.*(\\n|\\r)(.*)$/sm';
   if (preg_match($defRegEx, $sequence, $matches)) {
@@ -341,7 +357,7 @@ function validate_fasta_sequence($type, $sequence) {
   else if ($sequence != '' && preg_match($defRegEx, $sequence)) {
     return true;
   }
-  
+
   return false;
 }
 
@@ -404,23 +420,21 @@ function get_recent_blast_jobs($programs = array()) {
       $add = TRUE;
 
       $job_id = blast_ui_reveal_secret($job_secret);
-      $job = get_BLAST_job($job_id);
+      if ($job = get_BLAST_job($job_id)) {
 
-      // @TODO: Check that the results are still available.
-      // This is meant to replace the arbitrary only show jobs executed less than 48 hrs ago.
+        // @TODO: Check that the results are still available.
+        // This is meant to replace the arbitrary only show jobs executed less than 48 hrs ago.
 
-      // Remove jobs from the list that are not of the correct program.
-      if ($filter_jobs AND !in_array($job->program, $programs)) {
-        $add = FALSE;
+        // Remove jobs from the list that are not of the correct program.
+        if ($filter_jobs AND !in_array($job->program, $programs)) {
+          $add = FALSE;
+        }
+
+        if ($add) {
+          $job->query_summary = format_query_headers($job->files->query);
+          $jobs[] = $job;
+        }
       }
-
-      if ($add) {
-
-        $job->query_summary = format_query_headers($job->files->query);
-
-        $jobs[] = $job;
-      }
-
     }
 
     return $jobs;
@@ -745,7 +759,7 @@ function convert_tsv2gff3($blast_tsv,$blast_gff){
   $last_s = NULL;
   $hsp = NULL;
   $HitResult=array();
-  
+
   while(!feof($tsv)) {
     $line = fgets($tsv);
     $line = rtrim($line);
@@ -780,9 +794,9 @@ function convert_tsv2gff3($blast_tsv,$blast_gff){
     $qs = $parts[6];
     $qe = $parts[7];
     $e = $parts[10];
-     
 
-    // if this is a new hit print the last and 
+
+    // if this is a new hit print the last and
     // empty the $HitResult array and
     // reset hsp counter
     if ($last_s != NULL and $s != $last_s ) {
@@ -790,10 +804,10 @@ function convert_tsv2gff3($blast_tsv,$blast_gff){
       $HitResult = array();
       $hsp=0;
     }
-  
+
     // every line is a new hsp
     $hsp++;
-  
+
     // determine query strand to use in match_part line, no need to store, just print
     $q_strand = '+';
     if ($qs > $qe) {
@@ -808,12 +822,12 @@ function convert_tsv2gff3($blast_tsv,$blast_gff){
        list($start,$end) = array($se,$ss);
        $HitResult["$s,$q"]['strand']='-';
      }
-  
+
     // store smallest start
      if (!array_key_exists('SS',$HitResult["$s,$q"]) or $ss < $HitResult["$s,$q"]['SS']) {
        $HitResult["$s,$q"]['SS'] = $ss;
      }
-    
+
     // store largest end
      if (!array_key_exists('SE',$HitResult["$s,$q"]) or $se > $HitResult["$s,$q"]['SE']) {
        $HitResult["$s,$q"]['SE'] = $se;
@@ -822,8 +836,8 @@ function convert_tsv2gff3($blast_tsv,$blast_gff){
      // store best evalue
      if (!array_key_exists('E',$HitResult["$s,$q"]) or $e < $HitResult["$s,$q"]['E']) {
        $HitResult["$s,$q"]['E'] = $e;
-     }   
-    
+     }
+
      // generate the match_part line for each hsp
      $HitResult["$s,$q"]['HSPs'][] = join("\t", array($s, "BLASTRESULT" , "match_part" , $start , $end , $e , $HitResult["$s,$q"]['strand'] , '.' , "ID=$s.$q.$hsp;Parent=$s.$q;Target=$q $qs $qe $q_strand"));
      $last_s = $s;
@@ -847,7 +861,6 @@ function convert_tsv2gff3($blast_tsv,$blast_gff){
  *
  *
  */
-
 function printGFF_parent_children ($gff,$blast_feature_array){
   foreach ($blast_feature_array as $sq => $value ) {
     list ($s,$q) = preg_split('/,/' , $sq);
@@ -857,4 +870,76 @@ function printGFF_parent_children ($gff,$blast_feature_array){
     fwrite($gff,$parent);
     fwrite($gff,$child);
   }
+}
+
+/**
+ * Get text from cvitjs conf file, if possible.
+ *
+ * @param $genome_target
+ *   The section of the config to return. Should consist of "data."+[blastdb name].
+ *
+ * @return
+ *   A string containing the entire contents of the cvitjs configuration file. FALSE otherwise.
+ */
+function blast_ui_get_cvit_conf_text($genome_target = FALSE) {
+
+  // Retrieve the full path and filename of the conf.
+  $cvit_conf = blast_ui_get_cvit_conf();
+  if ($cvit_conf) {
+
+    // Retrieve the contents of the file.
+    $contents = file_get_contents($cvit_conf);
+
+    // If no genome target was provided then return the full file.
+    if ($contents && $genome_target == FALSE) {
+      return $contents;
+    }
+
+    // If a genome target was provided, then only return that section.
+    if ($genome_target) {
+      $section = array();
+      $in_section = FALSE;
+
+      // For each line of the configuration file...
+      $section_header = '['.$genome_target.']';
+      $lines = preg_split('/\r\n|\n|\r/', trim($contents));
+      foreach($lines as $l) {
+
+        // Are we in the section for this genome target?
+        if (trim($l) == $section_header) {
+          $in_section = TRUE; }
+
+        // Id so and we haven't fallen out of it through an empty line,
+        // then add it to saved section for returning.
+        if ($in_section) {
+          if (trim($l) == '') { break; }
+          $section[] = trim($l);
+        }
+      }
+
+      // If we found the section, then return it ;-).
+      if (!empty($section)) {
+        return implode("\n", $section);
+      }
+    }
+  }
+
+  return false;
+}
+
+
+/**
+ * Get path to cvitjs conf file.
+ *
+ * @return
+ *  The path to the CViTjs codebase.
+ */
+function blast_ui_get_cvit_conf($cvitjs_location = NULL) {
+  if (!$cvitjs_location) {
+    $cvitjs_location = libraries_get_path('cvitjs') . DIRECTORY_SEPARATOR;
+  }
+
+  $cvit_conf_path = $cvitjs_location . 'cvit.conf';
+
+  return $cvit_conf_path;
 }

@@ -62,7 +62,6 @@ $no_hits = TRUE;
 
 <div class="blast-report">
 
-  <div class="blast-job-info">
     <!-- Provide Information to the user about their blast job -->
     <div class="blast-job-info">
       <div class="blast-download-info"><strong>Download</strong>:
@@ -72,13 +71,13 @@ $no_hits = TRUE;
         <a href="<?php print '../../' . $blast_job->files->result->gff; ?>">GFF3</a>
       </div>
       <br />
-      <div class="blast-query-info"><strong>Query Information</strong>: 
+      <div class="blast-query-info"><strong>Query Information</strong>:
         <?php print $blast_job->files->query;?></div>
-      <div class="blast-target-info"><strong>Search Target</strong>: 
+      <div class="blast-target-info"><strong>Search Target</strong>:
         <?php print $blast_job->blastdb->db_name;?></div>
-      <div class="blast-date-info"><strong>Submission Date</strong>: 
+      <div class="blast-date-info"><strong>Submission Date</strong>:
         <?php print format_date($blast_job->date_submitted, 'medium');?></div>
-      <div class="blast-cmd-info"><strong>BLAST Command executed</strong>: 
+      <div class="blast-cmd-info"><strong>BLAST Command executed</strong>:
         <?php print $blast_job->blast_cmd;?></div>
       <br />
       <div class="num-results">
@@ -86,12 +85,19 @@ $no_hits = TRUE;
       </div>
     </div>
 
-    <br />
-    <div class="num-results">
-      <strong>Number of Results</strong>: <?php print $num_results; ?>
-    </div>
+    <?php
+      if ($show_cvit_diagram) {
+    ?>
+      <!-- CViTjs image of BLAST hits, if enabled -->
+      <div class="cvitjs">
+        <div id="title-div"><h2>Whole Genome Visualization of BLAST hits</h2></div>
+        <div id="cvit-div"></div>
+      </div>
 
-  </div>
+    <?php
+      }
+    ?>
+
   <br />
 
   <div class="report-table">
@@ -103,6 +109,8 @@ $no_hits = TRUE;
 
     if ($xml) {
     ?>
+
+    <h2>Resulting BLAST hits</h2>
 
     <p>The following table summarizes the results of your BLAST.
     Click on a <em>triangle </em> on the left to see the alignment and a visualization of the hit,
@@ -149,8 +157,8 @@ $no_hits = TRUE;
               // If the id is of the form gnl|BL_ORD_ID|### then the parseids flag
               // to makeblastdb did a really poor job. In thhis case we want to use
               // the def to provide the original FASTA header.
-              // @todo Deepak changed this to use just the hit_def; inquire as to why.
               $hit_name = (preg_match('/BL_ORD_ID/', $hit->{'Hit_id'})) ? $hit->{'Hit_def'} : $hit->{'Hit_id'};
+
               // Used for the hit visualization to ensure the name isn't truncated.
               $hit_name_short = (preg_match('/^([^\s]+)/', $hit_name, $matches)) ? $matches[1] : $hit_name;
 
@@ -212,7 +220,7 @@ $no_hits = TRUE;
                               ';';
                 $Hsp_bit_score .=   $hsp_xml->{'Hsp_bit-score'} .';';
               }
-              
+
               // Finally record the range.
               // @todo figure out why we arbitrarily subtract 50,000 here...
               // @more removing the 50,000 and using track start/end appears to cause no change...
@@ -251,6 +259,7 @@ $no_hits = TRUE;
                 // First extract the linkout text using the regex provided through
                 // the Tripal blast database node.
                 if (preg_match($linkout_regex, $hit_name, $linkout_match)) {
+
                   $hit->{'linkout_id'} = $linkout_match[1];
                   $hit->{'hit_name'} = $hit_name;
 
@@ -266,6 +275,7 @@ $no_hits = TRUE;
                       'e-value'    => $evalue,
                       'HSPs'       => $HSPs,
                       'Target'     => $blast_job->blastdb->db_name,
+                      'RegEx'      => $linkout_regex,
                     )
                   );
                 }

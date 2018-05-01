@@ -643,8 +643,6 @@ function _get_default_values($options, $program) {
     ? $options['evalue'] : variable_get('eVal', 0.001);
   $word_size = (isset($options['word_size']))
     ? $options['word_size'] : 11;
-//  $qRange = (isset($options['culling_limit']))
-//    ? $options['culling_limit'] : variable_get('qRange', 0);
 
   // match/mismatch
   $matchmiss = 0;
@@ -717,7 +715,6 @@ function _get_default_values($options, $program) {
     'evalue' => $evalue,
     'matchmiss' => $matchmiss,
     'gap' => $gap,
-   // 'qRange' => $qRange,
     'matrix' => $matrix,
   );
 }//_get_default_values

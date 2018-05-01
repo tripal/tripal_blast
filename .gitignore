@@ -1,0 +1,4 @@
+
+# Ignore an internal CViTjs installation.
+# Assumes it's been cloned in the js directory
+js/*
