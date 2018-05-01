@@ -30,6 +30,33 @@ function blast_ui_preprocess_show_blast_report(&$vars) {
       $vars['blast_job']->blast_cmd .= ' -' . $key. ' ' . $value ;
   }
 
+  // CViTjs
+  $vars['show_cvit_diagram'] = FALSE;
+  if (variable_get('blast_ui_cvitjs_enabled', false)
+    && isset($vars['blast_job']->blastdb->cvitjs_enabled)
+    && $vars['blast_job']->blastdb->cvitjs_enabled == '1') {
+
+    // Set a clean var so we don't have to do this long check again ;-).
+    $vars['show_cvit_diagram'] = TRUE;
+
+    // Add the CSS/JS.
+    $cvitjs_lib_path = libraries_get_path('cvitjs') . DIRECTORY_SEPARATOR;
+    drupal_add_css($cvitjs_lib_path . 'js/lib/bootstrap_embed/css/bootstrap.min.css',array('preprocess'=>FALSE));
+    drupal_add_css($cvitjs_lib_path . 'js/lib/hopscotch/css/hopscotch.min.css',array('preprocess'=>FALSE));
+    drupal_add_css($cvitjs_lib_path . 'css/cvit.css',array('preprocess'=> FALSE));
+    drupal_add_js($cvitjs_lib_path . 'js/lib/require/require.js',array('group'=>'JS_LIBRARY','type'=>'file'));
+    drupal_add_js($cvitjs_lib_path . 'js/lib/require/blast_ui-config.js',array('group'=>'JS_THEME'));
+
+    // Add the JS settings.
+    global $base_url;
+    drupal_add_js(array('blast_ui'=> array(
+            'dataset' => $vars['blast_job']->blastdb->db_name,
+            'gff' => $base_url . '/' . $vars['blast_job']->files->result->gff
+      )),
+      'setting'
+    );
+  }
+
   // Determine the URL of the blast form.
   $vars['blast_form_url'] = 'blast/nucleotide/nucleotide';
   switch($vars['blast_job']->program) {
@@ -129,7 +156,7 @@ function blast_ui_reveal_secret($secret) {
   // Check that the job_id exists if it is an integer.
   if (is_numeric($job_id)) {
 
-    $exists = db_query('SELECT job_id FROM {tripal_jobs} WHERE job_id=:id', 
+    $exists = db_query('SELECT job_id FROM {tripal_jobs} WHERE job_id=:id',
                        array(':id' => $job_id))->fetchField();
     if (!$exists) {
       tripal_report_error(
@@ -148,7 +175,7 @@ function blast_ui_reveal_secret($secret) {
 
     $job_id = base64_decode($secret);
     if (is_numeric($job_id)) {
-      $exists = db_query('SELECT job_id FROM {tripal_jobs} WHERE job_id=:id', 
+      $exists = db_query('SELECT job_id FROM {tripal_jobs} WHERE job_id=:id',
                          array(':id' => $job_id))->fetchField();
       if (!$exists) {
         tripal_report_error(

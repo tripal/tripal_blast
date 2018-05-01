@@ -67,7 +67,7 @@ function blastdb_form($node, &$form_state) {
   $form = array();
 
   $form['#validate'] = array('blastdb_form_validate');
-  
+
   $form['#attached']['css'] = array(
     drupal_get_path('module', 'blast_ui') . '/theme/css/form.css',
   );
@@ -106,7 +106,7 @@ function blastdb_form($node, &$form_state) {
   $form['dbxref'] = array(
     '#type' => 'fieldset',
     '#title' => 'Link-outs',
-    '#description' => 'These settings will be used to <em>transform the hit name into a 
+    '#description' => 'These settings will be used to <em>transform the hit name into a
       link to additional information</em>.',
     '#prefix' => '<div id="link-outs">',
     '#suffix' => '</div>',
@@ -122,16 +122,13 @@ function blastdb_form($node, &$form_state) {
   $form['dbxref']['dbxref_linkout_type'] = array(
     '#type' => 'radios',
     '#title' => 'Link-out Type',
-    '#description' => 'This determines how the URL to be linked to is formed. <strong>Make 
-      sure the database chosen supports this type of link</strong> (ie: the database 
+    '#description' => 'This determines how the URL to be linked to is formed. <strong>Make
+      sure the database chosen supports this type of link</strong> (ie: the database
       should point to a GBrowse instance if you choose GBrowse here).',
     '#options' => $options,
     '#default_value' => $linkout_type,
-    '#ajax' => array(
-      'callback' => 'ajax_blast_ui_node_linkout_custom_callback',
-      'wrapper' => 'link-outs',
-    )
   );
+
   // Add information about each format to the description.
   if ($linkout_type) {
     $form['dbxref']['dbxref_linkout_type']['#description'] .= '
@@ -232,7 +229,43 @@ function blastdb_form($node, &$form_state) {
       '#default_value' => (isset($node->linkout->db_id->db_id)) ? $node->linkout->db_id->db_id : 0
     );
   }
-    
+
+  // CViTjs settings, if enabled
+  if (variable_get('blast_ui_cvitjs_enabled', false)) {
+    $form['cvitjs'] = array(
+      '#type' => 'fieldset',
+      '#title' => 'Whole Genome Visualization',
+      '#description' => 'Settings for the display of BLAST hits on an entire genome assembly using CViTjs.',
+      '#prefix' => '<div id="cvitjs-settings">',
+      '#suffix' => '</div>',
+    );
+
+    $form['cvitjs']['cvitjs_enabled'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Show BLAST hits on the genome in the results page.'),
+      '#description' => t('Uses CViTjs to display BLAST hits on the entire genome'),
+      '#default_value' => (isset($node->cvitjs_enabled)) ? $node->cvitjs_enabled : false,
+    );
+    $cvitjs_msg_class = 'blastdb-extra-info';
+    $cvitjs_msg = 'Target Genome Configuration should be under <strong>[data.'.$node->db_name.']</strong> in the main cvit.conf.';
+
+    $conf_section = blast_ui_get_cvit_conf_text('data.'.$node->db_name);
+    if (!$conf_section) {
+      $cvitjs_msg_class .= ' messages warning';
+      $cvitjs_msg .= '<br /><br />There is no section for this genome target defined in the CViTjs
+        configuration file. <strong>No genome visualization will be shown until you define a
+        configuration section, "[data.'.$form_state['values']['db_name'].']", at '
+        .l('Admin > Tripal > Extensions > Tripal BLAST > BLAST UI', 'admin/tripal/extension/tripal_blast')
+        .'</strong>.';
+    }
+    else {
+      $cvitjs_msg .= '<br /><br /><strong>Current Configuration:</strong><pre>'.$conf_section.'</pre>';
+    }
+
+    $form['cvitjs']['cvitjs_enabled']['#description'] .= '<div class="'.$cvitjs_msg_class.'">'.$cvitjs_msg.'</p>';
+
+  }
+
   return $form;
 }
 
@@ -267,6 +300,19 @@ function blastdb_form_validate($form, $form_state) {
       );
     }
   }
+
+  // Check that there is a cvitjs section for the current
+  if ($form_state['values']['cvitjs_enabled']) {
+    $conf_section = blast_ui_get_cvit_conf_text('data.'.$form_state['values']['db_name']);
+    if (!$conf_section) {
+      drupal_set_message('There is no section for this genome target defined in the CViTjs
+        configuration file. <strong>No genome visualization will be shown until you define a
+        configuration section, "[data.'.$form_state['values']['db_name'].']", at '
+        .l('Admin > Tripal > Extensions > Tripal BLAST > BLAST UI', 'admin/tripal/extension/tripal_blast')
+        .'</strong>.',
+      'warning');
+    }
+  }
 }
 
 /**
@@ -284,7 +330,7 @@ function blastdb_insert($node) {
       $regex = $node->dbxref_id_type;
     }
   }
-  
+
   $db_id = 0;
   if (isset($node->db_id)) {
     $db_id = $node->db_id;
@@ -293,7 +339,11 @@ function blastdb_insert($node) {
   if (!$node->dbxref_linkout_type) {
     $node->dbxref_linkout_type = 'none';
   }
-  
+
+  if (!isset($node->cvitjs_enabled)) {
+    $node->cvitjs_enabled = 0;
+  }
+
   // Actually insert the record.
   db_insert('blastdb')->fields(array(
     'nid'                 => $node->nid,
@@ -303,6 +353,7 @@ function blastdb_insert($node) {
     'dbxref_id_regex'     => $regex,
     'dbxref_db_id'        => $db_id,
     'dbxref_linkout_type' => $node->dbxref_linkout_type,
+    'cvitjs_enabled'      => $node->cvitjs_enabled,
   ))->execute();
 }
 
@@ -331,16 +382,20 @@ function blastdb_update($node) {
       $regex = $node->dbxref_id_type;
     }
   }
-  
+
   $db_id = 0;
   if (isset($node->db_id)) {
     $db_id = $node->db_id;
   }
 
+  if (!$node->cvitjs_enabled) {
+    $node->cvitjs_enabled = 0;
+  }
+
   if (!$node->dbxref_linkout_type) {
     $node->dbxref_linkout_type = 'none';
   }
-  
+
   // Update the record.
   db_update('blastdb')->fields(array(
     'name'                => $node->db_name,
@@ -349,6 +404,7 @@ function blastdb_update($node) {
     'dbxref_id_regex'     => $regex,
     'dbxref_db_id'        => $db_id,
     'dbxref_linkout_type' => $node->dbxref_linkout_type,
+    'cvitjs_enabled'      => $node->cvitjs_enabled,
   ))->condition('nid', $node->nid)->execute();
 }
 
@@ -375,9 +431,9 @@ function blastdb_delete($node) {
 function blastdb_load($nodes) {
 
   $sql = "
-    SELECT nid, name, path, dbtype, dbxref_id_regex, dbxref_db_id, 
-           dbxref_linkout_type
-    FROM {blastdb} 
+    SELECT nid, name, path, dbtype, dbxref_id_regex, dbxref_db_id,
+           dbxref_linkout_type, cvitjs_enabled
+    FROM {blastdb}
     WHERE nid IN (:nids)";
   $result = db_query($sql, array(':nids' => array_keys($nodes)));
 
@@ -389,6 +445,9 @@ function blastdb_load($nodes) {
     $nodes[$record->nid]->title = $record->name;
     $nodes[$record->nid]->db_dbtype = $record->dbtype;
 
+    // CViTjs status
+    $nodes[$record->nid]->cvitjs_enabled  = $record->cvitjs_enabled;
+
     // Determine the type of link-out chosen.
     $types = module_invoke_all('blast_linkout_info');
     $type = NULL;
@@ -399,7 +458,7 @@ function blastdb_load($nodes) {
       tripal_report_error(
         'blast_ui',
         TRIPAL_ERROR,
-        'Unable to find details on the type of link-out choosen (%type). Have you defined hook_blast_linkout_info()? Make sure to clear the cache once you do so.',       
+        'Unable to find details on the type of link-out choosen (%type). Have you defined hook_blast_linkout_info()? Make sure to clear the cache once you do so.',
         array('%type' => $record->dbxref_linkout_type)
       );
     }
@@ -419,7 +478,7 @@ function blastdb_load($nodes) {
       }
     }
 
-    // finally add information related to link-outs to the node.
+    // Add information related to link-outs to the node.
     if ($add_linkout) {
       $nodes[$record->nid]->linkout = new stdClass();
 
@@ -440,7 +499,7 @@ function blastdb_load($nodes) {
       }
 
       // If the link-out type requires a db then provide one.
-      if ($type['require_db']) {
+      if (isset($type['require_db'])) {
         $nodes[$record->nid]->linkout->db_id = tripal_get_db(array('db_id' => $record->dbxref_db_id));
       }
       else {
@@ -452,7 +511,7 @@ function blastdb_load($nodes) {
       // Support complex link-outs.
       $nodes[$record->nid]->linkout->type = $record->dbxref_linkout_type;
       $nodes[$record->nid]->linkout->url_function = $type['process function'];
-   
+
     }
     // If there is no linkout then provide some defaults.
     else {
@@ -475,3 +534,4 @@ function blastdb_load($nodes) {
 function ajax_blast_ui_node_linkout_custom_callback($form, $form_state) {
   return $form['dbxref'];
 }
+

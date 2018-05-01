@@ -18,15 +18,42 @@ function blast_ui_install() {
 }
 
 /**
+ * Implements hook_uninstall().
+ */
+function blast_ui_uninstall() {
+  // Remove all nodes of type blastdb
+  
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'node')
+    // Restrict to BLASTDB nodes.
+    ->entityCondition('bundle', 'blastdb')
+    // Restrict to Published nodes.
+    ->propertyCondition('status', 1)
+    // Restrict to nodes the current user has permission to view.
+    ->addTag('node_access');
+  $entities = $query->execute();
+
+  // Get all BlastDB nodes and delete them
+  $nodes = node_load_multiple(array_keys($entities['node']));
+  foreach ($nodes as $node) {
+    print "Delete node " . $node->title . "\n";
+    $nrs = node_revision_list($node);
+    foreach ($nrs as $nr) {
+      node_revision_delete($nr->vid);
+    }
+    node_delete($node->nid);
+  }
+}
+
+/**
  * Implements hook_schema().
  * Create the blastdb database table for storing addditional info related to blastdb nodes.
  *
  * NOTE: This hook is called via Drupal magic during the installation process and no longer
  * needs to be called explicitly in hook_install().
  */
-function blast_ui_schema(){
-
-  // A table ot keep extra information related to blastdb nodes.
+function blast_ui_schema() {
+  // A table to keep extra information related to blastdb nodes.
   $schema['blastdb'] = array(
     'description' => t('The base table for blastdb node'),
     'fields' => array(
@@ -68,6 +95,12 @@ function blast_ui_schema(){
         'length' => 50,
         'not null' => true,
         'default' => 'link'
+      ),
+      'cvitjs_enabled' => array(
+        'description' => t('Indicate if CViTjs should be used to display hits on a whole genome'),
+        'type' => 'int',
+        'not null' => false,
+        'default' => 0
       ),
     ),
     
@@ -247,4 +280,21 @@ function blast_ui_update_7103() {
   // First create the tables.
   db_create_table('blastjob', $schema['blastjob']);
   
+}
+
+
+/**
+ * Add fields to blastp table for CViTjs support.
+ */
+function blast_ui_update_7104() {
+  db_add_field(
+    'blastdb',
+    'cvitjs_enabled',
+    array(
+      'description' => t('Indicate if CViTjs should be used to display hits on a whole genome'),
+      'type' => 'int',
+      'not null' => false,
+      'default' => 0
+    )
+  );
 }
