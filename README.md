@@ -40,6 +40,10 @@ Highlighted Functionality
    describing them. This allows administrators to use the Drupal Field API to
    add any information they want to these pages and to control which databases
    are available to a given user based on native Drupal permissions.
+ - Per Query result diagrams visualizing the HSPs to help users better 
+   evaluate hit quality.
+ - Optional Whole Genome diagrams visualizing the distribution of hits which
+   are configurable per Blast Database.
 
 Installation
 ------------
@@ -50,6 +54,18 @@ Installation
 3. Create "Blast Database" nodes for each dataset you want to make available
    for your users to BLAST against. BLAST databases should first be created
    using the command-line makeblastdb program with the -parse_seqids flag.
+   
+Set-up of Whole Genome Diagrams with CViTjs
+--------------------------------------------
+1. Download [CViTjs](https://github.com/LegumeFederation/cvitjs) and extract
+   it at sites/all/libraries
+2. Configure it via the Tripal Blast administration settings at 
+   http://[your site]admin/tripal/extension/tripal_blast/settings
+3. Enable it for specific Blast Databases by editing the corresponding
+   Tripal "Blast Database" Drupal node.
+   
+For more in depth help, reference the Help tab at 
+http://[your site]/admin/tripal/extension/tripal_blast/help
 
 Customization
 -------------
