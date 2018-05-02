@@ -4,31 +4,31 @@ INTRODUCTION
 This module provides a basic interface to allow your users to utilize your
 server's NCBI BLAST+.
 
-Specifically it provides two forms, one for nucleotide queries and another for
-protein queries. Currently only blastn and blastp are supported but in the future
-you will be able to select either a nucleotide or a protein database to BLAST
-against regardless of the type of query and this module will decide which BLAST
+Specifically it provides blast program-specific forms (blastn, blastp, tblastn, 
+blastx are supported). In the future, there will be a single form where you 
+will be able to select either a nucleotide or a protein database to BLAST
+against regardless of the type of query and it will decide which BLAST
 program to use based on the combination of query/database type (ie: if you
 selected a protein database on the nucleotide BLAST form then blastx would
 be used).
 
 BLAST submissions result in the creation of Tripal jobs which then need to run
-from the command-line. This ensures that long running BLASTS will not cause
+from the command-line. This ensures that long running BLASTs will not cause
 page time-outs but does add some management overhead and might result in longer
 waits for users depending on how often you have cron set to run Tripal jobs.
-A Tripal Jobs Daemon is under development to allow these jobs to be run almost
-as soon as they are submitted.
+You can alternatively use the [Tripal Jobs Daemon](https://github.com/tripal/tripal/tree/7.x-3.x/tripal_daemon) 
+to automate running of Tripal Jobs reducing user wait time and your own workload.
 
 The BLAST results page is an expandable summary table with each hit being
 listed as a row in the table with query/hit/e-value information. The row can
 then be expanded to include additional information including the alignment.
-Download formats are under development to allow users to download these
-results in the familiar tabular or HTML NCBI formats.
+Download formats are allow users to download these results in the familiar 
+tabular, GFF3 or HTML NCBI formats.
 
 Highlighted Functionality
 -------------------------
- - Supports blastn and blastp with separate forms depending upon the query
-   type.
+ - Supports blastn, blastp, tblastn, and blastx with separate forms depending 
+   upon the query type.
  - Simple interface allowing users to paste or upload a query sequence and
    then select from available databases. Additionally, a FASTA file can be
    uploaded for use as a database to BLAST against.
@@ -38,7 +38,8 @@ Highlighted Functionality
    page time-outs
  - BLAST databases are made available to the module by creating Drupal Pages
    describing them. This allows administrators to use the Drupal Field API to
-   add any information they want to these pages.
+   add any information they want to these pages and to control which databases
+   are available to a given user based on native Drupal permissions.
 
 Installation
 ------------
