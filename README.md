@@ -65,7 +65,7 @@ Installation
    
 Set-up of Whole Genome Diagrams with CViTjs
 --------------------------------------------
-1. Download [CViTjs](https://github.com/LegumeFederation/cvitjs) and extract
+1. Download [CViTjs v0.1.0-beta](https://github.com/LegumeFederation/cvitjs/releases/tag/v0.1.0-beta) and extract
    it at sites/all/libraries
 2. Configure it via the Tripal Blast administration settings at 
    http://[your site]admin/tripal/extension/tripal_blast/settings
