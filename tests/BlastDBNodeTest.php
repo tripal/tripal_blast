@@ -44,24 +44,24 @@ class BlastDBNodeTest extends TripalTestCase {
 
     // Log in the god user.
     global $user;
-	  $user = user_load(1);
+    $user = user_load(1);
 
-	  $node = array('type' => 'blastdb');
+    $node = array('type' => 'blastdb');
 
-	  // Fill in the form.
-	  $form_state = array(
-	    'values' => array(
-  	    'db_name' => 'Test Blast Database',
-	      'db_path' => '/fake/path/here',
-	      'db_dbtype' => 'nucleotide',
-	      'dbxref_linkout_type' => 'none',
-	      'cvitjs_enabled' => 0,
-	      'op' => t('Save'),
-	    ),
-	  );
+    // Fill in the form.
+    $form_state = array(
+      'values' => array(
+        'db_name' => 'Test Blast Database',
+        'db_path' => '/fake/path/here',
+        'db_dbtype' => 'nucleotide',
+        'dbxref_linkout_type' => 'none',
+        'cvitjs_enabled' => 0,
+        'op' => t('Save'),
+      ),
+    );
 
-	  // Execute the node creation form.
-	  drupal_form_submit('blastdb_node_form', $form_state, (object) $node);
+    // Execute the node creation form.
+    drupal_form_submit('blastdb_node_form', $form_state, (object) $node);
 
     // Retrieve any errors.
     $errors = form_get_errors();
@@ -75,8 +75,8 @@ class BlastDBNodeTest extends TripalTestCase {
       array(':name' => $form_state['values']['db_name']));
     $this->assertEquals($result->rowCount(), 1);
 
-	  // log out the god user.
-	  $user = drupal_anonymous_user();
+    // log out the god user.
+    $user = drupal_anonymous_user();
   }
 
   /**
@@ -86,45 +86,27 @@ class BlastDBNodeTest extends TripalTestCase {
 
     // Log in the god user.
     global $user;
-	  $user = user_load(1);
+    $user = user_load(1);
 
     // Create the node in the first place.
-    // @todo move this into a data seeder.
-    $node = new \stdClass();
-    $node->title = "Test Blast Database";
-    $node->type = "blastdb";
-    node_object_prepare($node);
-
-    $node->language = LANGUAGE_NONE;
-    $node->uid = $user->uid;
-    $node->status = 1;  // published.
-    $node->promote = 0; // not promoted.
-    $node->comment = 0; // disabled.
-
-    $node->db_name = 'Test Blast Database';
-    $node->db_path = '/fake/path/here';
-    $node->db_dbtype = 'nucleotide';
-    $node->dbxref_linkout_type = 'none';
-    $node->cvitjs_enabled = 0;
-
-    $node = node_submit($node);
-    node_save($node);
+    $node = DatabaseSeeders\BlastDBNodeSeeder::seed();
+    $node = get_blast_database(array('name' => 'Test Blast Database'));
 
     // Now use the form to edit it :-)
     // Specifically, we will change the name and type.
-	  $form_state = array(
-	    'values' => array(
-  	    'db_name' => 'Test Protein Blast Database',
-	      'db_path' => '/fake/path/here',
-	      'db_dbtype' => 'protein',
-	      'dbxref_linkout_type' => 'none',
-	      'cvitjs_enabled' => 0,
-	      'op' => t('Save'),
-	    ),
-	  );
+    $form_state = array(
+      'values' => array(
+        'db_name' => 'Test Protein Blast Database',
+        'db_path' => $node->db_path,
+        'db_dbtype' => 'protein',
+        'dbxref_linkout_type' => $node->dbxref_linkout_type,
+        'cvitjs_enabled' => $node->cvitjs_enabled,
+        'op' => t('Save'),
+      ),
+    );
 
-	  // Execute the node creation form.
-	  drupal_form_submit('blastdb_node_form', $form_state, $node);
+    // Execute the node creation form.
+    drupal_form_submit('blastdb_node_form', $form_state, $node);
 
     // Retrieve any errors.
     $errors = form_get_errors();
@@ -138,8 +120,8 @@ class BlastDBNodeTest extends TripalTestCase {
       array(':name' => $form_state['values']['db_name'], ':type' => $form_state['values']['db_dbtype']));
     $this->assertEquals($result->rowCount(), 1);
 
-	  // log out the god user.
-	  $user = drupal_anonymous_user();
+    // log out the god user.
+    $user = drupal_anonymous_user();
 
   }
 
