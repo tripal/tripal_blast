@@ -41,6 +41,7 @@ class BlastDBNodeTest extends TripalTestCase {
    *  transactions.
    */
   public function testBlastDBNodeCreate() {
+    module_load_include('inc', 'node', 'node.pages');
 
     // Log in the god user.
     global $user;
@@ -73,7 +74,7 @@ class BlastDBNodeTest extends TripalTestCase {
     // Check that there is a test blast database.
     $result = db_query('SELECT * FROM {blastdb} WHERE name=:name',
       array(':name' => $form_state['values']['db_name']));
-    $this->assertEquals($result->rowCount(), 1);
+    $this->assertEquals(1, $result->rowCount());
 
     // log out the god user.
     $user = drupal_anonymous_user();
@@ -83,6 +84,7 @@ class BlastDBNodeTest extends TripalTestCase {
    * Update an existing Blast Database Node.
    */
   public function testBlastDBNodeUpdate() {
+    module_load_include('inc', 'node', 'node.pages');
 
     // Log in the god user.
     global $user;
@@ -110,7 +112,7 @@ class BlastDBNodeTest extends TripalTestCase {
 
     // Retrieve any errors.
     $errors = form_get_errors();
-    print_r($errors);
+    //print_r($errors);
 
     // Assert that there must not be any.
     $this->assertEmpty($errors);
