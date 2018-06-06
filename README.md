@@ -1,4 +1,6 @@
 
+[![Build Status](https://travis-ci.org/tripal/tripal_blast.svg?branch=7.x-1.x)](https://travis-ci.org/tripal/tripal_blast)
+
 INTRODUCTION
 ------------
 This module provides a basic interface to allow your users to utilize your
