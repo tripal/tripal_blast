@@ -4,10 +4,24 @@ namespace Tests\DatabaseSeeders;
 
 use StatonLab\TripalTestSuite\Database\Seeder;
 
+/**
+ * Creates test blast database nodes.
+ *
+ * See the code block below for an example of how to use this database seeder.
+ * Note: the getNode() method is specific to this seeder and not standard TripalTestSuite.
+ * @code
+ *   // Creates a test blastdb node using the Drupal Node API.
+ *   $seeder = DatabaseSeeders\BlastDBNodeSeeder::seed();
+ *   // Retrieves the node created by the seeder for use in your test.
+ *   $node = $seeder->getNode();
+ * @endcode
+ */
 class BlastDBNodeSeeder extends Seeder {
 
+    var $node;
+
     /**
-     * Seeds the database a test blast database node.
+     * Seeds the database with a test blast database node.
      *
      * @return void
      */
@@ -40,7 +54,14 @@ class BlastDBNodeSeeder extends Seeder {
       // log out the god user.
       $user = drupal_anonymous_user();
 
-      return $node;
+      $this->node = $node;
 
     }
+
+    /**
+     * Returns the node created by up().
+     */
+     public function getNode() {
+       return $this->node;
+     }
 }

@@ -90,8 +90,8 @@ class BlastDBNodeTest extends TripalTestCase {
     $user = user_load(1);
 
     // Create the node in the first place.
-    $node = DatabaseSeeders\BlastDBNodeSeeder::seed();
-    $node = get_blast_database(array('name' => 'Test Blast Database'));
+    $seeder = DatabaseSeeders\BlastDBNodeSeeder::seed();
+    $node = $seeder->getNode();
 
     // Now use the form to edit it :-)
     // Specifically, we will change the name and type.
