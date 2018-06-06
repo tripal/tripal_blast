@@ -2,3 +2,8 @@
 # Ignore an internal CViTjs installation.
 # Assumes it's been cloned in the js directory
 js/*
+
+## Ignore PHPUnit Test vendor scripts & environment info.
+.env
+vendor/
+

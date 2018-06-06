@@ -302,7 +302,7 @@ function blastdb_form_validate($form, $form_state) {
   }
 
   // Check that there is a cvitjs section for the current
-  if ($form_state['values']['cvitjs_enabled']) {
+  if (isset($form_state['values']['cvitjs_enabled']) AND $form_state['values']['cvitjs_enabled']) {
     $conf_section = blast_ui_get_cvit_conf_text('data.'.$form_state['values']['db_name']);
     if (!$conf_section) {
       drupal_set_message('There is no section for this genome target defined in the CViTjs
