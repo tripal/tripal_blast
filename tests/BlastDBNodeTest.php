@@ -23,12 +23,12 @@ class BlastDBNodeTest extends TripalTestCase {
     $types = node_type_get_types();
 
     // The BlastDB node type must be in the list.
-    $this->assertArrayHasKey('blastdb', $types);
+    $this->assertArrayHasKey('blastdb', $types, '"Blast Database" node type is not registered with Drupal.');
 
     // Additionally, the blastdb node type should be created by blast_ui.\
     // This checks the case where the node type might be created by
     // a different module.
-    $this->assertEquals($types['blastdb']->module, 'blast_ui');
+    $this->assertEquals($types['blastdb']->module, 'blast_ui', '"Blast Database" node type was not added by blast_ui.');
   }
 
   /**
@@ -66,15 +66,14 @@ class BlastDBNodeTest extends TripalTestCase {
 
     // Retrieve any errors.
     $errors = form_get_errors();
-    //print_r($errors);
 
     // Assert that there must not be any.
-    $this->assertEmpty($errors);
+    $this->assertEmpty($errors, 'Form submission returned the following errors:'.print_r($errors,TRUE));
 
     // Check that there is a test blast database.
     $result = db_query('SELECT * FROM {blastdb} WHERE name=:name',
       array(':name' => $form_state['values']['db_name']));
-    $this->assertEquals(1, $result->rowCount());
+    $this->assertEquals(1, $result->rowCount(), 'Unable to select the blast database using the name.');
 
     // log out the god user.
     $user = drupal_anonymous_user();
@@ -112,15 +111,14 @@ class BlastDBNodeTest extends TripalTestCase {
 
     // Retrieve any errors.
     $errors = form_get_errors();
-    //print_r($errors);
 
     // Assert that there must not be any.
-    $this->assertEmpty($errors);
+    $this->assertEmpty($errors, 'Form submission returned the following errors:'.print_r($errors,TRUE));
 
     // Check that there is a test blast database.
     $result = db_query('SELECT * FROM {blastdb} WHERE name=:name AND dbtype=:type',
       array(':name' => $form_state['values']['db_name'], ':type' => $form_state['values']['db_dbtype']));
-    $this->assertEquals($result->rowCount(), 1);
+    $this->assertEquals(1, $result->rowCount(), 'Unable to select the blast database using the new name and type.');
 
     // log out the god user.
     $user = drupal_anonymous_user();
