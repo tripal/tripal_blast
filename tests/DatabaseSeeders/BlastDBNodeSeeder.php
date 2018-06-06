@@ -3,6 +3,7 @@
 namespace Tests\DatabaseSeeders;
 
 use StatonLab\TripalTestSuite\Database\Seeder;
+use Faker\Factory;
 
 /**
  * Creates test blast database nodes.
@@ -42,11 +43,12 @@ class BlastDBNodeSeeder extends Seeder {
       $node->promote = 0; // not promoted.
       $node->comment = 0; // disabled.
 
-      if (!isset($node->db_name)) $node->db_name = 'Test Blast Database';
-      if (!isset($node->db_path)) $node->db_path = '/fake/path/here';
-      if (!isset($node->db_dbtype)) $node->db_dbtype = 'nucleotide';
-      if (!isset($node->dbxref_linkout_type)) $node->dbxref_linkout_type = 'none';
-      if (!isset($node->cvitjs_enabled)) $node->cvitjs_enabled = 0;
+      $faker = Factory::create();
+      $node->db_name = $faker->words(3, TRUE);
+      $node->db_path = '/fake/path/here';
+      $node->db_dbtype = 'nucleotide';
+      $node->dbxref_linkout_type = 'none';
+      $node->cvitjs_enabled = 0;
 
       $node = node_submit($node);
       node_save($node);

@@ -3,6 +3,7 @@ namespace Tests;
 
 use StatonLab\TripalTestSuite\DBTransaction;
 use StatonLab\TripalTestSuite\TripalTestCase;
+use Faker\Factory;
 
 /**
  * Tests BlastDB Node CRUD
@@ -50,9 +51,10 @@ class BlastDBNodeTest extends TripalTestCase {
     $node = array('type' => 'blastdb');
 
     // Fill in the form.
+    $faker = Factory::create();
     $form_state = array(
       'values' => array(
-        'db_name' => 'Test Blast Database',
+        'db_name' => $faker->words(3, TRUE),
         'db_path' => '/fake/path/here',
         'db_dbtype' => 'nucleotide',
         'dbxref_linkout_type' => 'none',
@@ -95,9 +97,10 @@ class BlastDBNodeTest extends TripalTestCase {
 
     // Now use the form to edit it :-)
     // Specifically, we will change the name and type.
+    $faker = Factory::create();
     $form_state = array(
       'values' => array(
-        'db_name' => 'Test Protein Blast Database',
+        'db_name' => $faker->words(4, TRUE),
         'db_path' => $node->db_path,
         'db_dbtype' => 'protein',
         'dbxref_linkout_type' => $node->dbxref_linkout_type,
