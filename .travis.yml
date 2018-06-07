@@ -18,6 +18,6 @@ script:
   - docker run -it -d --rm --name tripal -v "$(pwd)":/modules/tripal_blast statonlab/tripal3
   - sleep 30 # We pause here so postgres and apache complete booting up
  #install blast
-  - docker exec -it tripal bash -c "cp /modules/tripal_blast/ncbi-blast-2.2.30+/bin/* /usr/local/bin && cp -r /modules/tripal_blast/ncbi-blast-2.2.30+/data /usr/local/blast-data"
+  - docker exec -it tripal bash -c "cp /modules/tripal_blast/ncbi-blast-2.2.30+/bin/* /usr/local/bin"
   - docker exec -it tripal drush pm-enable -y blast_ui
   - docker exec -it tripal bash -c "cd /modules/tripal_blast && composer install && DRUPAL_ROOT=/var/www/html ./vendor/bin/phpunit"
