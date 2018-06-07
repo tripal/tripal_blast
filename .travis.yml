@@ -19,7 +19,7 @@ script:
   - sleep 30 # We pause here so postgres and apache complete booting up
  #install blast
   #- docker exec -it tripal curl -O ftp.ncbi.nlm.nih.gov/blast/executables/blast+/2.2.30/ncbi-blast-2.2.30+-x64-linux.tar.gz && tar xzf ncbi-blast-2.2.30+-x64-linux.tar.gz && cp ncbi-blast-2.2.30+/bin/* /usr/local/bin && cp -r ncbi-blast-2.2.30+/data /usr/local/blast-data
-  - docker exec -it tripalsudo apt-get install ncbi-blast+
+  - docker exec -it tripal sudo apt-get install ncbi-blast+
   - blastp # remove this, we're just testing it
   - docker exec -it tripal drush pm-enable -y blast_ui
   - docker exec -it tripal bash -c "cd /modules/tripal_blast && composer install && DRUPAL_ROOT=/var/www/html ./vendor/bin/phpunit"
