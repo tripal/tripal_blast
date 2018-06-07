@@ -17,7 +17,7 @@ script:
   - docker run -it -d --rm --name tripal -v "$(pwd)":/modules/tripal_blast statonlab/tripal3
   - sleep 30 # We pause here so postgres and apache complete booting up
  #install blast
-  - sudo yum install ncbi-blast-2.2.30+-1.x86_64.rpm --nogpgcheck
+  - docker exec -it tripal curl -O ftp.ncbi.nlm.nih.gov/blast/executables/blast+/2.2.30/ncbi-blast-2.2.30+-x64-linux.tar.gz && tar xzf ncbi-blast-2.2.30+-x64-linux.tar.gz && cp ncbi-blast-2.2.30+/bin/* /usr/local/bin && cp -r ncbi-blast-2.2.30+/data /usr/local/blast-data
   - blastp # remove this, we're just testing it
   - docker exec -it tripal drush pm-enable -y blast_ui
   - docker exec -it tripal bash -c "cd /modules/tripal_blast && composer install && DRUPAL_ROOT=/var/www/html ./vendor/bin/phpunit"
