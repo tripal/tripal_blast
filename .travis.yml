@@ -13,7 +13,7 @@ env:
 before_script:
   - docker pull statonlab/tripal3
   #- curl -O ftp.ncbi.nlm.nih.gov/blast/executables/blast+/2.2.30/ncbi-blast-2.2.30+-x64-linux.tar.gz
-  - wget -O ftp.ncbi.nlm.nih.gov/blast/executables/blast+/2.2.30/ncbi-blast-2.2.30+-x64-linux.tar.gz
+  - wget ftp.ncbi.nlm.nih.gov/blast/executables/blast+/2.2.30/ncbi-blast-2.2.30+-x64-linux.tar.gz
   - tar xzf ncbi-blast-2.2.30+-x64-linux.tar.gz
 script:
   - docker run -it -d --rm --name tripal -v "$(pwd)":/modules/tripal_blast statonlab/tripal3
