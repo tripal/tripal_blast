@@ -41,14 +41,14 @@ class BlastJobTest extends TripalTestCase {
 
     // Supress output and tripal errors.
     // NOTE: silent() didn't work for some reason.
-    putenv("TRIPAL_SUPPRESS_ERRORS=TRUE");
-    ob_start();
+    // putenv("TRIPAL_SUPPRESS_ERRORS=TRUE");
+    // ob_start();
 
     run_BLAST_tripal_job($program, $query, $database, $output_filestub, $options);
 
     // Clean the buffer and unset tripal errors suppression. 
-    ob_end_clean();
-    putenv("TRIPAL_SUPPRESS_ERRORS");
+    // ob_end_clean();
+    // putenv("TRIPAL_SUPPRESS_ERRORS");
 
     // Loop through each expected output file...
     $files_to_check = array();
