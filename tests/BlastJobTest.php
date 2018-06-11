@@ -18,7 +18,8 @@ class BlastJobTest extends TripalTestCase {
     $faker = Factory::create();
 
     // Test we have access to the NCBI Blast commands.
-    $blast_path = variable_get('blast_path', '');
+    // Setting the default to where it is on Travis CI: /usr/local/bin.
+    $blast_path = variable_get('blast_path', '/usr/local/bin/');
     $this->assertFileExists($blast_path . 'blastn', 'NCBI blastn command not found. Expecting it here: '.$blast_path.'blastn');
     $this->assertFileExists($blast_path . 'blast_formatter', 'NCBI blast_formatter command not found. Expecting it here: '.$blast_path.'blast_formatter');
 
