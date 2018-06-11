@@ -23,6 +23,11 @@ class BlastJobTest extends TripalTestCase {
     $this->assertFileExists($blast_path . 'blastn', 'NCBI blastn command not found. Expecting it here: '.$blast_path.'blastn');
     $this->assertFileExists($blast_path . 'blast_formatter', 'NCBI blast_formatter command not found. Expecting it here: '.$blast_path.'blast_formatter');
 
+    // Make sure the path to blast is set!
+    if ($blast_path == '/usr/local/bin/') {
+      variable_set('blast_path', '/usr/local/bin/');
+    }
+
     // Retrieve paths to files.
     $module_path = DRUPAL_ROOT . '/' . drupal_get_path('module','blast_ui');
     $file_path = DRUPAL_ROOT . '/' . variable_get('file_public_path', conf_path() . '/files'); 
