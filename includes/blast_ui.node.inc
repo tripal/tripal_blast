@@ -117,6 +117,8 @@ function blastdb_form($node, &$form_state) {
   foreach ($types as $machine_name => $details) {
     $options[$machine_name] = (isset($details['name'])) ? $details['name'] : $machine_name;
   }
+  
+  // LINK-OUT TYPE
   $linkout_type = (isset($node->linkout->type)) ? $node->linkout->type : 'none';
   $linkout_type = (isset($form_state['values'])) ? $form_state['values']['dbxref_linkout_type'] : $linkout_type;
   $form['dbxref']['dbxref_linkout_type'] = array(
@@ -167,6 +169,8 @@ function blastdb_form($node, &$form_state) {
         . 'extract a specifc portion of the FASTA header to be used as the ID.'
       ),
     );
+    
+    // FASTA HEADER FORMAT
     $regex_type = (isset($node->linkout->regex_type)) ? $node->linkout->regex_type : 'default';
     $regex_type = (isset($form_state['values'])) ? $form_state['values']['dbxref_id_type'] : $regex_type;
     $form['dbxref']['dbxref_id_type'] = array(
@@ -319,7 +323,6 @@ function blastdb_form_validate($form, $form_state) {
  * Implements hook_insert().
  */
 function blastdb_insert($node) {
-
   // Handle Link-out Rules.
   $regex = '';
   if (isset($node->dbxref_id_type)) {
@@ -451,6 +454,7 @@ function blastdb_load($nodes) {
     // Determine the type of link-out chosen.
     $types = module_invoke_all('blast_linkout_info');
     $type = NULL;
+
     if (isset($types[ $record->dbxref_linkout_type ])) {
       $type = $types[ $record->dbxref_linkout_type ];
     }
