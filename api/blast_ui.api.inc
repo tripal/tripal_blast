@@ -344,20 +344,20 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
  *
  */
 function validate_fasta_sequence($type, $sequence) {
+//drupal_set_message("FASTA is:<pre>$sequence</pre>");
+  // Remove def lines
+  $sequence = preg_replace('/\>.*\n/', '', $sequence);
+//drupal_set_message("FASTA without defs:<pre>$sequence</pre>");
+
   // Remove blank lines
   $sequence = preg_replace('/^[^>]\h*\v+/m', '', $sequence);
+//drupal_set_message("FASTA without blank lines:<pre>$sequence</pre>");
   
   //Includes IUPAC codes.
   $fastaSeqRegEx = ($type == 'nucleotide')
                    ? '/^[ATCGNUKMBVSWDYRHatcgnukmbvswdyrh\[\/\]\s\n\r]*$/'
                    : '/^[ABCDEFGHIKLMNPQRSTUVWYZXabcdefghiklmnpqrstuvwyzx\*\-\s\n\r]*$/';
-  $defRegEx      = '/^>.*?(\\n|\\r)(.*)$/sm';
-  if (preg_match($defRegEx, $sequence, $matches)) {
-    if (isset($matches[2]) && $matches[2] != '' && preg_match($fastaSeqRegEx, $matches[2])) {
-      return true;
-    }
-  }
-  else if ($sequence != '' && preg_match($defRegEx, $sequence)) {
+  if ($sequence != '' && preg_match($fastaSeqRegEx, $sequence)) {
     return true;
   }
 
@@ -938,6 +938,7 @@ function blast_ui_get_cvit_conf_text($genome_target = FALSE) {
  *  The path to the CViTjs codebase.
  */
 function blast_ui_get_cvit_conf($cvitjs_location = NULL) {
+/*
   if (!$cvitjs_location) {
     $cvitjs_location = libraries_get_path('cvitjs') . DIRECTORY_SEPARATOR;
   }
@@ -945,4 +946,6 @@ function blast_ui_get_cvit_conf($cvitjs_location = NULL) {
   $cvit_conf_path = $cvitjs_location . 'cvit.conf';
 
   return $cvit_conf_path;
+*/
+  return DRUPAL_ROOT . '/sites/all/libraries/cvitjs/cvit.conf';
 }
