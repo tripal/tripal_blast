@@ -6,4 +6,5 @@ js/*
 ## Ignore PHPUnit Test vendor scripts & environment info.
 .env
 vendor/
+docs/_build
 
