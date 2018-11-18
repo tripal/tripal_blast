@@ -15,3 +15,5 @@ The BLAST results page is an expandable summary table with each hit being listed
 
    user_guide/features
    user_guide/install
+   user_guide/targetdbs
+   user_guide/cvitjs
