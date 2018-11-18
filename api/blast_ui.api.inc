@@ -888,7 +888,10 @@ function blast_ui_get_cvit_conf_text($genome_target = FALSE) {
   if ($cvit_conf) {
 
     // Retrieve the contents of the file.
-    $contents = file_get_contents($cvit_conf);
+    $contents = '';
+    if (file_exists($cvit_conf)) {
+      $contents = file_get_contents($cvit_conf);
+    }
 
     // If no genome target was provided then return the full file.
     if ($contents && $genome_target == FALSE) {
