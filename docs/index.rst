@@ -7,3 +7,4 @@ Tripal BLAST Documentation!
    :caption: Contents:
 
    user_guide
+   dev_guide
