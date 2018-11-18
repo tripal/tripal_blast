@@ -127,6 +127,10 @@ function blastdb_form($node, &$form_state) {
       should point to a GBrowse instance if you choose GBrowse here).',
     '#options' => $options,
     '#default_value' => $linkout_type,
+    '#ajax' => array(
+      'callback' => 'ajax_blast_ui_node_linkout_custom_callback',
+      'wrapper' => 'link-outs',
+    )
   );
 
   // Add information about each format to the description.
