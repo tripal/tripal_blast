@@ -1,0 +1,264 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Installation &mdash; Tripal BLAST  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="Highlighted Functionality" href="features.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Tripal BLAST
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../user_guide.html">User’s Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="features.html">Highlighted Functionality</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Installation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#quickstart">QuickStart</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#install-ncbi-blast">Install NCBI BLAST+</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#install-tripal-blast">Install Tripal BLAST</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#configure-tripal-blast">Configure Tripal BLAST</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Tripal BLAST</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../user_guide.html">User’s Guide</a> &raquo;</li>
+        
+      <li>Installation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/user_guide/install.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="quickstart">
+<h2>QuickStart<a class="headerlink" href="#quickstart" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li>Install NCBI BLAST+ on your server (Tested with 2.2.26+). There is a package available for Ubuntu to ease installation.</li>
+<li>Install this module as you would any Drupal module (ie: download, unpack in sites/all/modules and enable through <a class="reference external" href="http://[your">http://[your</a> site]/admin/modules)</li>
+<li>Create “Blast Database” nodes for each dataset you want to make available for your users to BLAST against. BLAST databases should first be created using the command-line <code class="docutils literal notranslate"><span class="pre">makeblastdb</span></code> program with the <code class="docutils literal notranslate"><span class="pre">-parse_seqids</span></code> flag.</li>
+<li>It’s recommended that you also install the Tripal Job Daemon to manage BLAST jobs and ensure they are run soon after being submitted by the user. Without this additional module, administrators will have to execute the tripal jobs either manually or through use of cron jobs.</li>
+</ol>
+</div>
+<div class="section" id="install-ncbi-blast">
+<h2>Install NCBI BLAST+<a class="headerlink" href="#install-ncbi-blast" title="Permalink to this headline">¶</a></h2>
+<p>See <a class="reference external" href="https://www.ncbi.nlm.nih.gov/books/NBK52640/">NCBI’s Standalone BLAST Setup for Unix</a> for extended instructions.</p>
+</div>
+<div class="section" id="install-tripal-blast">
+<h2>Install Tripal BLAST<a class="headerlink" href="#install-tripal-blast" title="Permalink to this headline">¶</a></h2>
+<p>This module is available as a project on Drupal.org. As such, the preferred method of installation is using Drush:</p>
+<div class="code bash highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="o">/</span><span class="n">var</span><span class="o">/</span><span class="n">www</span><span class="o">/</span><span class="n">html</span>
+<span class="n">drush</span> <span class="n">pm</span><span class="o">-</span><span class="n">download</span> <span class="n">tripal_blast</span> <span class="n">libraries</span>
+</pre></div>
+</div>
+<p>The above command downloads the module into the expected directory (e.g. <code class="docutils literal notranslate"><span class="pre">/var/www/html/sites/all/modules/tripal_blast</span></code>). Next we need to install the module:</p>
+<div class="code bash highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">drush</span> <span class="n">pm</span><span class="o">-</span><span class="n">enable</span> <span class="n">blast_ui</span>
+</pre></div>
+</div>
+<p>Now that the module is installed, we just need to configure it!</p>
+</div>
+<div class="section" id="configure-tripal-blast">
+<h2>Configure Tripal BLAST<a class="headerlink" href="#configure-tripal-blast" title="Permalink to this headline">¶</a></h2>
+<p>Navigate to Administration Toolbar &gt; Modules and scroll down to BLAST UI (under “Tripal Extensions”). Then click on the configure link as shown below:</p>
+<img alt="../_images/install.1.configure_link.png" src="../_images/install.1.configure_link.png" />
+<p>This will take you to the Tripal BLAST configuration form. The only required settings is the “path of the BLAST program”. This should be set to the absolute path to the blastn executable and should include the final slash but not the program itself (e.g. <code class="docutils literal notranslate"><span class="pre">/usr/bin/</span></code>).</p>
+<img alt="../_images/install.2.configurepage.png" src="../_images/install.2.configurepage.png" />
+<p>The remaining configuration options allow you to customize Tripal BLAST UI to your own specific needs. For example, you can use the options under “Allow file upload” to allow users to allow FASTA files for either the query and/or the target database. Additionally, you can set the example sequences, protect against large jobs by limiting the number of results and/or add a warning to the top of the blast form.</p>
+<p>Don’t forget to click the “Save Configuration” button at the bottom of the page to ensure your changes are saved!</p>
+<img alt="../_images/install.3.savebutton.png" src="../_images/install.3.savebutton.png" />
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="features.html" class="btn btn-neutral" title="Highlighted Functionality" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, University of Saskatchewan with the Legume Federation.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
