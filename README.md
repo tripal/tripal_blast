@@ -92,12 +92,14 @@ complete control over the look of the BLAST results.
 
 Comparison with other Modules
 ------------------------------
+
 <table>
 <tr><th></th><th><a href="project/tripal_blast">Tripal BLAST UI</a></th><th><a href="project/tripal_blast_analysis">Tripal BLAST Analysis</a></th></tr>
 <tr><th>Provides an interface to execute BLASTs</th><td>Yes</td><td>No</td></tr>
 <tr><th>Display BLAST Results to users</th><td>After BLAST submission</td><td>On associated feature pages</td></tr>
 <tr><th>Load BLAST Results into Chado</th><td>No</td><td>Yes</td></tr>
 </table>
+
 **NOTE: These modules will be combined into a single download available 
 here in the not so distant future. You will still have the flexibility 
 to enable either one or the other or both.**
