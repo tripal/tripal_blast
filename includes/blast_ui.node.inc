@@ -108,8 +108,6 @@ function blastdb_form($node, &$form_state) {
     '#title' => 'Link-outs',
     '#description' => 'These settings will be used to <em>transform the hit name into a
       link to additional information</em>.',
-    '#prefix' => '<div id="link-outs">',
-    '#suffix' => '</div>',
   );
 
   $types = module_invoke_all('blast_linkout_info');
@@ -133,10 +131,22 @@ function blastdb_form($node, &$form_state) {
     )
   );
 
+  $form['dbxref']['details'] = array(
+    '#prefix' => '<div id="link-outs">',
+    '#suffix' => '</div>',
+  );
+
   // Add information about each format to the description.
   if ($linkout_type) {
-    $form['dbxref']['dbxref_linkout_type']['#description'] .= '
-      <p class="blastdb-extra-info"><strong>'.$types[$linkout_type]['name'].'</strong>: '.$types[$linkout_type]['help'].'</p>';
+    $form['dbxref']['details']['dbxref_linkout_description'] = array(
+      '#type' => 'item',
+      '#markup' => '<p class="blastdb-extra-info">'
+        .'<strong>'.$types[$linkout_type]['name'].'</strong>: '
+        .$types[$linkout_type]['help']
+        .'</p>',
+      '#prefix' => '<div id="link-outs">',
+      '#suffix' => '</div>',
+    );
   }
 
   if ($types[$linkout_type]['require_regex']) {
@@ -173,7 +183,7 @@ function blastdb_form($node, &$form_state) {
     );
     $regex_type = (isset($node->linkout->regex_type)) ? $node->linkout->regex_type : 'default';
     $regex_type = (isset($form_state['values'])) ? $form_state['values']['dbxref_id_type'] : $regex_type;
-    $form['dbxref']['dbxref_id_type'] = array(
+    $form['dbxref']['details']['dbxref_id_type'] = array(
       '#type' => 'radios',
       '#title' => 'FASTA header format',
       '#description' => 'Choose the format that matches the format of the FASTA '
@@ -195,12 +205,12 @@ function blastdb_form($node, &$form_state) {
     );
     // Add information about each format to the description.
     if ($regex_type) {
-      $form['dbxref']['dbxref_id_type']['#description'] .= '
+      $form['dbxref']['details']['dbxref_id_type']['#description'] .= '
         <p class="blastdb-extra-info"><strong>'.$regex[$regex_type]['title'].'</strong>: '.$regex[$regex_type]['help'].'</p>';
     }
 
     if ($regex_type == 'custom') {
-      $form['dbxref']['regex'] = array(
+      $form['dbxref']['details']['regex'] = array(
         '#type' => 'textfield',
         '#title' => 'Regular Expression',
         '#description' => t('A PHP Regular expression with curved brackets '
@@ -220,7 +230,7 @@ function blastdb_form($node, &$form_state) {
     $db_options = tripal_get_db_select_options();
     $db_options[0] = '';
     asort($db_options);
-    $form['dbxref']['db_id'] = array(
+    $form['dbxref']['details']['db_id'] = array(
       '#type' => 'select',
       '#title' => 'External Database',
       '#description' => 'The external database you would like to link-out to. '
@@ -536,6 +546,6 @@ function blastdb_load($nodes) {
  * when someone selects custom.
  */
 function ajax_blast_ui_node_linkout_custom_callback($form, $form_state) {
-  return $form['dbxref'];
+  return $form['dbxref']['details'];
 }
 
