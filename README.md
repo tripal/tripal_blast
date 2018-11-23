@@ -27,29 +27,6 @@ then be expanded to include additional information including the alignment.
 Download formats are allow users to download these results in the familiar 
 tabular, GFF3 or HTML NCBI formats.
 
-Highlighted Functionality
--------------------------
- - Supports blastn, blastp, tblastn, and blastx with separate forms depending 
-   upon the query type.
- - Simple interface allowing users to paste or upload a query sequence and
-   then select from available databases. Additionally, a FASTA file can be
-   uploaded for use as a database to BLAST against.
- - Tabular Results listing with alignment information and multiple 
-   download formats (HTML, TSV, GFF3, XML) available.
- - Completely integrated with Tripal Jobs providing administrators with a
-   way to track BLAST jobs and ensuring long running BLASTs will not cause
-   page time-outs
- - BLAST databases are made available to the module by creating Drupal Pages
-   describing them. This allows administrators to use the Drupal Field API to
-   add any information they want to these pages and to control which databases
-   are available to a given user based on native Drupal permissions.
- - BLAST database records can be linked to an external source with more 
-   information (ie: NCBI) per BLAST database.
- - Per Query result diagrams visualizing the HSPs to help users better 
-   evaluate hit quality.
- - Optional Whole Genome diagrams visualizing the distribution of hits which
-   are configurable per Blast Database.
-
 Installation
 ------------
 1. Install NCBI BLAST+ on your server (Tested with 2.2.26+). There is a
@@ -64,31 +41,11 @@ Installation
  to manage BLAST jobs and ensure they are run soon after being submitted 
  by the user. Without this additional module, administrators will have to 
  execute the tripal jobs either manually or through use of cron jobs.
-   
-Set-up of Whole Genome Diagrams with CViTjs
---------------------------------------------
-1. Download [CViTjs v0.1.0-beta](https://github.com/LegumeFederation/cvitjs/releases/tag/v0.1.0-beta) and extract
-   it at sites/all/libraries
-2. Configure it via the Tripal Blast administration settings at 
-   http://[your site]admin/tripal/extension/tripal_blast/settings
-3. Enable it for specific Blast Databases by editing the corresponding
-   Tripal "Blast Database" Drupal node.
-   
-For more in depth help, reference the Help tab at 
-http://[your site]/admin/tripal/extension/tripal_blast/help
 
-Customization
--------------
-The BLAST module forms can be styled using CSS stylesheets in your own theme.
-By default it will use the default form themeing provided by your particular
-Drupal site allowing it to feel consistent with the look-and-feel of your
-Tripal site without customization being needed.
+Documentation
+--------------
 
-Additionally, the results page, waiting pages and the alignment section of
-the results page have their own template files (blast_report.tpl.php,
-blast_report_pending.tpl.php, and blast_report_alignment_row.tpl.php,
-respectively) which can easily be overridden in your own theme providing
-complete control over the look of the BLAST results.
+We have and extensive [user guide](https://tripal-blast-ui.readthedocs.io/en/latest/user_guide.html) and a [developer guide](https://tripal-blast-ui.readthedocs.io/en/latest/dev_guide.html)  available via [readthedocs](https://tripal-blast-ui.readthedocs.io/en/latest/index.html).
 
 Comparison with other Modules
 ------------------------------
@@ -98,6 +55,7 @@ Comparison with other Modules
 <tr><th>Display BLAST Results to users</th><td>After BLAST submission</td><td>On associated feature pages</td></tr>
 <tr><th>Load BLAST Results into Chado</th><td>No</td><td>Yes</td></tr>
 </table>
+
 **NOTE: These modules will be combined into a single download available 
 here in the not so distant future. You will still have the flexibility 
 to enable either one or the other or both.**
