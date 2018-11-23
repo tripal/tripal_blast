@@ -3,7 +3,35 @@ Blast Target Databases
 
 "Target Database" is the BLAST terminology for a database you want your users to be able to BLAST against. For example, on the NCBI Blast website they have a nucleotide and protein target database.
 
-Add BLAST Database
+Creating Blast Indicies
+------------------------
+
+This section provides instructions for how to prepare a FASTA file for use with BLAST. We use the MCBI+ Blast command `formatdb` which should have been installed along-side the other blast command-line tools. The following command can be used to create a nucleotide database from the fasta file ``my_nucleotide.fasta`` where resulting files have the name ``Genus_species_version_genome``.
+
+.. code:: bash
+
+  formatdb -p F -o T -i my_nucleotide.fasta -t Genus_species_version_genome -n Genus_species_version_genome
+
+.. note::
+
+  The following indicates what each paramter does:
+
+  .. code::
+
+    formatdb --help
+
+    formatdb 2.2.26   arguments:
+    -t  Title for database file [String]  Optional
+    -i  Input file(s) for formatting [File In]  Optional
+    -n  Base name for BLAST files [String]  Optional
+    -p  Type of file [T/F]  Optional
+       T - protein
+       F - nucleotide
+    -o  Parse options
+        T - True: Parse SeqId and create indexes.
+        F - False: Do not parse SeqId. Do not create indexes.
+
+Add Blast Database
 -------------------
 
 To add one to the "BLAST Databases" drop-down on the Blast program forms, in the "Navigation" menu go to "Add Content" > "Blast Database". Then fill out the form with the human readable name of your blast database (shown to the user in the drop-down) and the path to the blast database (passed to NCBI Blast).
