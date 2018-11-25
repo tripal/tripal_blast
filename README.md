@@ -62,7 +62,6 @@ to enable either one or the other or both.**
 
 Future Development
 -------------------
- - The ability to blast against 2+ datasets at the same time</li>
- - Better results output including a summary table and eventually an image</li>
- - Ability to Email user when BLAST is done</li>
- - Automatic cleaning up of BLAST job files after 1 week (make time frame configurable)</li>
+ - The ability to blast against 2+ datasets at the same time
+ - Ability to Email user when BLAST is done
+ - Automatic cleaning up of BLAST job files after 1 week (make time frame configurable)
