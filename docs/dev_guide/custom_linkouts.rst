@@ -7,7 +7,7 @@ To create custom link-outs for Tripal BLAST you need to first create your own Dr
 
 Once you have a custom module you need to implement hook_blast_linkout_info() to tell Tripal BLAST about your custom link-out. You do this by creating a function with the name of your module replacing the word "hook". For example:
 
-.. code:: php
+.. code-block:: php
 
   /**
    * Implements hook_blast_linkout_info().
@@ -41,7 +41,7 @@ Once you have a custom module you need to implement hook_blast_linkout_info() to
 
 Next you need to implement the process function that you indicated. This function is given a number of variables providing information about the hit, etc. and is expected to generate a fully rendered link based on that information. For example,
 
-.. code:: php
+.. code-block:: php
 
   /**
    * Generate a link to the UofS Genome Browser for a given hit.
