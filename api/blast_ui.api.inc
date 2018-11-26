@@ -208,7 +208,7 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
     tripal_report_error(
       'blast_ui',
       TRIPAL_ERROR,
-      "Unable to find the BLAST executable (ie: /urs/bin/blastn). This can be changed in the admin settings; you supplied: @command",
+      "Unable to find the BLAST executable (ie: /usr/bin/blastn). This can be changed in the admin settings; you supplied: @command",
       array('@command' => $program),
       array('print' => TRUE)
     );
@@ -221,7 +221,7 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
     tripal_report_error(
       'blast_ui',
       TRIPAL_ERROR,
-      "Unable to find the BLAST Formatter executable (ie: /urs/bin/blast_formatter). This can be changed in the admin settings; you supplied: @command",
+      "Unable to find the BLAST Formatter executable (ie: /usr/bin/blast_formatter). This can be changed in the admin settings; you supplied: @command",
       array('@command' => $blast_formatter_command),
       array('print' => TRUE)
     );
