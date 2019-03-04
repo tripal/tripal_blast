@@ -362,7 +362,7 @@ function blastdb_insert($node) {
   db_insert('blastdb')->fields(array(
     'nid'                 => $node->nid,
     'name'                => $node->db_name,
-    'path'                => $node->db_path,
+    'path'                => trim($node->db_path),
     'dbtype'              => $node->db_dbtype,
     'dbxref_id_regex'     => $regex,
     'dbxref_db_id'        => $db_id,
