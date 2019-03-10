@@ -2,7 +2,7 @@
 
 /**
  * @file
- *
+ * Provides a page for users to access protein blast programs.
  */
 ?>
 
