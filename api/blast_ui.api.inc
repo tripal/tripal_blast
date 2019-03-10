@@ -347,18 +347,27 @@ function validate_fasta_sequence($type, $sequence) {
   //Includes IUPAC codes.
   $fastaSeqRegEx = ($type == 'nucleotide')
                    ? '/^[ATCGNUKMBVSWDYRHatcgnukmbvswdyrh\[\/\]\s\n\r]*$/'
-                   : '/^[ABCDEFGHIKLMNPQRSTUVWYZXabcdefghiklmnpqrstuvwyzx\*\-\s\n\r]*$/';
-  $defRegEx      = '/^>.*(\\n|\\r)(.*)$/sm';
-  if (preg_match($defRegEx, $sequence, $matches)) {
-    if (isset($matches[2]) && $matches[2] != '' && preg_match($fastaSeqRegEx, $matches[2])) {
-      return true;
+                   : '/^[acgturykmswbdhvnxACGTURYKMSWBDHVNX\*\-\s\n\r]*$/';
+  $defRegEx      = '/^>\S.*/';
+
+  // For each line of the sequence.
+  foreach (explode("\n", $sequence) as $line) {
+
+    // Is this a definition line?
+    if ($line[0] == '>') {
+      if (!preg_match($defRegEx, $line)) {
+        return FALSE;
+      }
+    }
+    // Otherwise it's a sequence line
+    else {
+      if (!preg_match($fastaSeqRegEx, $line)) {
+        return FALSE;
+      }
     }
   }
-  else if ($sequence != '' && preg_match($defRegEx, $sequence)) {
-    return true;
-  }
 
-  return false;
+  return TRUE;
 }
 
 /**
