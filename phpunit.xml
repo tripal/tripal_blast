@@ -18,8 +18,6 @@
       <directory suffix=".php">./includes</directory>
      <directory suffix=".inc">./api</directory>
      <directory suffix=".php">./api</directory>
-     <directory suffix=".inc">./theme</directory>
-     <directory suffix=".php">./theme</directory>
     </whitelist>
   </filter>
 </phpunit>
