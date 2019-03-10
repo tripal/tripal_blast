@@ -1,5 +1,6 @@
 
 [![Build Status](https://travis-ci.org/tripal/tripal_blast.svg?branch=7.x-1.x)](https://travis-ci.org/tripal/tripal_blast)
+[![Maintainability](https://api.codeclimate.com/v1/badges/a99a88d28ad37a79dbf6/maintainability)](https://codeclimate.com/github/codeclimate/codeclimate/maintainability)
 [![Documentation Status](https://readthedocs.org/projects/tripal-blast-ui/badge/?version=latest)](https://tripal-blast-ui.readthedocs.io/en/latest/?badge=latest)
 
 INTRODUCTION
