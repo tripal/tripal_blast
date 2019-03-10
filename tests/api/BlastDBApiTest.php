@@ -35,6 +35,8 @@ class BlastDBApiTest extends TripalTestCase {
 
   /**
    * Tests get_blast_database_options().
+   * @todo test for protein as well.
+   * @todo test with permissions.
    */
   public function testGetBlastDBOptions() {
 
@@ -57,5 +59,15 @@ class BlastDBApiTest extends TripalTestCase {
       $this->assertArrayHasKey($node->nid, $options,
         "Unable to find a specific node option that we know should be there.");
     }
+
+    // Also check get_blast_database_nodes() directly.
+    $retrieved_nodes = get_blast_database_nodes();
+    $this->assertGreaterThanOrEqual(3, sizeof($retrieved_nodes),
+      "Unable to retrieve the nodes at all.");
+    foreach ($nodes as $node) {
+      $this->assertArrayHasKey($node->nid, $retrieved_nodes,
+        "Unable to find a specific node option that we know should be there.");
+    }
+
   }
 }
