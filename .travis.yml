@@ -21,7 +21,7 @@ before_script:
   - GIT_BRANCH=$TRAVIS_PULL_REQUEST_BRANCH
   - GIT_COMMIT_SHA=$TRAVIS_PULL_REQUEST_SHA
 after_script:
-  - ./cc-test-reporter after-build clover.xml --debug -t clover -p /var/www/html/sites/all/modules/custom/tripal_eutils --exit-code $TRAVIS_TEST_RESULT
+  - ./cc-test-reporter after-build clover.xml --debug -t clover -p /var/www/html/sites/all/modules/custom/tripal_blast --exit-code $TRAVIS_TEST_RESULT
 script:
   - docker run -it -d --rm --name tripal -v "$(pwd)":/modules/tripal_blast statonlab/tripal3
   - sleep 30 # We pause here so postgres and apache complete booting up
