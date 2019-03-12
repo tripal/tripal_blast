@@ -1,6 +1,7 @@
 
 [![Build Status](https://travis-ci.org/tripal/tripal_blast.svg?branch=7.x-1.x)](https://travis-ci.org/tripal/tripal_blast)
 [![Maintainability](https://api.codeclimate.com/v1/badges/5071f91a02a3fcafc275/maintainability)](https://codeclimate.com/github/tripal/tripal_blast/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/5071f91a02a3fcafc275/test_coverage)](https://codeclimate.com/github/tripal/tripal_blast/test_coverage)
 [![Documentation Status](https://readthedocs.org/projects/tripal-blast-ui/badge/?version=latest)](https://tripal-blast-ui.readthedocs.io/en/latest/?badge=latest)
 
 INTRODUCTION
