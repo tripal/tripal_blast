@@ -344,14 +344,11 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
  *
  */
 function validate_fasta_sequence($type, $sequence) {
-//drupal_set_message("FASTA is:<pre>$sequence</pre>");
   // Remove def lines
   $sequence = preg_replace('/\>.*\n/', '', $sequence);
-//drupal_set_message("FASTA without defs:<pre>$sequence</pre>");
 
   // Remove blank lines
   $sequence = preg_replace('/^[^>]\h*\v+/m', '', $sequence);
-//drupal_set_message("FASTA without blank lines:<pre>$sequence</pre>");
   
   //Includes IUPAC codes.
   $fastaSeqRegEx = ($type == 'nucleotide')
