@@ -115,16 +115,16 @@
           // Pad these coordinates to ensure columned display.
           foreach ($coord as $ck => $val) {
             $pad_type = (preg_match('/start/', $ck)) ? STR_PAD_LEFT : STR_PAD_RIGHT;
-            $coord[$ck] = str_pad($val, $coord_length, '#', $pad_type);
-            $coord[$ck] =  str_replace('#', '&nbsp', $coord[$ck]);
+            $coord_formatted[$ck] = str_pad($val, $coord_length, '#', $pad_type);
+            $coord_formatted[$ck] =  str_replace('#', '&nbsp', $coord_formatted[$ck]);
           }
         ?>
           <div class="alignment-subrow">
             <div class="query">
               <span class="alignment-title">Query:</span>&nbsp;&nbsp;
-              <span class="alignment-start-coord"><?php print $coord['qstart']; ?></span>
+              <span class="alignment-start-coord"><?php print $coord_formatted['qstart']; ?></span>
               <span class="alignment-residues"><?php print $query[$k]; ?></span>
-              <span class="alignment-stop-coord"><?php print $coord['qstop']; ?></span>
+              <span class="alignment-stop-coord"><?php print $coord_formatted['qstop']; ?></span>
             </div>
             <div class="matches">
               <?php print  str_repeat('&nbsp;', 8); ?>
@@ -133,9 +133,9 @@
             </div>
             <div class="hit">
               <span class="alignment-title">Sbjct:</span>&nbsp;&nbsp;
-              <span class="alignment-start-coord"><?php print $coord['hstart']; ?></span>
+              <span class="alignment-start-coord"><?php print $coord_formatted['hstart']; ?></span>
               <span class="alignment-residues"><?php print $hit[$k]; ?></span>
-              <span class="alignment-stop-coord"><?php print $coord['hstop']; ?></span>
+              <span class="alignment-stop-coord"><?php print $coord_formatted['hstop']; ?></span>
             </div>
           </div>
         <?php } ?>

@@ -108,8 +108,6 @@ function blastdb_form($node, &$form_state) {
     '#title' => 'Link-outs',
     '#description' => 'These settings will be used to <em>transform the hit name into a
       link to additional information</em>.',
-    '#prefix' => '<div id="link-outs">',
-    '#suffix' => '</div>',
   );
 
   $types = module_invoke_all('blast_linkout_info');
@@ -129,12 +127,28 @@ function blastdb_form($node, &$form_state) {
       should point to a GBrowse instance if you choose GBrowse here).',
     '#options' => $options,
     '#default_value' => $linkout_type,
+    '#ajax' => array(
+      'callback' => 'ajax_blast_ui_node_linkout_custom_callback',
+      'wrapper' => 'link-outs',
+    )
+  );
+
+  $form['dbxref']['details'] = array(
+    '#prefix' => '<div id="link-outs">',
+    '#suffix' => '</div>',
   );
 
   // Add information about each format to the description.
   if ($linkout_type) {
-    $form['dbxref']['dbxref_linkout_type']['#description'] .= '
-      <p class="blastdb-extra-info"><strong>'.$types[$linkout_type]['name'].'</strong>: '.$types[$linkout_type]['help'].'</p>';
+    $form['dbxref']['details']['dbxref_linkout_description'] = array(
+      '#type' => 'item',
+      '#markup' => '<p class="blastdb-extra-info">'
+        .'<strong>'.$types[$linkout_type]['name'].'</strong>: '
+        .$types[$linkout_type]['help']
+        .'</p>',
+      '#prefix' => '<div id="link-outs">',
+      '#suffix' => '</div>',
+    );
   }
 
   if ($types[$linkout_type]['require_regex']) {
@@ -173,7 +187,7 @@ function blastdb_form($node, &$form_state) {
     // FASTA HEADER FORMAT
     $regex_type = (isset($node->linkout->regex_type)) ? $node->linkout->regex_type : 'default';
     $regex_type = (isset($form_state['values'])) ? $form_state['values']['dbxref_id_type'] : $regex_type;
-    $form['dbxref']['dbxref_id_type'] = array(
+    $form['dbxref']['details']['dbxref_id_type'] = array(
       '#type' => 'radios',
       '#title' => 'FASTA header format',
       '#description' => 'Choose the format that matches the format of the FASTA '
@@ -195,12 +209,12 @@ function blastdb_form($node, &$form_state) {
     );
     // Add information about each format to the description.
     if ($regex_type) {
-      $form['dbxref']['dbxref_id_type']['#description'] .= '
+      $form['dbxref']['details']['dbxref_id_type']['#description'] .= '
         <p class="blastdb-extra-info"><strong>'.$regex[$regex_type]['title'].'</strong>: '.$regex[$regex_type]['help'].'</p>';
     }
 
     if ($regex_type == 'custom') {
-      $form['dbxref']['regex'] = array(
+      $form['dbxref']['details']['regex'] = array(
         '#type' => 'textfield',
         '#title' => 'Regular Expression',
         '#description' => t('A PHP Regular expression with curved brackets '
@@ -220,13 +234,13 @@ function blastdb_form($node, &$form_state) {
     $db_options = tripal_get_db_select_options();
     $db_options[0] = '';
     asort($db_options);
-    $form['dbxref']['db_id'] = array(
+    $form['dbxref']['details']['db_id'] = array(
       '#type' => 'select',
       '#title' => 'External Database',
       '#description' => 'The external database you would like to link-out to. '
         . 'Note that this list includes all Tripal Databases and if the database '
         . 'you would like to link-out to is not included you can add it through '
-        . l('Administration > Tripal > Chado Modules > Databases','admin/tripal/chado/tripal_db/add', array('attributes' => array('target' => '_blank')))
+        . l('Administration > Tripal > Data Loaders > Chado Databases','admin/tripal/loaders/chado_db/add', array('attributes' => array('target' => '_blank')))
         . '.',
       '#options' => $db_options,
       '#required' => TRUE,
@@ -306,7 +320,7 @@ function blastdb_form_validate($form, $form_state) {
   }
 
   // Check that there is a cvitjs section for the current
-  if ($form_state['values']['cvitjs_enabled']) {
+  if (isset($form_state['values']['cvitjs_enabled']) AND $form_state['values']['cvitjs_enabled']) {
     $conf_section = blast_ui_get_cvit_conf_text('data.'.$form_state['values']['db_name']);
     if (!$conf_section) {
       drupal_set_message('There is no section for this genome target defined in the CViTjs
@@ -351,7 +365,7 @@ function blastdb_insert($node) {
   db_insert('blastdb')->fields(array(
     'nid'                 => $node->nid,
     'name'                => $node->db_name,
-    'path'                => $node->db_path,
+    'path'                => trim($node->db_path),
     'dbtype'              => $node->db_dbtype,
     'dbxref_id_regex'     => $regex,
     'dbxref_db_id'        => $db_id,
@@ -536,6 +550,6 @@ function blastdb_load($nodes) {
  * when someone selects custom.
  */
 function ajax_blast_ui_node_linkout_custom_callback($form, $form_state) {
-  return $form['dbxref'];
+  return $form['dbxref']['details'];
 }
 

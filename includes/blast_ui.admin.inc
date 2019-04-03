@@ -204,7 +204,7 @@ KRSLEEGLKTTGEGLDWGVLFGFGPGLTIETVVLRSVAI';
                . 'configuration files.';
   $form['cvitjs']['cvitjs_config'] = array(
     '#type' => 'textarea',
-    '#title' => 'CViTjs configuration (empty until CViTjs path is saved)',
+    '#title' => 'CViTjs configuration',
     '#description' => $description,
     '#default_value' => $default_value,
     '#rows' => 10,
@@ -253,7 +253,7 @@ function blast_ui_admin_form_validate($form, &$form_state) {
       variable_set('blast_path', $form_state['values']['blast_path']);
     }
     else {
-      form_set_error('blast_path', t('Please enter a valid path not including the name of the blast program (ie: /urs/bin/). You can leave this blank if you have your $PATH variable set appropriately.'));
+      form_set_error('blast_path', t('Please enter a valid path not including the name of the blast program (ie: /usr/bin/). You can leave this blank if you have your $PATH variable set appropriately.'));
     }
   }
 

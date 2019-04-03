@@ -339,3 +339,4 @@ $no_hits = TRUE;
 </div>
 
 <?php print theme('blast_recent_jobs', array()); ?>
+</div>

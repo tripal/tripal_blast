@@ -2,7 +2,7 @@
 
 /**
  * @file
- *
+ * Provides a launchpad for users to access the blast programs.
  */
 
 ?>
