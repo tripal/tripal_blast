@@ -4,5 +4,6 @@ configure = admin/tripal/extension/tripal_blast/blast_ui
 project = tripal_blast
 package = Tripal Extensions
 core = 7.x
+version = 7.x-1.x-dev
 
 dependencies[] = libraries
