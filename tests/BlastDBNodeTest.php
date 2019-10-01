@@ -45,8 +45,7 @@ class BlastDBNodeTest extends TripalTestCase {
     module_load_include('inc', 'node', 'node.pages');
 
     // Log in the god user.
-    global $user;
-    $user = user_load(1);
+    $this->actingAs(1);
 
     $node = array('type' => 'blastdb');
 
@@ -76,9 +75,6 @@ class BlastDBNodeTest extends TripalTestCase {
     $result = db_query('SELECT * FROM {blastdb} WHERE name=:name',
       array(':name' => $form_state['values']['db_name']));
     $this->assertEquals(1, $result->rowCount(), 'Unable to select the blast database using the name.');
-
-    // log out the god user.
-    $user = drupal_anonymous_user();
   }
 
   /**
@@ -88,8 +84,7 @@ class BlastDBNodeTest extends TripalTestCase {
     module_load_include('inc', 'node', 'node.pages');
 
     // Log in the god user.
-    global $user;
-    $user = user_load(1);
+    $this->actingAs(1);
 
     // Create the node in the first place.
     $seeder = DatabaseSeeders\BlastDBNodeSeeder::seed();
@@ -122,9 +117,6 @@ class BlastDBNodeTest extends TripalTestCase {
     $result = db_query('SELECT * FROM {blastdb} WHERE name=:name AND dbtype=:type',
       array(':name' => $form_state['values']['db_name'], ':type' => $form_state['values']['db_dbtype']));
     $this->assertEquals(1, $result->rowCount(), 'Unable to select the blast database using the new name and type.');
-
-    // log out the god user.
-    $user = drupal_anonymous_user();
 
   }
 
