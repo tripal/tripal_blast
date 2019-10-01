@@ -1,8 +1,10 @@
+![Tripal Dependency](https://img.shields.io/badge/tripal-%3E=3.0-brightgreen)
+[![Tripal Rating Gold Status](https://tripal.readthedocs.io/en/7.x-3.x/_images/Tripal-Gold.png)](https://tripal.readthedocs.io/en/7.x-3.x/extensions/module_rating.html#Gold)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/tripal/tripal_blast)
 
 [![Build Status](https://travis-ci.org/tripal/tripal_blast.svg?branch=7.x-1.x)](https://travis-ci.org/tripal/tripal_blast)
 [![Maintainability](https://api.codeclimate.com/v1/badges/5071f91a02a3fcafc275/maintainability)](https://codeclimate.com/github/tripal/tripal_blast/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/5071f91a02a3fcafc275/test_coverage)](https://codeclimate.com/github/tripal/tripal_blast/test_coverage)
-[![Documentation Status](https://readthedocs.org/projects/tripal-blast-ui/badge/?version=latest)](https://tripal-blast-ui.readthedocs.io/en/latest/?badge=latest)
 
 INTRODUCTION
 ------------
@@ -45,10 +47,10 @@ Installation
  by the user. Without this additional module, administrators will have to 
  execute the tripal jobs either manually or through use of cron jobs.
 
-Documentation
+Documentation   [![Documentation Status](https://readthedocs.org/projects/tripal-blast-ui/badge/?version=latest)](https://tripal-blast-ui.readthedocs.io/en/latest/?badge=latest)
 --------------
 
-We have and extensive [user guide](https://tripal-blast-ui.readthedocs.io/en/latest/user_guide.html) and a [developer guide](https://tripal-blast-ui.readthedocs.io/en/latest/dev_guide.html)  available via [readthedocs](https://tripal-blast-ui.readthedocs.io/en/latest/index.html).
+We have and extensive [user guide](https://tripal-blast-ui.readthedocs.io/en/latest/user_guide.html) and a [developer guide](https://tripal-blast-ui.readthedocs.io/en/latest/dev_guide.html)  available via [readthedocs](https://tripal-blast-ui.readthedocs.io/en/latest/index.html). 
 
 Comparison with other Modules
 ------------------------------
