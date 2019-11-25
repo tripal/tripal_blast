@@ -48,7 +48,7 @@ function blast_ui_blastn_advanced_options_form(&$form, $form_state) {
     '#title' => t('Max target sequences:'),
     '#options' => _get_max_target('blastn'),
     '#default_value' => $defaults['max_target_seqs'],
-    '#description' => t('Select the maximum number of unique target sequences per query sequence to show results for.'),
+    '#description' => t('Select the maximum number of unique target sequences per query sequence to show results for. Results returned may not be the highest scoring hits. <a href="https://academic.oup.com/bioinformatics/article/35/9/1613/5106166" target="_blank">More Information</a>'),
   );
 
   $form['ALG']['GParam']['eVal'] = array(
@@ -891,5 +891,4 @@ function gap_cost_callback($form, &$form_state) {
 
   return $form['B']['ALG']['SParam']['gapCost'];
 }
-
 
