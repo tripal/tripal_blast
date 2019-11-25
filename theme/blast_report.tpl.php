@@ -137,8 +137,8 @@ $no_hits = TRUE;
 
         // Save some information needed for the hit visualization.
         $target_name = '';
-        $q_name = $xml->{'BlastOutput_query-def'};
-        $query_size = $xml->{'BlastOutput_query-len'};
+        $q_name = $iteration->{'Iteration_query-def'};
+        $query_size = $iteration->{'Iteration_query-len'};
         $target_size = $iteration->{'Iteration_stat'}->{'Statistics'}->{'Statistics_db-len'};
 
         if ($children_count != 0) {
