@@ -251,7 +251,6 @@ function blast_ui_per_blast_program_form($form, $form_state) {
           '%max_size' => round(file_upload_max_size() / 1024 / 1024,1) . 'MB'
         )
       ),
-      '#default_value' => variable_get($db_file_id, ''),
       '#upload_validators' => array(
         'file_validate_extensions' => array('fasta fna fa'),
         'file_validate_size' => array(file_upload_max_size()),
@@ -444,8 +443,10 @@ function blast_ui_per_blast_program_form_submit($form, &$form_state) {
     // NOTE: We can't support subject because we need to generate the ASN.1+ format
     // to provide multiple download type options from the same BLAST
     $blastdb_with_path = $form_state['upDB_path'];
+    $blast_path = variable_get('blast_path', '');
+    $makeblast_db = $blast_path . 'makeblastdb';
     $result = NULL;
-    exec('makeblastdb -in ' . escapeshellarg($blastdb_with_path) . ' -dbtype ' . escapeshellarg($mdb_type) . ' -parse_seqids 2>&1', $result);
+    exec(escapeshellarg($makeblast_db) . ' -in ' . escapeshellarg($blastdb_with_path) . ' -dbtype ' . escapeshellarg($mdb_type) . ' -parse_seqids 2>&1', $result);
 
     // Check that the BLAST database was made correctly.
     $result = implode('<br />', $result);
