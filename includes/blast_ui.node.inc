@@ -285,6 +285,14 @@ function blastdb_form($node, &$form_state) {
 
 function blastdb_form_validate($form, $form_state) {
 
+  // Check the database path does not include the file format suffix.
+  $suffix = ['.ndb', '.nhr', '.nin', '.not', '.nsq', '.ntf', '.nto',
+    '.pdb', '.phr', '.pin', '.pot', '.psq', '.ptf', '.pto'];
+  foreach ($suffix as $ending) {
+    if (strpos($form_state['values']['db_path'], $ending) !== false) {
+      form_set_error('db_path', "You blast database path should not include the file type suffix. Specifically, remove '$ending'.");
+    }
+  }
   if (isset($form_state['values']['regex']) AND !empty($form_state['values']['regex'])) {
     // Check that any supplied regex includes //.
     if (!preg_match('/\/.*\//', $form_state['values']['regex'])) {
@@ -548,4 +556,3 @@ function blastdb_load($nodes) {
 function ajax_blast_ui_node_linkout_custom_callback($form, $form_state) {
   return $form['dbxref']['details'];
 }
-

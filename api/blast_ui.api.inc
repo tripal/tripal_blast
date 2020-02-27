@@ -199,8 +199,21 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
   $blast_threads = variable_get('blast_threads', 1);
 
   // Strip the extension off the BLAST target
-  $database = preg_replace("/(.*)\.[pn]\w\w$/", '$1', $database);
+  $suffix = ['.ndb', '.nhr', '.nin', '.not', '.nsq', '.ntf', '.nto',
+    '.pdb', '.phr', '.pin', '.pot', '.psq', '.ptf', '.pto'];
+  $database = str_replace($suffix,'',$database);
 
+  // Check that the database exists before trying to execute the job.
+  if (!(file_exists($database . '.nsq') OR file_exists($database . '.psq'))) {
+    tripal_report_error(
+      'blast_ui',
+      TRIPAL_ERROR,
+      "Unable to find the BLAST database (ie: @db). Please ensure you have supplied the absolute path not including the file format endings.",
+      array('@db' => $database),
+      array('print' => TRUE)
+    );
+    return FALSE;
+  }
 
   // The BLAST executeable.
   $program = $blast_path . $program;
