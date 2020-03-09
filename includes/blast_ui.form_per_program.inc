@@ -478,16 +478,17 @@ function blast_ui_per_blast_program_form_submit($form, &$form_state) {
   $blastjob['target_file'] = $blastdb_with_path;
 
   // Determine the path to the blast database with extension.
-  if ($mdb_type == 'nucl' && (preg_match('/\.[pn]al/', $blastdb_with_path) == 0)) {
+  $blastdb_with_suffix = $blastdb_with_path;
+  if ($mdb_type == 'nucl') {
     // Suffix may be .nsq or .nal
     if (is_readable("$blastdb_with_path.nsq")) {
       $blastdb_with_suffix = "$blastdb_with_path.nsq";
     }
-    else if (is_readable("$blastdb_with_path.nal")) {
+    elseif (is_readable("$blastdb_with_path.nal")) {
       $blastdb_with_suffix = "$blastdb_with_path.nal";
     }
   }
-  else if ($mdb_type == 'prot' && (preg_match('/\.[pn]al/', $blastdb_with_path) == 0)) {
+  elseif ($mdb_type == 'prot') {
     // Suffix may be .psq or .pal
     if (is_readable("$blastdb_with_path.psq")) {
       $blastdb_with_suffix = "$blastdb_with_path.psq";
@@ -495,9 +496,6 @@ function blast_ui_per_blast_program_form_submit($form, &$form_state) {
     else if (is_readable("$blastdb_with_path.pal")) {
       $blastdb_with_suffix = "$blastdb_with_path.pal";
     }
-  }
-  else {
-    $blastdb_with_suffix = $blastdb_with_path;
   }
 
   if (!is_readable($blastdb_with_suffix)) {
