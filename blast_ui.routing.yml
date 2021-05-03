@@ -1,0 +1,114 @@
+# This route is for single all-in-one BLAST submission form.
+tripal_ui.blast:
+  path: 'blast'
+  defaults:
+    _title: 'Tripal BLAST'
+    _form: '\Drupal\tripal_blast\Form\TripalBlastUIBlastSubmitForm'
+  requirements:
+    _permission: 'administer tripal'
+
+
+# Routes below are for query-based type BLAST submission forms.
+
+
+# NUCLEOTIDE
+tripal_ui.nucleotide:
+  path: 'blast/nucleotide'
+  defaults:
+    _title: 'Tripal BLAST: Nucleotide Query'
+    _form: '\Drupal\tripal_blast\Form\TripalBlastUIBlastNucleotideSubmitForm'
+  requirements:
+    _permission: 'administer tripal'
+
+# PROTIEN
+tripal_ui.protien:
+  path: 'blast/protien'
+  defaults:
+    _title: 'Tripal BLAST: Protien Query'
+    _form: '\Drupal\tripal_blast\Form\TripalBlastUIBlastProtienSubmitForm'
+  requirements:
+    _permission: 'administer tripal'
+
+
+# Routes below are for BLAST-program-based submission form.
+
+
+# NUCLEOTIDE PROGRAM
+tripal_ui.nucleotide_nucleotide:
+  path: 'blast/nucleotide/nucleotide'
+  defaults:
+    _title: 'Tripal BLAST: BLASTn'
+    _form: '\Drupal\tripal_blast\Form\TripalBlastUIBlastNucleotideProgramNucleotideSubmitForm'
+  requirements:
+    _permission: 'administer tripal'
+
+tripal_ui.nucleotide_protien:
+  path: 'blast/nucleotide/protien'
+  defaults:
+    _title: 'Tripal BLAST: BLASTx'
+    _form: '\Drupal\tripal_blast\Form\TripalBlastUIBlastNucleotideProgramProtienSubmitForm'
+  requirements:
+    _permission: 'administer tripal'
+
+# PROTIEN PROGRAM
+tripal_ui.protien_nucleotide:
+  path: 'blast/protien/nucleotide'
+  defaults:
+    _title: 'Tripal BLAST: tBLASTn'
+    _form: '\Drupal\tripal_blast\Form\TripalBlastUIBlastProtienProgramNucleotideSubmitForm'
+  requirements:
+    _permission: 'administer tripal'
+
+tripal_ui.protien_protien:
+  path: 'blast/protien/protien'
+  defaults:
+    _title: 'Tripal BLAST: BLASTp'
+    _form: '\Drupal\tripal_blast\Form\TripalBlastUIBlastProtienProgramProtienSubmitForm'
+  requirements:
+    _permission: 'administer tripal'
+
+
+# This route handles the BLAST result page.
+
+
+tripal_ui.report:
+  path: 'blast/report'
+  defaults:
+    _title: 'Tripal BLAST: Results'
+    _controller: '\Drupal\tripald3\Controller\TripalBlastUIBlastReport::content'
+  requirements:
+    _permission: 'administer tripal'
+
+# This route is for Database Node (BLAST DB Node).
+tripal_ui.blastdb:
+  path: 'admin/tripal/extension/tripal_blast/node__blastdb'
+  defaults:
+    _title: 'Tripal BLAST DB Node'
+    _controller: '\Drupal\tripald3\Controller\TripalBlastUIBlastDB::content'
+  requirements:
+    _permission: 'administer tripal'
+
+
+# Route items below are rendered as linked task (tabs).
+# Order is as they appear in configuration page.
+# @see blast_ui.links.task.yml
+
+
+# This route is used to to configure this module.
+# It is defined in the configuration key of this module's info file.
+tripal_ui.config:
+  path: 'admin/tripal/extension/tripal_blast/blast_ui'
+  defaults:
+    _title: 'Tripal BLAST User Interface'
+    _form: '\Drupal\tripal_blast\Form\TripalBlastUIConfigurationForm'
+  requirements:
+    _permission: 'administer tripal'
+
+# This route (configuration) is the help page for using this module.
+tripal_ui.help:
+  path: 'admin/tripal/extension/tripal_blast/help'
+  defaults:
+    _title: 'Tripal BLAST Help'
+    _controller: '\Drupal\tripald3\Controller\TripalBlastUIHelp::content'
+  requirements:
+    _permission: 'administer tripal'

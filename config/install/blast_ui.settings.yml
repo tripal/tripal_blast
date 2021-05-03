@@ -1,0 +1,23 @@
+# BLAST path.
+blast_path:
+# BLAST threads.
+blast_threads:
+# Value.
+eVal:
+# Range.
+qRange:
+
+# Allow query upload.
+blast_ui_allow_query_upload:
+# Allow target upload.
+blast_ui_allow_target_upload:
+# Nucleotide example sequence.
+blast_ui_nucleotide_example_sequence:
+# Protien example sequence.
+blast_ui_protein_example_sequence:
+# Max result displayed.
+blast_ui_max_results_displayed:
+# Embed CvitJS.
+blast_ui_cvitjs_enabled:
+# Warning text.
+blast_ui_warning_text:

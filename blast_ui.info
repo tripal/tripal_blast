@@ -1,9 +1,0 @@
-name = BLAST UI
-description = Provides a user interface to allow your users to utilize NCBI's BLAST+ on your server
-configure = admin/tripal/extension/tripal_blast/blast_ui
-project = tripal_blast
-package = Tripal Extensions
-core = 7.x
-version = 7.x-1.x-dev
-
-dependencies[] = libraries
