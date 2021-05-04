@@ -1,0 +1,35 @@
+<?php
+/**
+ * @file
+ * .module file of TripalD3.
+ */
+
+use Drupal\Core\Url;
+
+/**
+ * Implements hook_theme().
+ * Used by BLAST UI submission forms.
+ *
+ * @see templates in /templates
+ */
+function blast_ui_theme($existing, $type, $theme, $path) {  
+  $context_links = [
+    'link_Nucleotide' => \Drupal::l(t('Nucleotide'), Url::fromRoute('blast_ui.nucleotide')),
+    'link_blastn'     => \Drupal::l(t('blastn'),     Url::fromRoute('blast_ui.nucleotide_nucleotide')),
+    'link_blastx'     => \Drupal::l(t('blastx'),     Url::fromRoute('blast_ui.nucleotide_protien')),
+    'link_Protien'    => \Drupal::l(t('Protein'),    Url::fromRoute('blast_ui.protien')),
+    'link_tblastn'    => \Drupal::l(t('tblastn'),    Url::fromRoute('blast_ui.protien_nucleotide')),
+    'link_blastp'     => \Drupal::l(t('blastp'),     Url::fromRoute('blast_ui.protien_protien'))
+  ];
+
+  $variables = [
+    // BLAST UI Menupage.
+    'theme-blast-ui-menupage' => [
+      'variables' => ['context_links' => $context_links],
+      'template'  => 'template-blast-ui-menupage',
+    ],
+    
+  ];
+
+  return $variables;
+}

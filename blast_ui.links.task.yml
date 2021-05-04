@@ -16,6 +16,6 @@ tripal_ui.tab1:
 # /extension/tripal_blast/help
 tripal_ui.tab2:
   title: 'Tripal BLAST: Help'
-  route_name: blast_ui.config
+  route_name: blast_ui.help
   base_route: blast_ui.config
   weight: 1
