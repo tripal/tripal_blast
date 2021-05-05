@@ -109,6 +109,6 @@ blast_ui.help:
   path: 'admin/tripal/extension/tripal_blast/help'
   defaults:
     _title: 'Tripal BLAST Help'
-#    _controller: '\Drupal\blast_ui\Controller\TripalBlastUIHelp::content'
+    _controller: '\Drupal\blast_ui\Controller\TripalBlastUIBlastHelp::content'
   requirements:
     _permission: 'administer tripal'

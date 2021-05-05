@@ -42,7 +42,7 @@ class BlastUIBlast {
   
     return $node;
   }
-  
+
   /**
    * Returns a list BLAST DATABASE options
    *
