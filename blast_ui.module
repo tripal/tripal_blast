@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * .module file of TripalD3.
+ * .module file of BLAST UI.
  */
 
 use Drupal\Core\Url;
