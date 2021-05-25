@@ -16,24 +16,24 @@ function blast_ui_theme($existing, $type, $theme, $path) {
   $context_links = [
     // blast/nucleotide.
     'link_Nucleotide' => \Drupal::l(t('Nucleotide'), Url::fromRoute('blast_ui.nucleotide')),
-    // blast/protien.
-    'link_Protien'    => \Drupal::l(t('Protein'), Url::fromRoute('blast_ui.protien')),
+    // blast/protein.
+    'link_Protein'    => \Drupal::l(t('Protein'), Url::fromRoute('blast_ui.protein')),
     
     // NUCLEOTIDE PROGRAM.
     // blast/nucleotide/nucleotide
     'link_blastn'     => \Drupal::l(t('blastn'), Url::fromRoute('blast_ui.nucleotide_nucleotide')),
-    // blast/nucleotide/protien
-    'link_blastx'     => \Drupal::l(t('blastx'), Url::fromRoute('blast_ui.nucleotide_protien')),
+    // blast/nucleotide/protein
+    'link_blastx'     => \Drupal::l(t('blastx'), Url::fromRoute('blast_ui.nucleotide_protein')),
     
-    // PROTIEN PROGRAM.
-    // blast/protien/nucleotide.
-    'link_tblastn'    => \Drupal::l(t('tblastn'), Url::fromRoute('blast_ui.protien_nucleotide')),
-    // blast/protien/protien.
-    'link_blastp'     => \Drupal::l(t('blastp'), Url::fromRoute('blast_ui.protien_protien')),
+    // PROTEIN PROGRAM.
+    // blast/protein/nucleotide.
+    'link_tblastn'    => \Drupal::l(t('tblastn'), Url::fromRoute('blast_ui.protein_nucleotide')),
+    // blast/protein/protein.
+    'link_blastp'     => \Drupal::l(t('blastp'), Url::fromRoute('blast_ui.protein_protein')),
     
     // MISC/ADMIN. 
     'link_config'     => \Drupal::l(t('configuration'), Url::fromUri('admin/tripal/extension/tripal_blast/blast_ui')),
-    'link_jobs'       => \Drupal::l(t('tripal jobs'), Url::fromUri('blast_ui.protien_nucleotide')), 
+    'link_jobs'       => \Drupal::l(t('tripal jobs'), Url::fromUri('blast_ui.protein_nucleotide')), 
     'link_nodeadd'    => \Drupal::l(t('create BLAST database'), Url::fromUri('node/add/blastdb')),
     'link_dbadd'      => \Drupal::l(t('configuration'), Url::fromUri('admin/tripal/chado/tripal_db/add')),
     'link_dbfields'   => \Drupal::l(t('drupal field API'), Url::fromUri('admin/structure/types/manage/blastdb/fields'))

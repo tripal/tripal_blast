@@ -20,12 +20,12 @@ blast_ui.nucleotide:
   requirements:
     _permission: 'administer tripal'
 
-# PROTIEN
-blast_ui.protien:
-  path: 'blast/protien'
+# PROTEIN
+blast_ui.protein:
+  path: 'blast/protein'
   defaults:
-    _title: 'Tripal BLAST: Protien Query'
-#    _form: '\Drupal\blast_ui\Form\TripalBlastUIBlastProtienSubmitForm'
+    _title: 'Tripal BLAST: Protein Query'
+#    _form: '\Drupal\blast_ui\Form\TripalBlastUIBlastProteinSubmitForm'
   requirements:
     _permission: 'administer tripal'
 
@@ -42,28 +42,28 @@ blast_ui.nucleotide_nucleotide:
   requirements:
     _permission: 'administer tripal'
 
-blast_ui.nucleotide_protien:
-  path: 'blast/nucleotide/protien'
+blast_ui.nucleotide_protein:
+  path: 'blast/nucleotide/protein'
   defaults:
     _title: 'Tripal BLAST: BLASTx'
-#    _form: '\Drupal\blast_ui\Form\TripalBlastUIBlastNucleotideProgramProtienSubmitForm'
+#    _form: '\Drupal\blast_ui\Form\TripalBlastUIBlastNucleotideProgramProteinSubmitForm'
   requirements:
     _permission: 'administer tripal'
 
-# PROTIEN PROGRAM
-blast_ui.protien_nucleotide:
-  path: 'blast/protien/nucleotide'
+# PROTEIN PROGRAM
+blast_ui.protein_nucleotide:
+  path: 'blast/protein/nucleotide'
   defaults:
     _title: 'Tripal BLAST: tBLASTn'
-#    _form: '\Drupal\blast_ui\Form\TripalBlastUIBlastProtienProgramNucleotideSubmitForm'
+#    _form: '\Drupal\blast_ui\Form\TripalBlastUIBlastProteinProgramNucleotideSubmitForm'
   requirements:
     _permission: 'administer tripal'
 
-blast_ui.protien_protien:
-  path: 'blast/protien/protien'
+blast_ui.protein_protein:
+  path: 'blast/protein/protein'
   defaults:
     _title: 'Tripal BLAST: BLASTp'
-#    _form: '\Drupal\blast_ui\Form\TripalBlastUIBlastProtienProgramProtienSubmitForm'
+#    _form: '\Drupal\blast_ui\Form\TripalBlastUIBlastProteinProgramProtienSubmitForm'
   requirements:
     _permission: 'administer tripal'
 
