@@ -1,0 +1,71 @@
+# @file
+# Tripal BLAST routes definition.
+
+
+# This route is for single all-in-one BLAST user interface.
+# Choices of query type, protein or nucleotide, outlined in this page.
+tripal_blast.blast_ui:
+  path: 'blast'
+  defaults:
+    _title: 'Tripal BLAST'
+    _controller: '\Drupal\tripal_blast\Controller\TripalBlastUI::content'
+  requirements:
+    _permission: 'administer tripal'
+
+
+# Routes below are for two main query types BLAST shown in the UI.
+
+# NUCLEOTIDE
+tripal_blast.nucleotide:
+  path: 'blast/nucleotide'
+  defaults:
+    _title: 'Tripal BLAST: Nucleotide Query'
+# @TODO  _form: '\Drupal\tripal_blast\Form\TripalBlast'
+  requirements:
+    _permission: 'administer tripal'
+
+# PROTEIN
+tripal_blast.protein:
+  path: 'blast/protein'
+  defaults:
+    _title: 'Tripal BLAST: Protein Query'
+# @TODO  _form: '\Drupal\tripal_blast\Form\TripalBlast'
+  requirements:
+    _permission: 'administer tripal'
+
+
+# Routes below are for BLAST programs.
+
+# 1. NUCLEOTIDE PROGRAM
+tripal_blast.nucleotide_nucleotide:
+  path: 'blast/nucleotide/nucleotide'
+  defaults:
+    _title: 'Tripal BLAST: BLASTn'
+# @TODO _form: '\Drupal\tripal_blast\Form\TripalBlast'
+  requirements:
+    _permission: 'administer tripal'
+
+tripal_blast.nucleotide_protein:
+  path: 'blast/nucleotide/protein'
+  defaults:
+    _title: 'Tripal BLAST: BLASTx'
+# @TODO _form: '\Drupal\tripal_blast\Form\TripalBlast'
+  requirements:
+    _permission: 'administer tripal'
+
+# 2. PROTEIN PROGRAM
+tripal_blast.protein_nucleotide:
+  path: 'blast/protein/nucleotide'
+  defaults:
+    _title: 'Tripal BLAST: tBLASTn'
+# @TODO _form: '\Drupal\tripal_blast\Form\TripalBlast'
+  requirements:
+    _permission: 'administer tripal'
+
+tripal_blast.protein_protein:
+  path: 'blast/protein/protein'
+  defaults:
+    _title: 'Tripal BLAST: BLASTp'
+# @TODO _form: '\Drupal\tripal_blast\Form\TripalBlast'
+  requirements:
+    _permission: 'administer tripal'

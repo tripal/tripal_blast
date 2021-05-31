@@ -1,0 +1,11 @@
+name: 'Tripal BLAST (Basic Local Alignment Search Tool)'
+description: 'Provides a user interface to allow your users to utilize NCBI BLAST+ on your server'
+package: 'Tripal Extension'
+project: tripal_blast
+
+type: module
+core: 8.x
+configure: tripal_blast.configure
+
+dependencies:
+  - libraries:libraries

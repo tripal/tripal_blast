@@ -1,0 +1,44 @@
+<?php
+/**
+ * @file
+ * .module file of Tripal BLAST.
+ */
+
+use Drupal\Core\Url;
+
+/**
+ * Implements hook_theme().
+ * Used by Tripal BLAST UI page.
+ *
+ * @see templates in /templates
+ */
+function tripal_blast_theme($existing, $type, $theme, $path) {  
+  // Links rendered as a markup for the template file.
+  $context_links = [
+    // QUERY SEARCH TYPE:
+    // blast/nucleotide, blast/protein.
+    'link_nucleotide' => \Drupal::l(t('Nucleotide'), Url::fromRoute('tripal_blast.nucleotide')),
+    'link_protein'  => \Drupal::l(t('Protein'), Url::fromRoute('tripal_blast.protein')),
+    
+    // NUCLEOTIDE PROGRAM:
+    // blast/nucleotide/nucleotide, blast/nucleotide/protein.
+    'link_blastn' => \Drupal::l(t('blastn'), Url::fromRoute('tripal_blast.nucleotide_nucleotide')),
+    'link_blastx'   => \Drupal::l(t('blastx'), Url::fromRoute('tripal_blast.nucleotide_protein')),
+    
+    // PROTEIN PROGRAM:
+    // blast/protein/nucleotide, blast/protein/protein.
+    'link_tblastn'  => \Drupal::l(t('tblastn'), Url::fromRoute('tripal_blast.protein_nucleotide')),    
+    'link_blastp' => \Drupal::l(t('blastp'), Url::fromRoute('tripal_blast.protein_protein')),
+  ];
+
+  // Pass rendered links as variables and make available in the template file.
+  $variables = [
+    // TripalBLAST UI page.
+    'theme-tripal-blast-ui' => [
+      'variables' => ['context_links' => $context_links],
+      'template'  => 'template-tripal-blast-ui',
+    ],
+  ];
+
+  return $variables;
+}
