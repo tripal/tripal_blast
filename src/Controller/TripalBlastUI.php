@@ -23,7 +23,10 @@ class TripalBlastUI extends ControllerBase {
   public function content() {
     return [
       // Tripal BLAST UI page theme.
-      '#theme' => 'theme-tripal-blast-ui'
+      '#theme' => 'theme-tripal-blast-ui',
+      '#attached' => [
+        'library' => ['tripal_blast/tripal-blast-ui']
+      ]
     ];  
   }    
 }

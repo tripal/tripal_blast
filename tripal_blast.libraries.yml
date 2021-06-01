@@ -1,0 +1,17 @@
+# @file
+# Tripal BLAST libraries.
+
+# Library used in UI page to generate accordion or collapsible
+# container element showing BLAST query type options.
+tripal-blast-ui:
+  version: 1.12.1
+  js:
+    js/jquery-accordion.js: {}
+    js/tripal-blast-ui.js: {}
+  css:
+    theme:
+      css/tripal-blast-ui.css: {}
+  dependencies:
+    - jquery_ui/core
+    - jquery_ui/widget
+
