@@ -3,11 +3,52 @@
  * Theme Tripal BLAST UI page:
  */
  
- 
- /*
-  * Accordion override styles.
-  * http://api.jqueryui.com/accordion/#theming
-  */
+/** 
+ * Page, classes:
+ */ 
+.tripal-blast-element-left {
+  float: left;
+  text-align: left;
+}
+
+.tripal-blast-element-right {
+  float: right;
+  text-align: right;
+}
+
+.tripal-blast-clear-float {
+  clear: both;
+  height: 0;
+}
+
+/** 
+ * Tripal BLAST Navigation:
+ */ 
+#tripal-blast-navigation {
+  position: relative;
+}
+
+#tripal-blast-navigation .tripal-blast-element-left {
+  width: 40%;
+}
+
+#tripal-blast-navigation .tripal-blast-element-right {
+  bottom: 10px;
+  height: inherit;
+  position: absolute;
+  right: 0;
+  width: 55%;
+}
+
+#tripal-blast-navigation .tripal-blast-element-right a {
+  font-size: 0.9em;
+}
+
+/** 
+ * Tripal BLAST Accordion:
+ * Accordion override styles.
+ * http://api.jqueryui.com/accordion/#theming
+ */
 .ui-accordion .ui-accordion-header {
   background-color: #314355;
   border-color: #314355;
@@ -39,9 +80,6 @@
   margin-right: 16px;
 }
 
-/**
- * Content area.
- */
 .ui-accordion .ui-accordion-content {
   background-color: #efefef;  
   border-top: 0;
@@ -72,29 +110,25 @@
   border: none;
 }
 
-.ui-accordion .tripal-blast-element-left {
-  float: left;
+#tripal-blast-accordion .tripal-blast-element-right a {
+  font-size: 1.5em;
+}
+
+#tripal-blast-accordion .tripal-blast-content-wrapper {
+  -webkit-transition: background-color 1.5s ease-out;
+  -moz-transition: background-color 1.5s ease-out;
+  -o-transition: background-color 1.5s ease-out;
+  transition: background-color 1.5s ease-out;
+}
+
+#tripal-blast-accordion .tripal-blast-content-wrapper:hover {
+  background-color: #F6FFEC;
+}
+
+#tripal-blast-accordion .tripal-blast-element-left {
   width: 70%;
 }
 
-.ui-accordion .tripal-blast-element-right {
-  float: right;
-  font-size: 1.5em;
-  text-align: right;
+#tripal-blast-accordion .tripal-blast-element-right {
   width: 20%;
-}
-
-.ui-accordion .tripal-blast-clear-float {
-  clear: both;
-  height: 0;
-}
-
-/**
- * Page elements.
- */
-#tripal-blast-information-link {
-  cursor: pointer; z-index: 1000; 
-  font-size: 12px; 
-  float: right; 
-  text-decoration: underline; 
 }

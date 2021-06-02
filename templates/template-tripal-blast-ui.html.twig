@@ -5,7 +5,8 @@
  */
 #}
 
-<div id="tripal-blast-info-win" style="display: none">In Bioinformatics, BLAST (Basic Local Alignment Search Tool) is an algorithm
+<div id="tripal-blast-information-window" style="display: none">
+In Bioinformatics, BLAST (Basic Local Alignment Search Tool) is an algorithm
 for comparing primary biological sequence information, such as the amino-acid
 sequences of different proteins or the nucleotides of DNA sequences. A BLAST
 search enables a researcher to compare a query sequence with a library or
@@ -21,16 +22,25 @@ gene based on similarity of sequence.
 (1990) Basic local alignment search tool. J. Mol. Biol., 215, 403–410.</blockquote>
 </div>
 
-<h2>BLAST Search <span id="tripal-blast-information-link">What is BLAST?</span></span></h2>
+<div id="tripal-blast-navigation">
+  <div class="tripal-blast-element-left">
+    <h2>BLAST Search</h2>
+  </div>
+  <div class="tripal-blast-element-right">
+    <a href="#" id="tripal-blast-nav-blast">What is BLAST?</a> | 
+    <a href="https://tripal-blast-ui.readthedocs.io/en/latest/user_guide/features.html" target="_blank">Help</a>
+  </div>
+  <div class="tripal-blast-clear-float"></div>
+</div>
 <p>
   Search for one or more of your sequences (using BLAST). First pick 
   a query type (nucleotide or protein). You will be able to set search 
   parameters on the next page. Choose the appropriate program based on the 
   Query type and Target database type. 
-  Please click on the program name to view the search form.
+  <br /><br /><em>Please click on the program name to view the search form</em>.
 <p>
 
-<div id="accordion">
+<div id="tripal-blast-accordion">
   <h3>Nucleotide Query</h3>
   <div class="ui-accordion-content">
     <div class="tripal-blast-content-wrapper">
@@ -39,7 +49,7 @@ gene based on similarity of sequence.
         <small>Search a nucleotide database using a nucleotide query.</small>
       </div>  
       <div class="tripal-blast-element-right">
-        {{ context_links['link_blastn'] }}
+        {{ context_links['link_blastn'] }} Program
       </div>
       <div class="tripal-blast-clear-float">&nbsp;</div>
     </div>
@@ -49,7 +59,7 @@ gene based on similarity of sequence.
         <small>Search protein database using a translated nucleotide query.</small>
       </div>  
       <div class="tripal-blast-element-right">
-        {{ context_links['link_blastx'] }}
+        {{ context_links['link_blastx'] }} Program
       </div>
       <div class="tripal-blast-clear-float">&nbsp;</div>
     </div>
@@ -63,7 +73,7 @@ gene based on similarity of sequence.
         <small>Search translated nucleotide database using a protein query.</small>
       </div>  
       <div class="tripal-blast-element-right">
-        {{ context_links['link_tblastn'] }}
+        {{ context_links['link_tblastn'] }} Program
       </div>
       <div class="tripal-blast-clear-float">&nbsp;</div>
     </div>
@@ -73,7 +83,7 @@ gene based on similarity of sequence.
         <small>Search protein database using a protein query.</small>
       </div>  
       <div class="tripal-blast-element-right">        
-        {{ context_links['link_blastp'] }}
+        {{ context_links['link_blastp'] }} Program
       </div>
       <div class="tripal-blast-clear-float">&nbsp;</div>
     </div>

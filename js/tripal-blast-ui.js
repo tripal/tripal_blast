@@ -7,23 +7,28 @@
 (function($, Drupal){
   Drupal.behaviors.TripalBlastUI = {
     attach: function (context, settings) {
-      $('#accordion').accordion({
+      $('#tripal-blast-accordion').accordion({
         icons: false,
         collapsible: true
       });
 
-      // Listen to what is BLAST information link.
-      $('#tripal-blast-information-link').click(function() {
-        var win = jQuery('#tripal-blast-info-win');
-        
-        if (win.is(':visible')) {
-          win.slideUp();
-        }
-        else {
-          win.slideDown();
-        }
-      });
+      // Listen to what is BLAST information link.      
+      var infoLink = 'tripal-blast-nav-blast';
+      var win = $('#tripal-blast-information-window');
 
-    }
-  }
-})(jQuery, Drupal);
+      $('#' + infoLink)
+        .once('#' + infoLink)
+        .each(function() {
+          $(this).click(function(e) {
+            e.preventDefault();
+
+            if (win.is(':visible')) {
+              win.slideUp();
+            }
+            else {
+              win.slideDown();
+            }
+          });
+        });
+
+}}})(jQuery, Drupal);

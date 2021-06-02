@@ -14,4 +14,5 @@ tripal-blast-ui:
   dependencies:
     - jquery_ui/core
     - jquery_ui/widget
-
+    - core/jquery
+    - core/jquery.once
