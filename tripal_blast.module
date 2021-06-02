@@ -29,14 +29,27 @@ function tripal_blast_theme($existing, $type, $theme, $path) {
     // blast/protein/nucleotide, blast/protein/protein.
     'link_tblastn'  => \Drupal::l(t('tblastn'), Url::fromRoute('tripal_blast.protein_nucleotide')),    
     'link_blastp' => \Drupal::l(t('blastp'), Url::fromRoute('tripal_blast.protein_protein')),
+    
+    // MISC/ADMIN. 
+    'link_config' => '#',
+    'link_jobs'    => '#',
+    'link_nodeadd'  => '#',
+    'link_dbadd'     => '#',
+    'link_dbfields'   => '#',
   ];
 
   // Pass rendered links as variables and make available in the template file.
   $variables = [
-    // TripalBLAST UI page.
+    // Tripal BLAST UI page.
     'theme-tripal-blast-ui' => [
       'variables' => ['context_links' => $context_links],
       'template'  => 'template-tripal-blast-ui',
+    ],
+    // Tripal BLAST Configuration page.
+    // Tripal BLAST Help page.
+    'theme-tripal-blast-help' => [
+      'variables' => ['context_links' => $context_links],
+      'template'  => 'template-tripal-blast-help',
     ],
   ];
 

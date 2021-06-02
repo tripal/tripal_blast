@@ -1,8 +1,7 @@
 <?php
 /**
  * @file 
- * This route is for single all-in-one BLAST user interface.
- * Choices of query type, protein or nucleotide, outlined in this page.
+ * This is the controller for Tripal BLAST UI.
  */
 
 namespace Drupal\tripal_blast\Controller;

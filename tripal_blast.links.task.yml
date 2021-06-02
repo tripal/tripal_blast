@@ -1,0 +1,24 @@
+# @file
+# Tripal BLAST link task definition.
+
+# Tabs/task items below point to routes defined in
+# @see tripal_blast.routing.yml - configuration and help routes.
+# Order is as they appear in the configuration page (weight).
+
+# General Configuration Tab.
+# Routes to configuration page of this module.
+# /extension/tripal_blast/configuration (is the default tab/task).
+tripal_ui.tab1:
+  title: 'Tripal BLAST: Configuration'
+  route_name: tripal_blast.configuration
+  base_route: tripal_blast.configuratinon
+  weight: 0
+
+# Tripal BLAST Help Tab.
+# Routes to help page of this module.
+# /extension/tripal_blast/help
+tripal_ui.tab2:
+  title: 'Tripal BLAST: Help'
+  route_name: tripal_blast.configuration
+  base_route: tripal_blast.configuration
+  weight: 1 

@@ -69,3 +69,23 @@ tripal_blast.protein_protein:
 # @TODO _form: '\Drupal\tripal_blast\Form\TripalBlast'
   requirements:
     _permission: 'administer tripal'
+
+
+# Routes below are for configuration and help.
+# Uses tabs @see tripal_blast.link.task.yml.
+
+tripal_blast.configuration:
+  path: '/admin/tripal/extension/tripal_blast/configuration'
+  defaults:
+    _title: 'Tripal Blast: Configuration'
+    #_controller: '\Drupal\tripal_blast\Controller\TripalBlastAdmin::configuration'
+  requirements:
+    _permission: 'access content'
+
+tripal_blast.help:
+  path: '/admin/tripal/extension/tripal_blast/help'
+  defaults:
+    _title: 'Tripal Blast: Help'
+    _controller: '\Drupal\tripal_blast\Controller\TripalBlastAdmin::help'
+  requirements:
+    _permission: 'access content'
