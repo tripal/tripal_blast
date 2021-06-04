@@ -8,7 +8,7 @@ tripal_blast.blast_ui:
   path: 'blast'
   defaults:
     _title: 'Tripal BLAST'
-    _controller: '\Drupal\tripal_blast\Controller\TripalBlastUI::content'
+    _controller: '\Drupal\tripal_blast\Controller\TripalBlastUIController::ui'
   requirements:
     _permission: 'administer tripal'
 
@@ -78,14 +78,14 @@ tripal_blast.configuration:
   path: '/admin/tripal/extension/tripal_blast/configuration'
   defaults:
     _title: 'Tripal Blast: Configuration'
-    #_controller: '\Drupal\tripal_blast\Controller\TripalBlastAdmin::configuration'
+    _form: '\Drupal\tripal_blast\Form\TripalBlastConfigurationForm'
   requirements:
     _permission: 'access content'
 
 tripal_blast.help:
-  path: '/admin/tripal/extension/tripal_blast/help'
+  path: '/admin/tripal/extension/tripal_blast/configuration/help'
   defaults:
     _title: 'Tripal Blast: Help'
-    _controller: '\Drupal\tripal_blast\Controller\TripalBlastAdmin::help'
+    _controller: '\Drupal\tripal_blast\Controller\TripalBlastHelpController::help'
   requirements:
     _permission: 'access content'

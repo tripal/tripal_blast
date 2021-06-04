@@ -4,7 +4,7 @@
 # Library used in UI page to generate accordion or collapsible
 # container element showing BLAST query type options.
 tripal-blast-ui:
-  version: 1.12.1
+  version: 1.x
   js:
     js/jquery-accordion.js: {}
     js/tripal-blast-ui.js: {}
@@ -16,3 +16,19 @@ tripal-blast-ui:
     - jquery_ui/widget
     - core/jquery
     - core/jquery.once
+
+# Library used in Admin page to generate content tabs
+# element showing BLAST configuration help topics.
+tripal-blast-admin:
+  version: 1.x
+  js:
+    js/jquery-tabs.js: {}
+    js/tripal-blast-admin.js: {}
+  css:
+    theme:
+      css/tripal-blast-tabs.css: {}
+  dependencies:
+    - jquery_ui/core
+    - jquery_ui/widget
+    - core/jquery
+    - core/jquery.once    

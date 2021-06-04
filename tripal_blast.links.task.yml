@@ -8,17 +8,17 @@
 # General Configuration Tab.
 # Routes to configuration page of this module.
 # /extension/tripal_blast/configuration (is the default tab/task).
-tripal_ui.tab1:
+tripal_blast.tab1:
   title: 'Tripal BLAST: Configuration'
   route_name: tripal_blast.configuration
-  base_route: tripal_blast.configuratinon
+  base_route: tripal_blast.configuration
   weight: 0
 
 # Tripal BLAST Help Tab.
 # Routes to help page of this module.
 # /extension/tripal_blast/help
-tripal_ui.tab2:
+tripal_blast.tab2:
   title: 'Tripal BLAST: Help'
-  route_name: tripal_blast.configuration
+  route_name: tripal_blast.help
   base_route: tripal_blast.configuration
   weight: 1 

@@ -1,8 +1,7 @@
 <?php
 /**
  * @file 
- * This is the controller for Tripal BLAST configuration and help.
- * Both pages are admin pages.
+ * This is the controller for Tripal BLAST help page.
  */
 
 namespace Drupal\tripal_blast\Controller;
@@ -10,22 +9,10 @@ namespace Drupal\tripal_blast\Controller;
 use Drupal\Core\Controller\ControllerBase;
 
 /**
- * Defines TripalBlastUI class.
+ * Defines TripalBlastHelpController class.
  * 
  */
-class TripalBlastAdmin extends ControllerBase {
-  /**
-   * Returns a render-able array to create Tripal BLAST configuration page.
-   * @see hook_theme in tripal_blast.module.
-   */
-  public function configuration() {
-    return [
-      // Tripal BLAST Configuration page theme.
-      '#theme' => 'theme-tripal-blast-help',
-      '#attached' => []
-    ];  
-  }
-  
+class TripalBlastHelpController extends ControllerBase {  
   /**
    * Returns a render-able array to create Tripal BLAST help page.
    * A list of variables (context links presented in the interface) is used
@@ -36,7 +23,9 @@ class TripalBlastAdmin extends ControllerBase {
     return [
       // Tripal BLAST Help page theme.
       '#theme' => 'theme-tripal-blast-help',
-      '#attached' => []
+      '#attached' => [
+        'library' => ['tripal_blast/tripal-blast-admin']
+      ]
     ];  
   }
 }
