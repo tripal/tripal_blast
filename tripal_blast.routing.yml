@@ -80,7 +80,7 @@ tripal_blast.configuration:
     _title: 'Tripal Blast: Configuration'
     _form: '\Drupal\tripal_blast\Form\TripalBlastConfigurationForm'
   requirements:
-    _permission: 'access content'
+    _permission: 'administer tripal'
 
 tripal_blast.help:
   path: '/admin/tripal/extension/tripal_blast/configuration/help'
@@ -88,4 +88,15 @@ tripal_blast.help:
     _title: 'Tripal Blast: Help'
     _controller: '\Drupal\tripal_blast\Controller\TripalBlastHelpController::help'
   requirements:
-    _permission: 'access content'
+    _permission: 'administer tripal'
+
+
+# Route set below defines routes for the management of 
+# configuration entity (list, add, edit and delete).    
+entity.tripal_blast.blastdb:
+  path: '/admin/tripal/extension/tripal_blast/configuration/entity'
+  defaults:
+    _entity_list: 'blastdb_entity'
+    _title: 'Tripal BLAST Query Database'
+  requirements:
+    _permission: 'administer tripal'

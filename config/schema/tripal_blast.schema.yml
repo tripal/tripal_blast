@@ -1,0 +1,32 @@
+# @file
+# Tripal Blast Configuration Entity Schema
+
+tripal_blast.blastdb.*:
+  type: config_entity
+  label: 'BLAST Configuration Entity'
+  mapping:
+    nid:
+      type: 'integer'
+      label: 'Node ID'
+    name:
+      type: 'string'
+      label: 'Name'
+    path:
+      type: 'string'
+      label: 'Path'
+    dbtype:
+      type: 'string'
+      label 'Database Type'
+    dbxref_id_regexp:
+      type: 'string'
+      label: 'DB Xref Id Regexp'
+    dbxref_db_id:
+      type: 'integer'
+      label: 'DB Xref Id'
+    dbxref_linkout_type:
+      type: 'string'
+      label: 'DB Xref Type'
+    cvitjs_enabled:
+      type: 'boolean'
+      label: 'CvitJS Enabled'
+    

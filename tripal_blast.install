@@ -1,0 +1,90 @@
+<?php
+/**
+ * @file
+ * .install file of Tripal BLAST.
+ *
+ * Contains hooks to handle installation of this module.
+ *
+ * Specifically, a database table (blastdb) is created to store additional information
+ * related to blast database nodes such as the name/path to the NCBI BLAST database files
+ * and the type (protein or nucleotide) of the database.
+ */
+
+
+use Drupal\node\Entity\Node;
+
+/**
+ * Implements hook_install().
+ * 
+ * @see tripal.info
+ */
+function tripal_blast_install() {
+  // Retreives the Drupal relative directory for a Tripal module.
+  tripal_create_files_dir('tripal_blast');
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function tripal_blast_uninstall() {
+  // @TODO: Removes nodes.
+}
+
+/**
+ * Implements hook_schema().
+ * Create the blast job database table for storing blast job requests.
+ */
+function tripal_blast_schema() {  
+  // BLAST JOBS
+  // ------------------------
+  // Keeps track of additional information related to tripal blast jobs.
+  $schema['blastjob'] = array(
+    'description' => t('Keeps track of additional information related to tripal blast jobs.'),
+    'fields' => array(
+      'job_id' => array(
+        'description' => t('The Tripal job_id for the blast job.'),
+        'type' => 'int',
+        'unsigned' => true,
+        'not null' => true,
+      ),
+      'blast_program' => array(
+        'description' => t('The program to use to run the blast (ie: blastn, blastp, etc.).'),
+        'type' => 'varchar',
+        'length' => 20,
+        'not null' => true,
+      ),
+      'target_blastdb' => array(
+        'description' => t('The nid of the blastdb used to search against; NULL if target was uploaded.'),
+        'type' => 'int',
+        'unsigned' => true,
+      ),
+      'target_file' => array(
+        'description' => t('The absolute path to the uploaded blast database after it was run through makeblastdb; NULL if target was NOT uploaded.'),
+        'type' => 'text',
+      ),
+      'query_file' => array(
+        'description' => t('The absolute path to the query file.'),
+        'type' => 'text',
+      ),
+      'result_filestub' => array(
+        'description' => t('The absolute path and filename (without extension) of the blast results.'),
+        'type' => 'text',
+      ),
+      'options' => array(
+        'description' => t('A serialized array of options selected for the blast job where the key is the machine name of the option used when calling blast (ie: gapextend) and the value is the value of the option.'),
+        'type' => 'text',
+      ),
+    ),
+    'primary key' => array('job_id'),
+    'foreign keys' => array(
+      'job_id' => array(
+        'table' => 'tripal_jobs',
+        'columns' => array(
+          'job_id' => 'job_id',
+        ),
+      ),
+    ),
+  );
+  
+  return $schema;
+}
