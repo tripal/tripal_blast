@@ -4,7 +4,7 @@
 # GENERAL CONFIGURATIONS:
 tripal_blast_config_general:
   path:
-      threads: 1
+  threads: 1
   eval: 0.001
   qrange: 0
 
@@ -58,7 +58,8 @@ tripal_blast_config_jobs:
 
 # VISUALIZATION CONFIGURATIONS:
 tripal_blast_config_visualization:
-  cvitjs: FALSE
+  cvitjs_enabled: FALSE
+  cvitjs_config: 
 
 # NOTIFICATION CONFIGURATIONS
 tripal_blast_config_notification:
