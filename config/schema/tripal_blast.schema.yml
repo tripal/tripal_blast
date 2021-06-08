@@ -1,7 +1,7 @@
 # @file
 # Tripal Blast Configuration Entity Schema
 
-tripal_blast.blastdb.*:
+tripal_blast.tripalblastdatabase.*:
   type: config_entity
   label: 'BLAST Configuration Entity'
   mapping:

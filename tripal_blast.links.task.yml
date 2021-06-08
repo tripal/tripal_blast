@@ -25,7 +25,7 @@ tripal_blast.tab2:
 
 # Tripal BLAST Entity Configuration Tab.
 tripal_blast.tab3:
-  title: 'Tripal BLAST: Entity Configuration'
-  route_name: entity.tripal_blast.blastdb  
+  title: 'Tripal BLAST: Query Database'
+  route_name: entity.tripal_blast.blast_database  
   base_route: tripal_blast.configuration
-  weight: 1 
+  weight: 2

@@ -93,10 +93,18 @@ tripal_blast.help:
 
 # Route set below defines routes for the management of 
 # configuration entity (list, add, edit and delete).    
-entity.tripal_blast.blastdb:
-  path: '/admin/tripal/extension/tripal_blast/configuration/entity'
+entity.tripal_blast.blast_database:
+  path: '/admin/tripal/extension/tripal_blast/configuration/tripalblastdatabase'
   defaults:
-    _entity_list: 'blastdb_entity'
+    _entity_list: 'tripalblastdatabase'
     _title: 'Tripal BLAST Query Database'
+  requirements:
+    _permission: 'administer tripal'
+
+entity.tripal_blast.blast_database.add:
+  path: '/admin/tripal/extension/tripal_blast/configuration/tripalblastdatabase/add'
+  defaults:
+    _entity_form: 'tripalblastdatabase.add'
+    _title: 'Tripal BLAST Add Query Database'
   requirements:
     _permission: 'administer tripal'

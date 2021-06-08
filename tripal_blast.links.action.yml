@@ -1,0 +1,12 @@
+# @file
+# Tripal BLAST link action definition.
+
+# This will insert an Add button to Tripal BLAST Database 
+# configuration entity - show list of entities page.
+
+entity.tripal_blast.blast_database.add:
+  route_name: 'entity.tripal_blast.blast_database.add'
+  title: 'Add Tripal BLAST Database'
+  appears_on:
+    - entity.tripal_blast.blast_database
+
