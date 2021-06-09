@@ -17,17 +17,36 @@ use Drupal\tripal_blast\TripalBlastDatabaseInterface;
  *   handlers = {
  *     "list_builder" = "Drupal\tripal_blast\Controller\TripalBlastDatabaseListBuilder",
  *     "form" = {
- *       "add" = "Drupal\tripal_blast\Form\TripalBlastDatabaseForm"
+ *       "add" = "Drupal\tripal_blast\Form\TripalBlastDatabaseForm",
+ *       "edit" = "Drupal\tripal_blast\Form\TripalBlastDatabaseForm",
+ *       "delete" = "Drupal\tripal_blast\Form\TripalBlastDatabaseDeleteForm"
  *     }
  *   },
  *   admin_permission = "administer tripal",
  *   config_prefix = "tripal_blast",
  *   entity_keys = {
- *     "id" = "nid",
+ *     "id" = "id",
+ *     "name" = "name",
+ *     "path" = "path",
+ *     "dbtype" = "dbtype",
+ *     "dbxref_id_regexp" = "dbxref_id_regexp",
+ *     "dbxref_db_id" = "dbxref_db_id",
+ *     "dbxref_linkout_type" = "dbxref_linkout_type",
+ *     "cvitjs_enabled" = "cvitjs_enabled"
  *   },
  *   config_export = {
- *     "nid",
+ *     "id",
  *     "name",
+ *     "path",
+ *     "dbtype",
+ *     "dbxref_id_regexp",
+ *     "dbxref_db_id",
+ *     "dbxref_linkout_type",
+ *     "cvitjs_enabled"
+ *   },
+ *   links = {
+ *     "edit-form" = "/admin/tripal/extension/tripal_blast/configuration/tripalblastdatabase/edit/{tripalblastdatabase}",
+ *     "delete-form" = "/admin/tripal/extension/tripal_blast/configuration/tripalblastdatabase/{tripalblastdatabase}/delete"
  *   }
  * )
  */
@@ -36,7 +55,7 @@ class TripalBlastDatabase extends ConfigEntityBase implements TripalBlastDatabas
    * The primary identifier for a node.
    * @var integer
    */
-  protected $nid;
+  protected $id;
 
   /**
    * The human-readable name of the blast database.
@@ -83,8 +102,8 @@ class TripalBlastDatabase extends ConfigEntityBase implements TripalBlastDatabas
   /**
    * {@inheritdoc}
    */
-  public function getNid() {
-    return $this->nid;
+  public function getId() {
+    return $this->id;
   }
 
   /**
@@ -92,5 +111,47 @@ class TripalBlastDatabase extends ConfigEntityBase implements TripalBlastDatabas
    */
   public function getName() {
     return $this->name;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getPath() {
+    return $this->path;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getDbType() {
+    return $this->dbtype;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getDbXrefRegExp() {
+    return $this->dbxref_id_regexp;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getDbXref() {
+    return $this->dbxref_db_id;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getDbXrefLinkout() {
+    return $this->dbxref_linkout_type;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getCvitjsEnabled() {
+    return $this->cvitjs_enabled;
   }
 }

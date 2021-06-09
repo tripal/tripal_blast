@@ -5,9 +5,9 @@ tripal_blast.tripalblastdatabase.*:
   type: config_entity
   label: 'BLAST Configuration Entity'
   mapping:
-    nid:
+    id:
       type: 'integer'
-      label: 'Node ID'
+      label: 'Database Entity ID'
     name:
       type: 'string'
       label: 'Name'
@@ -16,7 +16,7 @@ tripal_blast.tripalblastdatabase.*:
       label: 'Path'
     dbtype:
       type: 'string'
-      label 'Database Type'
+      label: 'Database Type'
     dbxref_id_regexp:
       type: 'string'
       label: 'DB Xref Id Regexp'

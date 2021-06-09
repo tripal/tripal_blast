@@ -108,3 +108,19 @@ entity.tripal_blast.blast_database.add:
     _title: 'Tripal BLAST Add Query Database'
   requirements:
     _permission: 'administer tripal'
+
+entity.tripalblastdatabase.edit_form:
+  path: '/admin/tripal/extension/tripal_blast/configuration/tripalblastdatabase/edit/{tripalblastdatabase}'
+  defaults:
+    _entity_form: 'tripalblastdatabase.edit'
+    _title: 'Tripal BLAST Edit Query Database'
+  requirements:
+    _permission: 'administer tripal'
+
+entity.tripalblastdatabase.delete_form:
+  path: '/admin/tripal/extension/tripal_blast/configuration/tripalblastdatabase/{tripalblastdatabase}/delete'
+  defaults:
+    _entity_form: 'tripalblastdatabase.delete'
+    _title: 'Tripal BLAST Delete Query Database'
+  requirements:
+    _permission: 'administer tripal'
