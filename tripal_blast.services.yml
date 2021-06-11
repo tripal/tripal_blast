@@ -1,0 +1,6 @@
+# @file
+# Tripal BLAST services definition.
+
+services:
+  tripal_blast.database_service:
+    class: Drupal\tripal_blast\Services\TripalBlastDatabaseService

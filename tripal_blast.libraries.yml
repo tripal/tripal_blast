@@ -12,8 +12,6 @@ tripal-blast-ui:
     theme:
       css/tripal-blast-ui.css: {}
   dependencies:
-    - jquery_ui/core
-    - jquery_ui/widget
     - core/jquery
     - core/jquery.once
 
@@ -28,7 +26,5 @@ tripal-blast-admin:
     theme:
       css/tripal-blast-tabs.css: {}
   dependencies:
-    - jquery_ui/core
-    - jquery_ui/widget
     - core/jquery
     - core/jquery.once    

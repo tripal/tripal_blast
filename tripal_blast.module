@@ -14,22 +14,25 @@ use Drupal\Core\Url;
  */
 function tripal_blast_theme($existing, $type, $theme, $path) {  
   // Links rendered as a markup for the template file.
+  // Query type + programs route.
+  $blast_programs = [
+    'blastn'  => ['nucleotide', 'nucleotide'],
+    'blastx'  => ['nucleotide', 'protein'],
+    'tblastn' => ['protein', 'nucleotide'],
+    'blastp'  => ['protein', 'protein']
+  ];
+  $route_ui = 'tripal_blast.blast_program';
+  $links_ui = [];
+
+  foreach($blast_programs as $name => $param) {
+    list($query, $program) = $param;
+    $link = Url::fromRoute($route_ui, ['query' => $query, 'program' => $program]);
+    $links_ui[ 'link_' . $name ] = \Drupal::l(t($name), $link);
+  } 
+
+  
+  
   $context_links = [
-    // QUERY SEARCH TYPE:
-    // blast/nucleotide, blast/protein.
-    'link_nucleotide' => \Drupal::l(t('Nucleotide'), Url::fromRoute('tripal_blast.nucleotide')),
-    'link_protein'  => \Drupal::l(t('Protein'), Url::fromRoute('tripal_blast.protein')),
-    
-    // NUCLEOTIDE PROGRAM:
-    // blast/nucleotide/nucleotide, blast/nucleotide/protein.
-    'link_blastn' => \Drupal::l(t('blastn'), Url::fromRoute('tripal_blast.nucleotide_nucleotide')),
-    'link_blastx'   => \Drupal::l(t('blastx'), Url::fromRoute('tripal_blast.nucleotide_protein')),
-    
-    // PROTEIN PROGRAM:
-    // blast/protein/nucleotide, blast/protein/protein.
-    'link_tblastn'  => \Drupal::l(t('tblastn'), Url::fromRoute('tripal_blast.protein_nucleotide')),    
-    'link_blastp' => \Drupal::l(t('blastp'), Url::fromRoute('tripal_blast.protein_protein')),
-    
     // MISC/ADMIN. 
     'link_config' => '#',
     'link_jobs'    => '#',
@@ -42,7 +45,7 @@ function tripal_blast_theme($existing, $type, $theme, $path) {
   $variables = [
     // Tripal BLAST UI page.
     'theme-tripal-blast-ui' => [
-      'variables' => ['context_links' => $context_links],
+      'variables' => ['context_links' => $links_ui],
       'template'  => 'template-tripal-blast-ui',
     ],
     // Tripal BLAST Configuration page.
