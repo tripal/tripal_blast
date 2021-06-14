@@ -88,3 +88,6 @@ function tripal_blast_schema() {
   
   return $schema;
 }
+
+// @TODO: uninstall hook 
+//        remove all configurations.

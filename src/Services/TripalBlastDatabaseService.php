@@ -25,6 +25,12 @@ class TripalBlastDatabaseService {
    *   associated to the id (database name).
    */
   public function getDatabaseByType($type = 'n') {
+    // Type can be the full word ie. nucleotide and protein,
+    // or the one character value n and p for nucloetide and protein, respectively.
+    if (strlen($type) > 1) {
+      $type = ($type == 'nucleotide') ? 'n' : 'p';
+    }
+    
     $database_entity = \Drupal::entityTypeManager()->getStorage(static::CONFIG_ENTITY_NAME);
     $entity_query = $database_entity->getQuery();
 
@@ -44,4 +50,52 @@ class TripalBlastDatabaseService {
 
     return $db;
   }
+
+  /**
+   * Translate database type to single character value.
+   * 
+   * @param $type
+   *   BLAST database query type ie: nucleotide or protein.
+   * 
+   * @return char
+   *   n for nucleotide and p for protein.
+   */
+  public function translateDatabaseType($type) {
+    if (strlen($type) > 1) {
+      return ($type == 'nucleotide') ? 'n' : 'p';
+    }
+  }
+
+  /**
+   * Determine the BLAST program given the type of database type
+   * and program.
+   * 
+   * @param $type
+   *   BLAST database query type ie: nucleotide or protein.
+   * @param $program
+   *   BLAST program.
+   * 
+   * @return string
+   *   BLAST program: blastn, blastx, tblastn, blastp.
+   * 
+   * @see routing.yml - $type and $program can be parsed using the 
+   * request url.
+   */
+  public function getProgramName($type, $program) {
+    $db_types = [
+      'n' => [
+        'nucleotide' => 'blastn',
+        'protein' => 'blastx'
+      ],
+      'p' => [
+        'nucleotide' => 'tblastn',
+        'protein' => 'blastp'
+      ]
+    ];
+
+    $type = $this->translateDatabaseType($type);
+    if (isset($db_types[$type][$program])) {
+      return $db_types[$type][$program];
+    }
+  } 
 }
