@@ -1,0 +1,10 @@
+/*
+ * @file
+ * Style Tripal BLAST programs page:
+ */
+ 
+#wrapper-checkbox-example-sequence {
+  float: right;
+  margin: 0;
+  padding: 0;
+}

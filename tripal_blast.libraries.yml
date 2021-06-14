@@ -27,4 +27,11 @@ tripal-blast-admin:
       css/tripal-blast-tabs.css: {}
   dependencies:
     - core/jquery
-    - core/jquery.once    
+    - core/jquery.once
+
+# Library used in BLAST pages/programs.
+tripal-blast-programs:
+  version: 1.x
+  css:
+    theme:
+      css/tripal-blast-programs.css: {}
