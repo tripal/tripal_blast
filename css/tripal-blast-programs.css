@@ -3,8 +3,12 @@
  * Style Tripal BLAST programs page:
  */
  
-#wrapper-checkbox-example-sequence {
+#tripal-blast-wrapper-checkbox-example-sequence {
   float: right;
   margin: 0;
   padding: 0;
+}
+
+.tripal-blast-tip {
+  font-style: italic;
 }

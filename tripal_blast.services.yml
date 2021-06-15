@@ -4,3 +4,5 @@
 services:
   tripal_blast.database_service:
     class: Drupal\tripal_blast\Services\TripalBlastDatabaseService
+  tripal_blast.program_blastn:
+    class: Drupal\tripal_blast\Services\TripalBlastProgramBlastn
