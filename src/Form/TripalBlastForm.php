@@ -12,6 +12,7 @@ use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\ReplaceCommand;
 use Drupal\Core\Url;
 
+
 /**
  * Define Tripal BLAST form.
  */
@@ -175,19 +176,11 @@ class TripalBlastForm extends FormBase {
       // Advanced Options
       // These options will be different depending upon the program selected.
       // Therefore, allow for program-specific callbacks to populate these options.
-      $container = 'advanced_options';
-      $form['new_blast'][ $container ] = [
-        '#type' => 'details',
-        '#title' => $this->t('Advanced Options'),
-        '#open' => FALSE
-      ];
-      
-      $service_key = 'tripal_blast.program_' . strtolower($program_name);
+      $service_key = 'tripal_blast.program_' . $program_name;
       $programs_service = \Drupal::service($service_key);
-      $programs_service->formOptions($program_name);
-      
-
-      
+      $form_alter = $programs_service->formOptions($program_name);
+      array_push($form['new_blast'], $form_alter);
+      unset($form_alter);
 
       
 
@@ -212,7 +205,15 @@ class TripalBlastForm extends FormBase {
 
   /**
    * {@inheritdoc}
-   * Save configuration.
+   * Validate BLAST request.
+   */
+  public function validateForm(array &$form, FormStateInterface $form_state) {
+    
+  }
+
+  /**
+   * {@inheritdoc}
+   * Save/Create a BLAST job request.
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     
@@ -270,4 +271,46 @@ class TripalBlastForm extends FormBase {
 
     return $form['new_blast']['query']['fld_text_fasta'];
   }
+
+  /**
+   * 
+   */
+  public function programBlastnForm(array &$form, FormStateInterface $form_state, $container) {
+    $form[ $container ]['general'] = [
+      '#type' => 'details',
+      '#title' => t('General Parameters'),
+      '#open' => FALSE
+    ];
+
+      //
+      // FIELD: MAXIMUM TARGET.
+      $max_target = TripalBlastProgramHelper::programGetMaxTarget($program_name);
+      $form[ $container ]['general']['fld_select_max_target'] = [
+        '#type' => 'select',
+        '#title' => t('Max target sequences:'),
+        '#options' => $max_target,
+        //'#default_value' => $defaults['max_target_seqs'],
+        '#description' => t('Select the maximum number of unique target sequences per query sequence to show results for. Results returned may not be the highest scoring hits. <a href="https://academic.oup.com/bioinformatics/article/35/9/1613/5106166" target="_blank">More Information</a>'),
+      ];
+  }
+
+  /**
+   * 
+   */
+  public function programBlastnValidate() {
+
+  }
+
+  /**
+   * 
+   */
+  public function programBlastnSubmit() {
+
+  }
+
+
+
+
+
+
 }
