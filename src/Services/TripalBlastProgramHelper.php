@@ -184,14 +184,129 @@ class TripalBlastProgramHelper {
    *   programGetGapForMatrix().
    */
   public static function programMakeGap($gap_array) {
-     $gap = [];
+    $gap = [];
      
-     foreach($gap_array as $value) {
-       list($value1, $value2) = explode('_', $value);
-       $gap[ $value ] = t('Existence: @value1 Extension: @value2', ['@value1' => $value1, '@value2' => $value2]);
-     }
+    foreach($gap_array as $value) {
+      list($value1, $value2) = explode('_', $value);
+      $gap[ $value ] = t('Existence: @value1 Extension: @value2', ['@value1' => $value1, '@value2' => $value2]);
+    }
 
-     return $gap;
+    return $gap;
   }
+
+  /**
+   * Reward and penalty for matching and mismatching bases.
+   * 
+   * @param $program_name
+   *   String, established program name - blastn, blastx, blastp and tblastn.
+   * 
+   * @return array
+   */
+  public static function programGetMatchMismatch($program_name) {
+    $mm = [
+      'blastn' => [
+        0 => t('1,-2'),
+        1 => t('1,-3'),
+        2 => t('1,-4'),
+        3 => t('2,-3'),
+        4 => t('4,-5'),
+        5 => t('1,-1')
+      ]
+    ];
+    
+    return $mm[ $program_name ] ?? '';
+  }
+
+  /**
+   * Cost to create and extend a gap in an alignment. 
+   * 
+   * @param $program_name
+   *   String, established program name - blastn, blastx, blastp and tblastn.
+   * @param $mm_set
+   *   Value selected in Match/Mismatch field (as default). 
+   */
+  public static function programGetGapCost($program_name, $mm_set) {
+    $gap = [];
+
+    switch ($program_name) {
+      case 'blastn':
+        switch ($mm_set) {
+          case 0: //1, -2
+            $gap = ['5_2', '2_2', '1_2', '0_2', '3_1', '2_1', '1_1'];
+            break;
+
+          case 1: //1, -3
+            $gap = ['5_2', '2_2', '1_2', '1_2', '0_2', '2_1', '1_1'];
+            break;
+
+          case 2: // 1, -4
+            $gap = ['5_2', '1_2', '0_2', '2_1', '1_1'];
+            break;
+
+          case 3: //2, -3
+            $gap = ['4_4', '2_4', '0_4', '3_3', '6_2', '5_2', '4_2', '2_2'];
+            break;
+
+          case 4: //4, -5
+            $gap = ['12_8', '6_5', '5_5', '4_5', '3_5'];
+            break;
+
+          case 5: //1, -1
+            $gap = ['5_2', '3_2', '2_2', '1_2', '0_2', '4_1', '3_1', '2_1'];
+        }        
+    }
+
+    return TripalBlastProgramHelper::programMakeGap($gap);
+  } 
+  
+  /**
+   * FASTA validating parser
+   *
+   * A sequence in FASTA format begins with a single-line description, followed
+   * by lines of sequence data.The description line is distinguished from the
+   * sequence data by a greater-than (">") symbol in the first column. The word
+   * following the ">" symbol is the identifier of the sequence, and the rest of
+   * the line is the description (both are optional). There should be no space
+   * between the ">" and the first letter of the identifier. The sequence ends
+   * if another line starting with a ">" appears which indicates the start of
+   * another sequence.
+   *
+   * @param $query
+   *   The type of sequence to be validated (ie: either nucleotide or protein).
+   * @param $fasta_sequence
+   *  A string of characters to be validated.
+   *
+   * @return
+   *  Return a boolean. 1 if the sequence does not pass the format valifation stage and 0 otherwise.
+   */
+  public static function programValidateFastaSequence($query, $fasta_sequence) {
+    // Includes IUPAC codes.
+    $fastaSeqRegEx = ($query == 'nucleotide')
+      ? '/^[ATCGNUKMBVSWDYRHatcgnukmbvswdyrh\[\/\]\s\n\r]*$/'
+      : '/^[acdefghiklmnpqrstvwyACDEFGHIKLMNPQRSTVWY\*\-\s\n\r]*$/';
+    
+      $defRegEx      = '/^>\S.*/';
+
+    // For each line of the sequence.
+    foreach (explode("\n", $fasta_sequence) as $line) {      
+      if ($line[0] == '>') {
+        // Is this a definition line?
+        if (!preg_match($defRegEx, $line)) {
+          return FALSE;
+        }
+      }
+      else {
+        // Otherwise it's a sequence line
+        if (!preg_match($fastaSeqRegEx, $line)) {
+          return FALSE;
+        }
+      }
+    }
+
+    return TRUE;
+  } 
+
+
+
 
 }

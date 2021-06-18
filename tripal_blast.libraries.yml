@@ -32,6 +32,8 @@ tripal-blast-admin:
 # Library used in BLAST pages/programs.
 tripal-blast-programs:
   version: 1.x
+  js:
+    js/tripal-blast-program-ajax-callback.js: {}
   css:
     theme:
       css/tripal-blast-programs.css: {}
