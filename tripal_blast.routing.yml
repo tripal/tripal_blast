@@ -15,16 +15,16 @@ tripal_blast.blast_ui:
 
 # Routes below are for two main query types BLAST shown in the UI.
 
-# blast{query - database type}/{program}
+# blast{query type}/{db type}
 tripal_blast.blast_program:
-  path: 'blast/{query}/{program}'
+  path: 'blast/{query}/{db}'
   defaults:
     _title: 'Tripal BLAST'
     _form: '\Drupal\tripal_blast\Form\TripalBlastForm'
   requirements:
     _permission: 'administer tripal'
     query: 'nucleotide|protein'
-    program: 'nucleotide|protein'
+    db: 'nucleotide|protein'
 
 
 # Routes below are for configuration and help.

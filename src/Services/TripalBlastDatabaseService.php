@@ -52,6 +52,34 @@ class TripalBlastDatabaseService {
   }
 
   /**
+   * Get database asset (config entity fields).
+   * 
+   * @param $db_id (entity id)
+   *   String, id number of an entity,
+   * 
+   * @param object
+   *   Config entity fields matching the id number given.
+   */
+  public function getDatabaseConfig($db_id) {
+    if ($db_id) {
+      $config = \Drupal::entityTypeManager()
+        ->getStorage(static::CONFIG_ENTITY_NAME)
+        ->load($db_id);
+
+      return [
+        'id'  => $config->getId(),
+        'name' => $config->getName(),
+        'path'  => $config->getPath(),
+        'dbtype' => $config->getDbType(),
+        'dbxref_id_regexp' => $config->getDbXrefRegExp(),
+        'dbxref_db_id' => $config->getDbXref(),
+        'dbxref_linkout_type' => $config->getDbXrefLinkout(),
+        'cvitjs_enabled' => $config->getCvitjsEnabled()       
+      ];  
+    }
+  }
+
+  /**
    * Translate database type to single character value.
    * 
    * @param $type

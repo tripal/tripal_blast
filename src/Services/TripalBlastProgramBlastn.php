@@ -13,7 +13,7 @@ use Drupal\tripal_blast\Services\TripalBlastProgramHelper;
   */
 class TripalBlastProgramBlastn {
   private static $program_name;
-  private static $advanced_field_names = [];
+  private static $advanced_field_names;
 
   /**
    * Set program_name property to BLAST program
@@ -39,7 +39,7 @@ class TripalBlastProgramBlastn {
     $program_name = self::$program_name;
     $form_alter = [];
     
-    $container = 'advanced_options' ; 
+    $container = 'ALG' ; 
 
     $form_alter[ $container ] = [
       '#type' => 'details',
@@ -57,7 +57,7 @@ class TripalBlastProgramBlastn {
       //
       // # FIELD: MAXIMUM TARGET.
       $max_target_options = TripalBlastProgramHelper::programGetMaxTarget($program_name);
-      $form_alter[ $container ]['general']['fld_select_max_target'] = [
+      $form_alter[ $container ]['general']['maxTarget'] = [
         '#type' => 'select',
         '#title' => t('Max target sequences:'),
         '#options' => $max_target_options,
@@ -66,11 +66,11 @@ class TripalBlastProgramBlastn {
           query sequence to show results for. Results returned may not be the highest scoring hits. 
           <a href="https://academic.oup.com/bioinformatics/article/35/9/1613/5106166" target="_blank">More Information</a>'),
       ];
-      array_push(self::$advanced_field_names, 'fld_select_max_target');
+      self::$advanced_field_names['maxTarget'] = [];
 
       //
       // # FIELD: EVAL.
-      $form_alter[ $container ]['general']['fld_text_eval'] = [
+      $form_alter[ $container ]['general']['eVal'] = [
         '#type' => 'textfield',
         '#title' => t('e-Value (Expected Threshold)'),
         // '#default_value' => $defaults['evalue'],
@@ -80,19 +80,20 @@ class TripalBlastProgramBlastn {
           <a href="https://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml#expect" target="_blank">More Information</a> | 
           <a href="https://www.youtube.com/watch?v=nO0wJgZRZJs" target="_blank">Expect value video tutorial</a>'),
       ];
-      array_push(self::$advanced_field_names, 'fld_text_eval');
+      // Validate this field using number validator.
+      self::$advanced_field_names['eVal'] = ['number'];
 
       //
       // # FIELD: WORDSIZE.
       $word_size_options = TripalBlastProgramHelper::programGetWordSize($program_name);
-      $form_alter[ $container ]['general']['fld_select_word_size'] = [
+      $form_alter[ $container ]['general']['wordSize'] = [
         '#type' => 'select',
         '#title' => t('Word size'),
         '#options' => $word_size_options,
         //'#default_value' => $defaults['word_size'],
         '#description' => t('The length of the seed that initiates an alignment'),
       ];
-      array_push(self::$advanced_field_names, 'fld_select_word_size');
+      self::$advanced_field_names['wordSize'] = [];
 
     $form_alter[ $container ]['scoring_param'] = [
       '#type' => 'details',
@@ -103,7 +104,7 @@ class TripalBlastProgramBlastn {
       //
       // # FIELD: MATCH AND MISMATCH.
       $mm_options = TripalBlastProgramHelper::programGetMatchMismatch($program_name);
-      $form_alter[ $container ]['scoring_param']['fld_select_mm_score'] = [
+      $form_alter[ $container ]['scoring_param']['M&MScores'] = [
         '#type' => 'select',
         '#title' => t('Match/Mismatch Scores:'),
         '#options' => $mm_options,
@@ -118,13 +119,13 @@ class TripalBlastProgramBlastn {
           'message'  => ''
         ],
       ];
-      array_push(self::$advanced_field_names, 'fld_select_mm_score');
+      self::$advanced_field_names['M&MScores'] = [];
 
       //
       // # FIELD: GAP COST.
       $mm_set = 1;      
       $gap_cost_options = TripalBlastProgramHelper::programGetGapCost($program_name, $mm_set);
-      $form_alter[ $container ]['scoring_param']['fld_select_gap_cost'] = [
+      $form_alter[ $container ]['scoring_param']['gapCost'] = [
         '#type' => 'select',
         '#title' => t('Gap Costs:' . $mm_set),
         '#options' => $gap_cost_options,
@@ -134,7 +135,7 @@ class TripalBlastProgramBlastn {
         '#prefix' => '<div id="tripal-blast-wrapper-fld-select-gap-cost">',
         '#suffix' => '</div>',
       ];
-      array_push(self::$advanced_field_names, 'fld_select_gap_cost');
+      self::$advanced_field_names['gabCost'] = [];
   
     return $form_alter;
   }
@@ -145,5 +146,39 @@ class TripalBlastProgramBlastn {
    */  
   public function formFieldNames() {
     return self::$advanced_field_names;
+  }
+
+  /**
+   * Map advanced options specific to this program to BLAST keywords.
+   * 
+   * @param $advanced_field_names
+   *   Values set from form ($form_state).
+   * 
+   * @return array
+   *   Form values mapped to BLAST keywords.
+   */
+  public function formFieldBlastKey($advanced_field_values) {
+    $eval = $advanced_field_values['eVal'];
+    $max_target = $advanced_field_values['maxTarget'];
+    $word_size = $advanced_field_values['wordSize'];
+
+
+    $gap = TripalBlastProgramHelper::programSetGap($advanced_field_values['gapCost']);
+    $gap_open = $gap['gapOpen'];
+    $gap_extend = $gap['gapExtend'];
+
+    $mm = TripalBlastProgramHelper::programSetMatchMismatch($advanced_field_values['M&MScores']);
+    $penalty = $mm['penalty'];
+    $reward = $mm['reward'];
+
+    return [
+      'max_target_seqs' => $max_target,
+      'evalue'   => $eval,
+      'word_size' => $word_size,
+      'gapopen'    => $gap_open,
+      'gapextend' => $gap_extend,
+      'penalty' => $penalty,
+      'reward' => $reward,
+    ];
   }
 }

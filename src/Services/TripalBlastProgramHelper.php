@@ -195,6 +195,58 @@ class TripalBlastProgramHelper {
   }
 
   /**
+   * Translate gap abbreviation into blast gap open and extend costs.
+   * @param $gap_key 
+   *   A gap open/extend abbreviation
+   */
+  public static function programSetGap($gap_key) {
+    $parts = explode('-', $gap_key);
+    return ['gapOpen' => $parts[0], 'gapExtend' => $parts[1]];
+  }
+
+  /**
+   * Translate mismatch/match ratio option into blast penalty/reward options. 
+   * 
+   * @param $mm_score
+   *   Match and mismatch value.
+   */
+  public static function programSetMatchMismatch($mm_score) {
+    switch ($mm_score) {
+      case 0:
+        $penalty = -2;
+        $reward = 1;
+        break;
+
+      case 1:
+        $penalty = -3;
+        $reward = 1;
+        break;
+
+      case 2:
+        $penalty = -4;
+        $reward = 1;
+        break;
+
+      case 3:
+        $penalty = -3;
+        $reward = 2;
+        break;
+
+      case 4:
+        $penalty = -5;
+        $reward = 4;
+        break;
+
+      case 5:
+        $penalty = -1;
+        $reward = 1;
+        break;
+    }
+  
+    return ['penalty' => $penalty, 'reward' => $reward];
+  }
+
+  /**
    * Reward and penalty for matching and mismatching bases.
    * 
    * @param $program_name
@@ -289,7 +341,7 @@ class TripalBlastProgramHelper {
 
     // For each line of the sequence.
     foreach (explode("\n", $fasta_sequence) as $line) {      
-      if ($line[0] == '>') {
+      if (isset($line[0]) && $line[0] == '>') {
         // Is this a definition line?
         if (!preg_match($defRegEx, $line)) {
           return FALSE;
@@ -304,7 +356,38 @@ class TripalBlastProgramHelper {
     }
 
     return TRUE;
-  } 
+  }
+
+  /**
+   * Validate field callback.
+   * 
+   * @param $value
+   *   Value to validate to match the type.
+   * @param $type
+   *   Value type to test a given value.
+   * 
+   * @return boolean
+   *   True if value and type match, false otherwise.
+   */
+  public static function programValidateValue($value, $type) {
+    $is_valid = [
+      'result' => TRUE,
+      'message' => ''
+    ];
+
+    switch ($type) {
+      case 'number':
+        if (!is_numeric($value)) {
+          $is_valid['result'] = FALSE;
+          $is_valid['message'] = 'The e-value should be a very small number (scientific notation is supported). 
+            For example, <em>0.001</em> or, even better, <em>1e-10</em>.';
+        }
+        
+        break;
+    }
+
+    return $is_valid;
+  }
 
 
 

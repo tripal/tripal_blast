@@ -25,8 +25,8 @@ function tripal_blast_theme($existing, $type, $theme, $path) {
   $links_ui = [];
 
   foreach($blast_programs as $name => $param) {
-    list($query, $program) = $param;
-    $link = Url::fromRoute($route_ui, ['query' => $query, 'program' => $program]);
+    list($query, $db) = $param;
+    $link = Url::fromRoute($route_ui, ['query' => $query, 'db' => $db]);
     $links_ui[ 'link_' . $name ] = \Drupal::l(t($name), $link);
   } 
 
