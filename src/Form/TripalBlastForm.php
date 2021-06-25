@@ -12,6 +12,8 @@ use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\InvokeCommand;
 use Drupal\Core\Url;
 use Drupal\node\Entity\Node;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+
 
 use Drupal\tripal_blast\Services\TripalBlastProgramHelper;
 
@@ -35,69 +37,103 @@ class TripalBlastForm extends FormBase {
     // Add a warning, if need be (to be used for temporary message like down-for-maintenance).
     $config_warning_text = \Drupal::config('tripal_blast.settings')
       ->get('tripal_blast_config_notification.warning_text');
-    
+
     if ($config_warning_text) {
-      $form['warning'] = [
-        '#type' => 'inline_template',
-        '#template' => '
-          <div role="contentinfo" aria-label="Warning message" class="messages messages--warning">
-            <div role="alert">
-              <h2 class="visually-hidden">Warning message</h2>
-              '. $config_warning_text .'
-            </div>
-          </div>
-        '
-      ];  
-    }    
+      $form['config_warning'] = TripalBlastProgramHelper::programPlaceMessage($config_warning_text, 'warning');
+    }
 
-    // Attach library - JS and Style.
+    // Attach library - service, style and JS.
     $form['#attached']['library'][] = 'tripal_blast/tripal-blast-programs';
-
-    // Attach a service:
-    $database_service = \Drupal::service('tripal_blast.database_service');
-
-    // Set the title to be more Researcher friendly.
-    $blast_program = $database_service->getProgramName($query, $db);
-    $page_title = [
-      '@query' => ucfirst($query), 
-      '@program' => ucfirst($db), 
-      '@name' => $blast_program
-    ];
-    $form['#title'] = $this->t('@query to @program BLAST (@name)', $page_title);
+    $db_service = \Drupal::service('tripal_blast.database_service');
+    $job_service = \Drupal::service('tripal_blast.job_service');
     
-    // Add the details about the specific BLAST choosen.
+    // Set the BLAST variables.
+    $query_type = $query;
+    $db_type = $db;
+    $blast_program = $db_service->getProgramName($query, $db);
+    
     $form['query_type'] = [
       '#type' => 'hidden',
-      '#value' => $query
+      '#value' => $query_type,
     ];
 
     $form['db_type'] = [
       '#type' => 'hidden',
-      '#value' => $db
+      '#value' => $db_type,
     ];
 
     $form['blast_program'] = [
       '#type' => 'hidden',
-      '#value' => $blast_program
+      '#value' => $blast_program,
     ];
 
-     
-    // @TODO: get jobs.
+
+    // Defaults.
+    $defaults = [
+      'FASTA' => NULL,
+      'SELECT_DB' => NULL
+    ];
+
+    // Edit and Resubmit functionality.
+    // We want to pull up the details from a previous blast and fill them in as defaults
+    // for this blast.
+    
+    // @todo: handle file uploads better; currently for the query we put the file contents
+    // in the text area causing reupload and we simply do not support re-using of an uploaded target.
+    $resubmit = $query = \Drupal::request()->query->get('resubmit') ?? NULL; 
+    if ($resubmit) {
+      $job_id = $job_service->jobsBlastRevealSecret($resubmit);
+      $prev_blast = $job_service->jobsGetJobByJobId($job_id);
+    
+      if (!isset($prev_blast->blastdb->nid)) {
+        // First of all warn if the uploaded their search target last time
+        // since we don't support that now.        
+        $warning = 'You will need to re-upload your Search Target database.';
+        $form['reupload_warning'] = TripalBlastProgramHelper::programPlaceMessage($warning, 'warning');
+      }    
+      else {
+        // And if they didn't upload a target then set a default for the select list.
+        $defaults['SELECT_DB'] = $prev_blast->blastdb->nid;
+      }
+
+      // Finally set a default for the query. Since we don't support defaults for file uploads,
+      // we need to get the contents of the file and put them in our textarea.
+      if (is_readable($prev_blast->files->query)) {
+        $defaults['FASTA'] = file_get_contents($prev_blast->files->query);
+      }
+      else {
+        // There should always be a query file (both if uploaded or not) so if we cant find it
+        // then it must have been cleaned up :-( -- warn the user.
+        $error = 'Unable to retrieve previous query sequence; please re-upload it.';
+        $form['read_error'] = TripalBlastProgramHelper::programPlaceMessage($error, 'error');
+      }
+
+      // Finally save the previous blast details for use by the advanced option forms.
+      $form_state['prev_blast'] = $prev_blast;
+    }
+    
+
+    // Set the title to be more Researcher friendly.
+    $page_title = [
+      '@query' => ucfirst($query_type), 
+      '@program' => ucfirst($db_type), 
+      '@name' => $blast_program
+    ];
+    $form['#title'] = $this->t('@query to @program BLAST (@name)', $page_title);
+    
     // CHOOSE RECENT BLAST RESULTS
     // ---------------------------
-    if ($x) {
+    $jobs = $job_service->jobsCountRecentJobs();
+    if ($jobs) {
       $form['A'] = [
         '#type' => 'details',
-        '#title' => $this->t('See results from a recent BLAST'),
-        '#open' => FALSE
+        '#title' => $this->t('See Results from a Recent BLAST'),
+        '#open' => TRUE
       ];
-      
-      // @TODO: theme blast jobs.
-      $form['A']['job_title'] = [
-        '#type' => '',
-      ];
+  
+      $form['A'] = $job_service->jobsCreateTable([$blast_program]);
     }
-
+    
     // NEW BLAST
     // ---------
     // # FIELDSET/DETAILS: MAIN.
@@ -106,7 +142,7 @@ class TripalBlastForm extends FormBase {
       '#title' => $this->t('Request a New BLAST'),
       '#open' => TRUE,
     ];
-      
+       
       // NUCLEOTIDE QUERY
       // ................
       $form['B']['query'] = [
@@ -119,7 +155,7 @@ class TripalBlastForm extends FormBase {
           the data must be in <a href="@formaturl">FASTA format</a>.', 
           ['@formaturl' => 'http://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml']),
       ];
-      
+        
         //
         // # FIELD: SHOW EXAMPLE.
         // Checkbox to show an example.
@@ -137,7 +173,7 @@ class TripalBlastForm extends FormBase {
           '#prefix' => '<div id="tripal-blast-wrapper-checkbox-example-sequence">',
           '#suffix' => '</div>',
         ];
-     
+
         //
         // # FIELD: FASTA.
         // Textfield for submitting a mult-FASTA query
@@ -145,7 +181,7 @@ class TripalBlastForm extends FormBase {
           '#type' => 'textarea',
           '#title' => $this->t('Enter FASTA sequence(s)'),
           '#description' => $this->t('Enter query sequence(s) in the text area.'),
-          // '#default_value' => $defaults['FASTA'],
+          '#default_value' => $defaults['FASTA'],
           '#prefix' => '<div id="tripal-blast-wrapper-ajax-fasta-textarea">',
           '#suffix' => '</div>',
         ];
@@ -176,7 +212,7 @@ class TripalBlastForm extends FormBase {
             ),
           );
         }
-        
+
       // BLAST DATABASE
       // ..............      
       $config_target_upload = \Drupal::config('tripal_blast.settings')
@@ -194,23 +230,23 @@ class TripalBlastForm extends FormBase {
         '#open' => TRUE,
         '#description' => $this->t('Choose from one of the %type BLAST databases listed below.' 
           . $note_target_upload, ['%type' => $query])
-      ];  
-          
+      ]; 
+       
           //
           // # FIELD: SELECT DATABASE.
-          $blast_db = $database_service->getDatabaseByType($db);
+          $blast_db = $db_service->getDatabaseByType($db_type);
           $form['B']['db']['SELECT_DB'] = [
             '#type' => 'select',
             '#title' => $this->t('%type BLAST Databases:', ['%type' => ucfirst($query)]),
             '#options' => $blast_db,
             '#empty_option' => t('Select a Dataset'),
-            '#default_value' => reset($blast_db),
+            '#default_value' => $defaults['SELECT_DB'],
           ];
-          
+
           // Allow target upload - allow target configuration set to TRUE.
           if ($config_query_upload) {
             $form['#attributes']['enctype'] = 'multipart/form-data';  
-
+            
             //
             // # FIELD: FILE UPLOAD.
             $form['B']['db']['DBUPLOAD'] = [
@@ -227,16 +263,16 @@ class TripalBlastForm extends FormBase {
               ]
             ];
           }
-
+      
       // ADVANCED OPTIONS
       // ................
       // These options will be different depending upon the program selected.
       // Therefore, allow for program-specific callbacks to populate these options.
+      // Load program specific service that creates advanced option fields.
       $service_key = 'tripal_blast.program_' . $blast_program;
       $programs_service = \Drupal::service($service_key);
-      $programs_service->setProgramName($blast_program);
-
-      $form_alter = $programs_service->formOptions($blast_program);
+      
+      $form_alter = $programs_service->formOptions([]);
       array_push($form['B'], $form_alter);
       unset($form_alter);
     
@@ -248,25 +284,6 @@ class TripalBlastForm extends FormBase {
     return $form;
   }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
-
   /**
    * {@inheritdoc}
    * Validate BLAST request.
@@ -274,8 +291,10 @@ class TripalBlastForm extends FormBase {
   public function validateForm(array &$form, FormStateInterface $form_state) {
     $blast_program = $form_state->getValue('blast_program');
     $query_type = $form_state->getValue('query_type');
-    $molecule_type = ($query_type == 'nucleotide') ?  'nucleotide' : 'amino acid residues';
+    $db_type = $form_state->getValue('db_type');
 
+    $molecule_type = ($query_type == 'nucleotide') ?  'nucleotide' : 'amino acid residues';
+    
     // VALIDATE QUERY
     // --------------
     // @todo: We are currently not validating uploaded files are valid FASTA.
@@ -298,7 +317,7 @@ class TripalBlastForm extends FormBase {
     elseif (!empty($fld_fasta_value)) {
       // Otherwise there was no file uploaded.
       // Check if there was a query sequence entered in the texfield.
-      $is_valid_fasta = TripalBlastProgramHelper::programValidateFastaSequence($query_type, $fld_value_fasta);
+      $is_valid_fasta = TripalBlastProgramHelper::programValidateFastaSequence($query_type, $fld_fasta_value);
 
       if ($is_valid_fasta) {
         $form_state->setValue('qFlag', 'seqQuery');
@@ -360,7 +379,7 @@ class TripalBlastForm extends FormBase {
       // Otherwise they didn't select a database!!
       // ERROR.
       $form_state->setErrorByName('db', $this->t('No database selected. Either choose a database
-          from the list or upload one of your own.'));
+        from the list or upload one of your own.'));
     }
 
     // VALIDATE ADVANCED OPTIONS
@@ -390,13 +409,16 @@ class TripalBlastForm extends FormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $error = FALSE;
+    
     $blast_program = $form_state->getValue('blast_program');
-    $db_type = $form_state->getValue('db_type');
+    $query_type = $form_state->getValue('query_type');
+    $db_type = $form_state->getValue('$db_type');
 
-    $mdb_type = ($program == 'nucleotide') ? 'nucl' : 'prot';
+    $mdb_type = ($db_type == 'nucleotide') ? 'nucl' : 'prot';
     
     $fld_select_db_value = $form_state->getValue('SELECT_DB');
     $db = $fld_select_db_value ?? NULL; 
+
     // We want to save information about the blast job to the database for recent jobs &
     // edit and resubmit functionality.
     // First set defaults.
@@ -409,7 +431,7 @@ class TripalBlastForm extends FormBase {
       'result_filestub' => NULL,
       'options' => serialize([])
     ];
-     
+    
     // QUERY
     // -----
     // BLAST can only take the query as a file;
@@ -461,19 +483,19 @@ class TripalBlastForm extends FormBase {
     }
     elseif ($var_dbflag_value == 'blastdb') {
       // Otherwise, we are using one of the website provided BLAST databases so form the
-      // BLAST command accordingly
+      // BLAST command accordingly.
       $database_service = \Drupal::service('tripal_blast.database_service');
       $selected_db = $form_state->getValue('SELECT_DB');
       $db_config = $database_service->getDatabaseConfig($selected_db);
   
       $blastdb_name = $db_config['name'];
       $blastdb_with_path = $db_config['path'];
-    }    
-  
+    }  
+    
     $blastjob['target_file'] = $blastdb_with_path; 
     // Determine the path to the blast database with extension.
     $blastdb_with_suffix = $blastdb_with_path;
-
+    
     if ($mdb_type == 'nucl') {
       // Suffix may be .nsq or .nal.
       if (is_readable("$blastdb_with_path.nsq")) {
@@ -495,7 +517,7 @@ class TripalBlastForm extends FormBase {
 
     if (!is_readable($blastdb_with_suffix)) {
       //$error = TRUE;
-  /*
+      /*
       $dbfile_uploaded_msg = ($form_state->getValue('dbFlag') == 'upDB')
           ? 'The BLAST database was submitted via user upload.'
           : 'Existing BLAST Database was chosen.';
@@ -511,7 +533,7 @@ class TripalBlastForm extends FormBase {
       $msg .= "Please contact the site administrator.";
       \Drupal::messenger()->addError($this->t($msg)); */
     }
-    
+      
     // ADVANCED OPTIONS
     // ----------------
     // Now let each program process its own advanced options.
@@ -523,17 +545,73 @@ class TripalBlastForm extends FormBase {
     foreach(array_keys($advanced_field_names) as $field_name) {
       $advanced_field_values[ $field_name ] = $form_state->getValue($field_name);
     }
-    
+
     $field_value_blast_key = $programs_service->formFieldBlastKey($advanced_field_values);
     $advanced_options = ($field_value_blast_key) ? $field_value_blast_key : ['none' => 0];
 
     $blastjob['options'] = serialize($advanced_options);
-    
-    \Drupal::messenger()->addError($this->t(print_r($blastjob)));
+
+    // SUBMIT JOB TO TRIPAL
+    //---------------------
+    // Actually submit the BLAST Tripal Job
+    if (!$error) {
+      // BLAST target exists.
+
+      // We want to save all result files (.asn, .xml, .tsv, .html) in the public files directory.
+      // Usually [drupal root]/sites/default/files.
+      $output_dir = tripal_get_files_dir('tripal_blast');
+      $output_filestub = $output_dir . DIRECTORY_SEPARATOR . date('YMd_His') . '.blast';
+
+      $job_args = array(
+        'program' => $blast_program,
+        'query' => $blastjob['query_file'],
+        'database' => $blastdb_with_path,
+        'output_filename' => $output_filestub,
+        'options' => $advanced_options
+      );
+
+      $job_id = tripal_add_job(
+        t('BLAST (@program): @query', array('@program' => $blast_program, '@query' => $blastjob['query_file'])),
+        'blast_job',
+        'run_BLAST_tripal_job',
+        $job_args,
+        \Drupal::currentUser()->id()
+      );
+  
+      $blastjob['result_filestub'] = $output_filestub;
+      $blastjob['job_id'] = $job_id;
+      
+      // SAVE JOB INFO
+      //--------------
+      $job_service = \Drupal::service('tripal_blast.job_service');
+      $job_service->jobsSave($blastjob);
+
+      //Encode the job_id.
+      $job_encode_id = $job_service->jobsBlastMakeSecret($job_id);
+
+      // RECENT JOBS
+      //------------
+      if (!isset($_SESSION['blast_jobs'])) {
+        $_SESSION['blast_jobs'] = [];
+      }
+      
+      $_SESSION['blast_jobs'][] = $job_encode_id;
+
+      // NOTE: Originally there was a call to tripal_launch_jobs() here. That should
+      // NEVER be done since it runs possibly long jobs in the page load causing time-out
+      // issues. If you do not want to run tripal jobs manually, look into installing
+      // Tripal daemon which will run jobs as they're submitted or set up a cron job to
+      // launch the tripal jobs on a specified schedule.
+
+      // Redirect to the BLAST results page
+      $go = '/blast/report/' . $job_encode_id;
+      $redirect = new RedirectResponse(Url::fromUserInput($go)->toString());
+      $redirect->send();
+    }
   }
 
   /**
-   * 
+   * AJAX callback in advanced options field.
    */
   public function ajaxFieldUpdateCallback(array &$form, FormStateInterface $form_state) {
     $blast_program = $form_state->getValue('blast_program');
@@ -541,7 +619,7 @@ class TripalBlastForm extends FormBase {
     $gap_cost_options = TripalBlastProgramHelper::programGetGapCost($blast_program, $mm_set);
 
     $response = new AjaxResponse();
-    $response->addCommand(new InvokeCommand(NULL, 'ajaxFieldUpdateCallback', [ $gap_cost_options ]));
+    $response->addCommand(new InvokeCommand(NULL, 'ajaxFieldUpdateCallback',  [ $gap_cost_options ]));
 
     return $response;
   }
@@ -551,11 +629,11 @@ class TripalBlastForm extends FormBase {
    * example FASTA sequence.
    */
   public function ajaxShowExampleSequenceCallback(array &$form, FormStateInterface $form_state) {
-    $type = $form_state->getValue('query_type');
-    
+    $query_type = $form_state->getValue('query_type');
+   
     // Fetch FASTA example sequence from configruation.
     $sequence_example = \Drupal::config('tripal_blast.settings')
-      ->get('tripal_blast_config_sequence.' .  $type);
+      ->get('tripal_blast_config_sequence.' .  $query_type);
 
     // CHECKBOX:
     $fld_name_show_example = 'example_sequence';

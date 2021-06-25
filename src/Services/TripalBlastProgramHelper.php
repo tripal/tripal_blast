@@ -389,6 +389,136 @@ class TripalBlastProgramHelper {
     return $is_valid;
   }
 
+  /**
+   * Get default form values; may come from saved job data if user is re-running
+   * a previous job.
+   * 
+   * @param $options
+   * @param $program
+   */
+  public static function programGetDefaultValues($options, $program) {
+    // restore previous values or set to default
+    $max_target = (isset($options['max_target_seqs']))
+      ? $options['max_target_seqs'] : 500;
+  
+    $short_queries = (isset($options['shortQueries']))
+      ? $options['shortQueries'] : TRUE;
+  
+    $eval = \Drupal::config('tripal_blast.settings')
+      ->get('tripal_blast_config_general.eval');   
+    $evalue = (isset($options['evalue']))
+      ? $options['evalue'] : $eval;
+  
+    $word_size = (isset($options['word_size']))
+      ? $options['word_size'] : 11;
+
+    // match/mismatch
+    $matchmiss = 0;
+    $reward = (isset($options['reward']))
+      ? $options['reward'] : 1;
+  
+    $penalty = (isset($options['penalty']))
+      ? $options['penalty'] : -2;
+  
+    if ($reward == 1) {
+      switch ($penalty) {
+        case -1:
+          $matchmiss = 5;
+          break;
+      
+        case -2:
+          $matchmiss = 0;
+          break;
+
+        case -3:
+          $matchmiss = 1;
+          break;
+
+        case -4:
+          $matchmiss = 2;
+          break;
+      }
+    }
+    else {
+      if ($reward == 2) {
+        $matchmiss = 3;
+      }
+      else {
+        if ($reward == 3) {
+          $matchmiss = 4;
+        }
+        else {
+          if ($reward == 4) {
+            $matchmiss = 5;
+          }
+        }
+      }
+    }
+
+    // gap
+    if (isset($options['gapopen']) && isset($options['gapextend'])) {
+      $gapopen = $options['gapopen'];
+      $gapextend = $options['gapextend'];
+    }
+    else {
+      switch ($program) {
+        case 'blastn':
+          $gapopen = 5;
+          $gapextend = 2;
+          break;
+
+        case 'blastp':
+        case 'blastx':
+        case 'tblastn':
+          $gapopen = 11;
+          $gapextend = 1;
+          break;
+      }
+    }
+    $gap = $gapopen.'_'.$gapextend;
+  
+    // matrix
+    $matrix = (isset($options['matrix']))
+      ? $options['matrix'] : 'BLOSUM62';
+
+    // all done
+    return [
+      'max_target_seqs' => $max_target,
+      'short_queries' => $short_queries,
+      'word_size' => $word_size,
+      'evalue' => $evalue,
+      'matchmiss' => $matchmiss,
+      'gap' => $gap,
+      'matrix' => $matrix,
+    ];
+  }
+ 
+  /**
+   * Post a warning/error message.
+   * 
+   * @param $message
+   *   String, body message of the warning or error.
+   * @param $type
+   *   Type of message window.
+   * 
+   * @return array
+   *   Inline template form api.
+   */
+  public static function programPlaceMessage($message, $type) {
+    $message = [
+      '#type' => 'inline_template',
+      '#template' => '
+        <div role="contentinfo" aria-label="'. $type .' message" class="messages messages--' . $type . '">
+          <div role="alert">
+            <h2 class="visually-hidden">' . $type. ' message</h2>
+            '. $message .'
+          </div>
+        </div>
+      '
+    ];  
+
+    return $message;
+  }
 
 
 

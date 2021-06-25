@@ -58,3 +58,187 @@ function tripal_blast_theme($existing, $type, $theme, $path) {
 
   return $variables;
 }
+
+/**
+ * Run BLAST (should be called from the command-line)
+ *
+ * @param $program
+ *   Which BLAST program to run (ie: 'blastn', 'tblastn', tblastx', 'blastp','blastx')
+ * @param $query
+ *   The full path and filename of the query FASTA file
+ * @param $database
+ *   The full path and filename prefix (excluding .nhr, .nin, .nsq, etc.)
+ * @param $output_filestub
+ *   The filename (not including path) to give the results. Should not include file type suffix
+ * @param $options
+ *   An array of additional option where the key is the name of the option used by
+ *   BLAST (ie: 'num_alignments') and the value is relates to this particular
+ *   BLAST job (ie: 250)
+ */
+function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $options, $job_id = NULL) {
+
+  $output_file = $output_filestub . '.asn';
+  $output_file_xml = $output_filestub . '.xml';
+  $output_file_tsv = $output_filestub . '.tsv';
+  $output_file_html = $output_filestub . '.html';
+  $output_file_gff = $output_filestub . '.gff';
+
+  print "\nExecuting $program\n\n";
+  print "Query: $query\n";
+  print "Database: $database\n";
+  print "Results File: $output_file\n";
+
+  print "Options:\n";
+
+  // Allow administrators to use an absolute path for these commands.
+  // Defaults to using $PATH.
+  $blast_path = \Drupal::config('tripal_blast.settings')
+    ->get('tripal_blast_config_general.path');
+
+  $blast_threads = \Drupal::config('tripal_blast.settings')
+    ->get('tripal_blast_config_general.threads');
+
+  // Strip the extension off the BLAST target
+  $suffix = ['.ndb', '.nhr', '.nin', '.not', '.nsq', '.ntf', '.nto',
+    '.pdb', '.phr', '.pin', '.pot', '.psq', '.ptf', '.pto'];
+
+  $database = str_replace($suffix, '', $database);  
+  
+  // Check that the database exists before trying to execute the job.
+  if (!(file_exists($database . '.nsq') OR file_exists($database . '.psq'))) {
+    tripal_report_error(
+      'blast_ui',
+      TRIPAL_ERROR,
+      "Unable to find the BLAST database (ie: @db). Please ensure you have supplied the absolute path not including the file format endings.",
+      ['@db' => $database],
+      ['print' => TRUE]
+    );
+
+    return FALSE;
+  }
+
+  // The BLAST executeable.
+  $program = $blast_path . $program;
+  if (!file_exists($program)) {
+    tripal_report_error(
+      'blast_ui',
+      TRIPAL_ERROR,
+      "Unable to find the BLAST executable (ie: /usr/bin/blastn). This can be changed in the admin settings; you supplied: @command",
+      ['@command' => $program],
+      ['print' => TRUE]
+    );
+
+    return FALSE;
+  }
+
+  // The blast db formatter executable.
+  $blast_formatter_command = $blast_path . 'blast_formatter';
+  if (!file_exists($blast_formatter_command)) {
+    tripal_report_error(
+      'blast_ui',
+      TRIPAL_ERROR,
+      "Unable to find the BLAST Formatter executable (ie: /usr/bin/blast_formatter). This can be changed in the admin settings; you supplied: @command",
+      ['@command' => $blast_formatter_command],
+      ['print' => TRUE]
+    );
+
+    return FALSE;
+  }
+
+  // Note: all variables are escaped (adds single quotes around their values) for security reasons.
+  $blast_cmd = escapeshellarg($program) . ' -query ' . escapeshellarg($query) . ' -db ' . escapeshellarg($database) . ' -out ' . escapeshellarg($output_file) . ' -outfmt=11';
+  if (!empty($options)) {
+    foreach ($options as $opt => $val) {
+      $val = trim($val);
+      if (!empty($val)) {
+        print "\t$opt: $val\n";
+        // We want to escape all the option values since they were supplied via
+        // user input. These values should also have been checked in the
+        // advanced form _validate functions but this adds an extra layer of
+        // protection.
+        $blast_cmd .= ' -' . escapeshellarg($opt) . ' ' . escapeshellarg($val);
+      }
+    }
+  }  
+
+  // Setting the value of threads by admin page
+  $blast_cmd .= ' -num_threads ' . escapeshellarg($blast_threads);
+
+  print "\nExecuting the following BLAST command:\n" . $blast_cmd . "\n";
+
+  system($blast_cmd);
+
+  if (!file_exists($output_file)) {
+    tripal_report_error(
+      'blast_ui',
+      TRIPAL_ERROR,
+      "BLAST did not complete successfully as is implied by the lack of output file (%file). The command run was @command",
+      ['%file' => $output_file, '@command' => $blast_cmd],
+      ['print' => TRUE]
+    );
+
+    return FALSE;
+  }
+
+  print "\nGenerating additional download formats...\n";
+
+  print "\tXML\n";
+  $format_cmd = escapeshellarg($blast_formatter_command) . ' -archive ' . escapeshellarg($output_file) . ' -outfmt 5 -out ' . escapeshellarg($output_file_xml);
+  print "\t\tExecuting $format_cmd\n\n";
+  system($format_cmd);
+  
+  if (!file_exists($output_file_xml)) {
+    tripal_report_error(
+      'blast_ui',
+      TRIPAL_ERROR,
+      "Unable to convert BLAST ASN.1 archive to XML (%archive => %file).",
+      ['%archive' => $output_file, '%file' => $output_file_xml],
+      ['print' => TRUE]
+    );
+  }
+
+  print "\tTab-delimited\n";
+  $format_cmd = escapeshellarg($blast_formatter_command) . ' -archive ' . escapeshellarg($output_file) . ' -outfmt 7 -out ' . escapeshellarg($output_file_tsv);
+  print "\t\tExecuting $format_cmd\n\n";
+  system($format_cmd);
+  
+  if (!file_exists($output_file_tsv)) {
+    tripal_report_error(
+      'blast_ui',
+      TRIPAL_WARNING,
+      "Unable to convert BLAST ASN.1 archive to Tabular Output (%archive => %file).",
+      ['%archive' => $output_file, '%file' => $output_file_tsv],
+      ['print' => TRUE]
+    );
+  }
+  
+  print "\tGFF\n";
+  convert_tsv2gff3($output_file_tsv,$output_file_gff);
+
+  if (!file_exists($output_file_gff)) {
+    tripal_report_error(
+      'blast_ui',
+      TRIPAL_WARNING,
+      "Unable to convert BLAST Tabular Output to GFF Output (%archive => %file).",
+      ['%archive' => $output_file, '%file' => $output_file_gff],
+      ['print' => TRUE]
+    );
+  }
+  
+  print "\tHTML (includes alignments)\n";
+  $format_cmd = escapeshellarg($blast_formatter_command) . ' -archive ' . escapeshellarg($output_file) . ' -outfmt 0 -out ' . escapeshellarg($output_file_html) . ' -html';
+  print "\t\tExecuting $format_cmd\n\n";
+  system($format_cmd);
+
+  if (!file_exists($output_file_tsv)) {
+    tripal_report_error(
+      'blast_ui',
+      TRIPAL_WARNING,
+      "Unable to convert BLAST ASN.1 archive to HTML Output (%archive => %file).",
+      ['%archive' => $output_file, '%file' => $output_file_html],
+      ['print' => TRUE]
+    );
+  }
+
+  print "\nDone!\n";
+}

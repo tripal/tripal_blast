@@ -128,7 +128,7 @@ class TripalBlastDatabaseForm extends EntityForm {
   public function save(array $form, FormStateInterface $form_state) {
     $blast_db = $this->entity;
 
-    $blast_db->set('id', uniqid());
+    $blast_db->set('id', hexdec(uniqid()));
     // Database Name.
     $dbname = $form_state->getValue('fld_text_name');
     $dbname = trim($dbname);

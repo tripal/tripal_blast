@@ -15,6 +15,41 @@ class TripalBlastDatabaseService {
   const CONFIG_ENTITY_NAME = 'tripalblastdatabase';
   
   /**
+   Get a specific BlastDB.
+   *
+   * @param $identifiers
+   *   An array of identifiers used to determine which BLAST DB to retrieve.
+   *
+   * @return
+   *   A fully-loaded BLAST DB Node 
+   */
+  public function getDatabaseByIdentifier($identifiers) {
+    $condition = [];
+    if (isset($identifiers['id'])) {
+      $condition['field'] = 'id';
+      $condition['value'] = $identifiers['id'];
+    }
+    elseif (isset($identifiers['name'])) {
+      $condition['field'] = 'name';
+      $condition['value'] = $identifiers['name'];
+    }
+    elseif (isset($identifiers['path'])) {
+      $condition['field'] = 'path';
+      $condition['value'] = $identifiers['path'];
+    }
+    
+    $database_entity = \Drupal::entityTypeManager()->getStorage(static::CONFIG_ENTITY_NAME);
+    $entity_query = $database_entity->getQuery();
+
+    $blast_db = $entity_query->condition($condition['field'], $condition['value'])
+      ->sort('name', 'ASC')
+      ->execute();
+   
+    // Load multiples or single item load($id)
+    $db = $database_entity->loadMultiple($blast_db);
+  }
+
+  /**
    * Get BLAST database (configuration entity) by database type (dbtype field).
    * Default to n = nucleotide type database.
    * 
