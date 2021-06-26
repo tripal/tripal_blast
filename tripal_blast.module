@@ -5,6 +5,7 @@
  */
 
 use Drupal\Core\Url;
+use Drupal\Core\Render\Markup;
 
 /**
  * Implements hook_theme().
@@ -41,11 +42,18 @@ function tripal_blast_theme($existing, $type, $theme, $path) {
     'link_dbfields'   => '#',
   ];
 
+  // Recent jobs table: Note this is not BLAST program specific.
+  $recent_jobs = \Drupal::service('tripal_blast.job_service')
+    ->jobsCreateTable([]);
+
   // Pass rendered links as variables and make available in the template file.
   $variables = [
     // Tripal BLAST UI page.
     'theme-tripal-blast-ui' => [
-      'variables' => ['context_links' => $links_ui],
+      'variables' => [
+        'context_links' => $links_ui, 
+        'recent_jobs' => $recent_jobs
+      ],
       'template'  => 'template-tripal-blast-ui',
     ],
     // Tripal BLAST Configuration page.
@@ -54,6 +62,11 @@ function tripal_blast_theme($existing, $type, $theme, $path) {
       'variables' => ['context_links' => $context_links],
       'template'  => 'template-tripal-blast-help',
     ],
+    // Tripal BLAST messages.
+    'theme-tripal-blast-message' => [
+      'variables' => ['data' => []],
+      'template' => 'template-tripal-blast-message'
+    ] 
   ];
 
   return $variables;

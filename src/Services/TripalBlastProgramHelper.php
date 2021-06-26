@@ -492,34 +492,4 @@ class TripalBlastProgramHelper {
       'matrix' => $matrix,
     ];
   }
- 
-  /**
-   * Post a warning/error message.
-   * 
-   * @param $message
-   *   String, body message of the warning or error.
-   * @param $type
-   *   Type of message window.
-   * 
-   * @return array
-   *   Inline template form api.
-   */
-  public static function programPlaceMessage($message, $type) {
-    $message = [
-      '#type' => 'inline_template',
-      '#template' => '
-        <div role="contentinfo" aria-label="'. $type .' message" class="messages messages--' . $type . '">
-          <div role="alert">
-            <h2 class="visually-hidden">' . $type. ' message</h2>
-            '. $message .'
-          </div>
-        </div>
-      '
-    ];  
-
-    return $message;
-  }
-
-
-
 }

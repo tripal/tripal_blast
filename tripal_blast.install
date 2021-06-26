@@ -10,8 +10,9 @@
  * and the type (protein or nucleotide) of the database.
  */
 
-
-use Drupal\node\Entity\Node;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Entity\Query\QueryFactory;
+use Drupal\tripal_blast\TripalBlastDatabaseInterface;
 
 /**
  * Implements hook_install().
@@ -27,7 +28,22 @@ function tripal_blast_install() {
  * Implements hook_uninstall().
  */
 function tripal_blast_uninstall() {
-  // @TODO: Removes nodes.
+  // Delete configuration entity.
+  $database_entity = \Drupal::entityTypeManager()->getStorage('tripalblastdatabase');
+  $entity_query = $database_entity->getQuery();
+
+  $blast_db = $entity_query
+    ->condition('id', '>', 0)
+    ->execute();
+   
+  // Load multiples or single item load($id)
+  $db = $database_entity->loadMultiple($blast_db);
+  foreach($db as $id => $db_obj) {
+    $db_id = $db_obj->getId();
+    
+    $databae_entity->load($db_id)
+      ->delete();
+  }
 }
 
 /**
@@ -88,6 +104,3 @@ function tripal_blast_schema() {
   
   return $schema;
 }
-
-// @TODO: uninstall hook 
-//        remove all configurations.

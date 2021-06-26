@@ -39,7 +39,14 @@ class TripalBlastForm extends FormBase {
       ->get('tripal_blast_config_notification.warning_text');
 
     if ($config_warning_text) {
-      $form['config_warning'] = TripalBlastProgramHelper::programPlaceMessage($config_warning_text, 'warning');
+      $form['config_warning'] = [
+        '#type' => 'inline_template',
+        '#theme' => 'theme-tripal-blast-message',
+        '#data' => [
+          'message' => $config_warning_text,
+          'type' => 'warning'
+        ]
+      ];
     }
 
     // Attach library - service, style and JS.
@@ -87,9 +94,15 @@ class TripalBlastForm extends FormBase {
     
       if (!isset($prev_blast->blastdb->nid)) {
         // First of all warn if the uploaded their search target last time
-        // since we don't support that now.        
-        $warning = 'You will need to re-upload your Search Target database.';
-        $form['reupload_warning'] = TripalBlastProgramHelper::programPlaceMessage($warning, 'warning');
+        // since we don't support that now.                
+        $form['reupload_warning'] = [
+          '#type' => 'inline_template',
+          '#theme' => 'theme-tripal-blast-message',
+          '#data' => [
+            'message' => 'You will need to re-upload your Search Target database.',
+            'type' => 'warning'
+          ]
+        ];
       }    
       else {
         // And if they didn't upload a target then set a default for the select list.
@@ -104,8 +117,14 @@ class TripalBlastForm extends FormBase {
       else {
         // There should always be a query file (both if uploaded or not) so if we cant find it
         // then it must have been cleaned up :-( -- warn the user.
-        $error = 'Unable to retrieve previous query sequence; please re-upload it.';
-        $form['read_error'] = TripalBlastProgramHelper::programPlaceMessage($error, 'error');
+        $form['reupload_warning'] = [
+          '#type' => 'inline_template',
+          '#theme' => 'theme-tripal-blast-message',
+          '#data' => [
+            'message' => 'Unable to retrieve previous query sequence; please re-upload it.',
+            'type' => 'error'
+          ]
+        ];        
       }
 
       // Finally save the previous blast details for use by the advanced option forms.
@@ -128,10 +147,10 @@ class TripalBlastForm extends FormBase {
       $form['A'] = [
         '#type' => 'details',
         '#title' => $this->t('See Results from a Recent BLAST'),
-        '#open' => TRUE
+        '#open' => FALSE
       ];
   
-      $form['A'] = $job_service->jobsCreateTable([$blast_program]);
+      $form['A']['recent_job'] = $job_service->jobsCreateTable([$blast_program]);
     }
     
     // NEW BLAST

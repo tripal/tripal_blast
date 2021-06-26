@@ -69,7 +69,7 @@ class TripalBlastJobService {
    * @return array
    *   Form API table type.
    */
-  public function jobsCreateTable($program) {
+  public function jobsCreateTable($program = []) {
     $jobs = self::jobsGetRecentJobs($program);
     $jobs_table = [];
     
@@ -85,8 +85,8 @@ class TripalBlastJobService {
         Markup::create('<a href="' . $result_link . '">See Results</a>')
       ];
     }
-    
-    $jobs_table['recent_jobs'] = [
+
+    $jobs_table = [
       '#type' => 'table',
       '#title' => 'Recent Jobs',
       '#header' => $headers,

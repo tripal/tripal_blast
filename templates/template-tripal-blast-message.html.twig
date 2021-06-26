@@ -1,0 +1,14 @@
+{#
+/**
+ * @file
+ * Theme messages.
+ */
+#}
+
+<div role="contentinfo" aria-label="{{ data.type }} message" class="messages messages--{{ data.type }}">
+  <div role="alert">
+    <h2 class="visually-hidden">{{ data.type }} message</h2>
+    {{ data.message }}
+  </div>
+</div>
+
