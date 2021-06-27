@@ -37,7 +37,6 @@ class TripalBlastJobService {
 
         $job_id = self::jobsBlastRevealSecret($job_secret);
         if ($job = self::jobsGetJobByJobId($job_id)) {
-
           // @TODO: Check that the results are still available.
           // This is meant to replace the arbitrary only show jobs executed less than 48 hrs ago.
 
@@ -72,7 +71,6 @@ class TripalBlastJobService {
   public function jobsCreateTable($program = []) {
     $jobs = self::jobsGetRecentJobs($program);
     $jobs_table = [];
-    
     $headers = ['Query Information', 'Search Target', 'Date Requested', '-'];
     
     foreach($jobs as $job) {
@@ -80,8 +78,8 @@ class TripalBlastJobService {
 
       $rows[] = [
         $job->query_summary, 
-        $job->blastdb->db_name, 
-        $job->date_submitted,
+        $job->blastdb->db_name,         
+        \Drupal::service('date.formatter')->format($job->date_submitted, 'medium'),
         Markup::create('<a href="' . $result_link . '">See Results</a>')
       ];
     }
@@ -229,9 +227,11 @@ class TripalBlastJobService {
     if (!$blastjob) {
       return FALSE;
     }
-    
-    $tripal_job = new TripalJob;
-    $tripal_job = $tripal_job->load($job_id);
+
+    $tripaljob = new TripalJob;
+    $tripaljob->load($job_id);
+    $tripal_job = $tripaljob->getJob();
+
     $job = new \stdClass();
     $job->job_id = $job_id;
     $job->program = $blastjob->blast_program;
@@ -241,10 +241,16 @@ class TripalBlastJobService {
     $job->date_completed = $tripal_job->end_time;
 
     // TARGET BLAST DATABASE.
-    if ($blastjob->target_blastdb ) {
+    if ($blastjob->target_blastdb) {
       // If a provided blast database was used then load details.
-      $job->blastdb = \Drupal::service('tripal_blast.database_service')
-        ->getDatabaseByIdentifier(['id' => $blastjob->target_blastdb]);
+      $config = \Drupal::service('tripal_blast.database_service')
+        ->getDatabaseConfig($blastjob->target_blastdb);
+
+      $job->blastdb->db_name = $config['name'];
+      $job->blastdb->db_path = $config['path'];
+      $job->blastdb->linkout = new \stdClass();
+      $job->blastdb->linkout->none = $config['dbxref_linkout_type']; 
+      $job->blastdb->db_dbtype = $config['dbtype']; 
     }    
     else {
       // Otherwise the user uploaded their own database so provide what information we can.
@@ -326,5 +332,4 @@ class TripalBlastJobService {
       return sizeof($headers) . ' queries';
     }
   }
-
 }

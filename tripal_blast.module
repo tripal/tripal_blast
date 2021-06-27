@@ -30,8 +30,6 @@ function tripal_blast_theme($existing, $type, $theme, $path) {
     $link = Url::fromRoute($route_ui, ['query' => $query, 'db' => $db]);
     $links_ui[ 'link_' . $name ] = \Drupal::l(t($name), $link);
   } 
-
-  
   
   $context_links = [
     // MISC/ADMIN. 
@@ -89,7 +87,6 @@ function tripal_blast_theme($existing, $type, $theme, $path) {
  *   BLAST job (ie: 250)
  */
 function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $options, $job_id = NULL) {
-
   $output_file = $output_filestub . '.asn';
   $output_file_xml = $output_filestub . '.xml';
   $output_file_tsv = $output_filestub . '.tsv';

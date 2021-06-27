@@ -15,6 +15,9 @@ use Drupal\node\Entity\Node;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 
+use Drupal\tripal\Services\TripalJob;
+
+
 use Drupal\tripal_blast\Services\TripalBlastProgramHelper;
 
 
@@ -33,7 +36,7 @@ class TripalBlastForm extends FormBase {
    * {@inheritdoc}
    * Build form.
    */
-  public function buildForm(array $form, FormStateInterface $form_state, $query = NULL, $db = NULL) {        
+  public function buildForm(array $form, FormStateInterface $form_state, $query = NULL, $db = NULL) {     
     // Add a warning, if need be (to be used for temporary message like down-for-maintenance).
     $config_warning_text = \Drupal::config('tripal_blast.settings')
       ->get('tripal_blast_config_notification.warning_text');

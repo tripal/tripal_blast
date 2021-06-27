@@ -47,6 +47,7 @@ class TripalBlastDatabaseService {
    
     // Load multiples or single item load($id)
     $db = $database_entity->loadMultiple($blast_db);
+    return ($db) ? $db : NULL;
   }
 
   /**
