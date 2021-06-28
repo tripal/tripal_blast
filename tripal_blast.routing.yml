@@ -26,6 +26,15 @@ tripal_blast.blast_program:
     query: 'nucleotide|protein'
     db: 'nucleotide|protein'
 
+# Route to view BLAST result
+tripal_blast.blast_report:
+  path: 'blast/report/{job_id}'
+  defaults:
+    _title: 'BLAST Results'
+    _controller: '\Drupal\tripal_blast\Controller\TripalBlastReportController::report'
+  requirements:
+    _permission: 'access content'
+
 
 # Routes below are for configuration and help.
 # Uses tabs @see tripal_blast.link.task.yml.
@@ -80,3 +89,4 @@ entity.tripalblastdatabase.delete_form:
     _title: 'Tripal BLAST Delete Query Database'
   requirements:
     _permission: 'administer tripal'
+

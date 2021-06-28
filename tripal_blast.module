@@ -42,7 +42,7 @@ function tripal_blast_theme($existing, $type, $theme, $path) {
 
   // Recent jobs table: Note this is not BLAST program specific.
   $recent_jobs = \Drupal::service('tripal_blast.job_service')
-    ->jobsCreateTable([]);
+    ->jobsCreateTable();
 
   // Pass rendered links as variables and make available in the template file.
   $variables = [
@@ -64,6 +64,16 @@ function tripal_blast_theme($existing, $type, $theme, $path) {
     'theme-tripal-blast-message' => [
       'variables' => ['data' => []],
       'template' => 'template-tripal-blast-message'
+    ],
+    // Tripal BLAST Report Pending.
+    'theme-tripal-blast-report-pending' => [
+      'variables' => ['data' => []],
+      'template' => 'template-tripal-blast-report-pending'
+    ],  
+    // Tripal BLAST Show Report.
+    'theme-tripal-blast-show-report' => [
+      'variables' => ['job_param' => []],
+      'template' => 'template-tripal-blast-show-report'
     ] 
   ];
 
@@ -223,7 +233,8 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
   }
   
   print "\tGFF\n";
-  convert_tsv2gff3($output_file_tsv,$output_file_gff);
+  $job_service = \Drupal::service('tripal_blast.job_service');
+  $job_service->jobsConvertTSVtoGFF3($output_file_tsv,$output_file_gff);
 
   if (!file_exists($output_file_gff)) {
     tripal_report_error(

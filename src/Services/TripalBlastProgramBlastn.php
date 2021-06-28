@@ -12,9 +12,24 @@ use Drupal\tripal_blast\Services\TripalBlastProgramHelper;
  * BLASTn program class.
  */
 class TripalBlastProgramBlastn {
-  private static $advanced_field_names;
-
   const BLASTn = 'blastn';
+
+  /**
+   * Advanced field names used - refer to this value when
+   * validating and submitting fields under advanced options.
+   */  
+  public function formFieldNames() {
+    // Keys match field names used in form definition below.
+    $field_name_validator = [
+      'maxTarget' => [],
+      'eVal' => ['number'],
+      'wordSize' => [],
+      'M&MScores' => [],
+     'gabCost' => []
+    ];
+
+    return $field_name_validator;
+  }
 
   /**
    * Adds the BLASTn Advanced Options to the passed in form.
@@ -63,7 +78,6 @@ class TripalBlastProgramBlastn {
           query sequence to show results for. Results returned may not be the highest scoring hits. 
           <a href="https://academic.oup.com/bioinformatics/article/35/9/1613/5106166" target="_blank">More Information</a>'),
       ];
-      self::$advanced_field_names['maxTarget'] = [];
 
       //
       // # FIELD: EVAL.
@@ -77,8 +91,6 @@ class TripalBlastProgramBlastn {
           <a href="https://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml#expect" target="_blank">More Information</a> | 
           <a href="https://www.youtube.com/watch?v=nO0wJgZRZJs" target="_blank">Expect value video tutorial</a>'),
       ];
-      // Validate this field using number validator.
-      self::$advanced_field_names['eVal'] = ['number'];
 
       //
       // # FIELD: WORDSIZE.
@@ -90,7 +102,6 @@ class TripalBlastProgramBlastn {
         '#default_value' => $defaults['word_size'],
         '#description' => t('The length of the seed that initiates an alignment'),
       ];
-      self::$advanced_field_names['wordSize'] = [];
 
     $form_alter[ $container ]['scoring_param'] = [
       '#type' => 'details',
@@ -117,7 +128,6 @@ class TripalBlastProgramBlastn {
           'message'  => '',
         ],
       ];
-      self::$advanced_field_names['M&MScores'] = [];
 
       //
       // # FIELD: GAP COST.
@@ -133,17 +143,8 @@ class TripalBlastProgramBlastn {
         '#prefix' => '<div id="tripal-blast-wrapper-fld-select-gap-cost">',
         '#suffix' => '</div>',
       ];
-      self::$advanced_field_names['gabCost'] = [];
         
     return $form_alter;
-  }
-
-  /**
-   * Advanced field names used - refer to this value when
-   * validating and submitting fields under advanced options.
-   */  
-  public function formFieldNames() {
-    return self::$advanced_field_names;
   }
 
   /**

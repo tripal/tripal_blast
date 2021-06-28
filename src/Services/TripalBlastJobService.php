@@ -74,7 +74,7 @@ class TripalBlastJobService {
     $headers = ['Query Information', 'Search Target', 'Date Requested', '-'];
     
     foreach($jobs as $job) {
-      $result_link = 'blast/report/' . self::jobsBlastMakeSecret($job->job_id);
+      $result_link = '/blast/report/' . self::jobsBlastMakeSecret($job->job_id);
 
       $rows[] = [
         $job->query_summary, 
@@ -330,6 +330,148 @@ class TripalBlastJobService {
     // At the very least show the count of queries.
     else {
       return sizeof($headers) . ' queries';
+    }
+  }
+
+  /**
+   * Convert tsv blast output to gff output file.
+   *
+   * Created by Sofia Robb
+   * 09/15/2016
+   * counter bugfix 10/27/2016
+   *
+   * The subject (hit) will be the source feature.
+   * The query will be the target.
+   *
+   * @todo: find a more efficient way since currently the first loop stores all the blast
+   *   results into an array and then the second loop prints them.
+   *
+   * @param $blast_tsv
+   *  The name of the blast tsv output file.
+   * @param $blast_gff
+   *  The name of the blast gff output file.
+   */
+  public function jobsConvertTSVtoGFF3($blast_tsv, $blast_gff){
+    // Open a new file for writting the gff.
+    $gff = fopen($blast_gff,"w");
+    fwrite($gff,"##gff-version 3\n");
+
+    // Open the TSV file to read from.
+    $tsv = fopen($blast_tsv, "r") or die("Unable to open tsv file!");
+
+    // For each line in the TSV file...
+    // Need to go thru each line of tsv to find the first and last hsp of a hit.
+    $last_s = NULL;
+    $hsp = NULL;
+    $HitResult = [];
+
+    while(!feof($tsv)) {
+      $line = fgets($tsv);
+      $line = rtrim($line);
+
+      // Skip the line if it's empty.
+      if (preg_match('/^#/',$line) or preg_match('/^\s*$/',$line)){
+        continue;
+      }
+
+      ## for keeping track of new queries and hits
+
+      // Each line has the following parts:
+      //  0: query id,
+      //  1: subject id,
+      //  2: % identity,
+      //  3: alignment length,
+      //  4: mismatches,
+      //  5: gap opens,
+      //  6: q. start,
+      //  7: q. end,
+      //  8: s. start,
+      //  9: s. end,
+      // 10: evalue,
+      // 11: bit score
+      $parts = preg_split('/\t/', $line);
+
+      // Assign the important parts of the line to readable variables.
+      $s = $parts[1];
+      $q = $parts[0];
+      $ss = $parts[8];
+      $se = $parts[9];
+      $qs = $parts[6];
+      $qe = $parts[7];
+      $e = $parts[10];
+
+
+      // if this is a new hit print the last and
+      // empty the $HitResult array and
+      // reset hsp counter
+      if ($last_s != NULL and $s != $last_s ) {
+        self::jobsPrintGFFParentChildren($gff, $HitResult);
+        $HitResult = [];
+        $hsp=0;
+      }
+
+      // every line is a new hsp
+      $hsp++;
+
+      // determine query strand to use in match_part line, no need to store, just print
+      $q_strand = '+';
+      if ($qs > $qe) {
+        list($qs, $qe) = [$qe, $qs];
+        $q_strand = '-';
+      }
+
+      // determine subject (hit) strand to use in match line, needs to be stored
+      $HitResult["$s,$q"]['strand'] = '+';
+      list($start, $end) = [$ss, $se];
+      if($ss > $se) {
+        list($start, $end) = [$se, $ss];
+        $HitResult["$s,$q"]['strand'] = '-';
+      }
+
+      // store smallest start
+      if (!array_key_exists('SS',$HitResult["$s,$q"]) or $ss < $HitResult["$s,$q"]['SS']) {
+        $HitResult["$s,$q"]['SS'] = $ss;
+      }
+
+      // store largest end
+      if (!array_key_exists('SE',$HitResult["$s,$q"]) or $se > $HitResult["$s,$q"]['SE']) {
+        $HitResult["$s,$q"]['SE'] = $se;
+      }
+
+      // store best evalue
+      if (!array_key_exists('E',$HitResult["$s,$q"]) or $e < $HitResult["$s,$q"]['E']) {
+        $HitResult["$s,$q"]['E'] = $e;
+      }
+
+      // generate the match_part line for each hsp
+      $HitResult["$s,$q"]['HSPs'][] = join("\t", array($s, "BLASTRESULT" , "match_part" , $start , $end , $e , $HitResult["$s,$q"]['strand'] , '.' , "ID=$s.$q.$hsp;Parent=$s.$q;Target=$q $qs $qe $q_strand"));
+      $last_s = $s;
+    } // end tsv file while
+
+    // print hit and hsp for the last hit
+    self::jobsPrintGFFParentChildren($gff, $HitResult);
+
+    // Close the files.
+    fclose($tsv);
+    fclose($gff);
+  }
+  
+  /**
+   * Prints the GFF parent feature and all of its children features
+   *
+   * @param $blast_feature_array
+   *   an array of the all the child features which is used to generate the smallest 
+   *   and largest coordinates for the parent
+   */
+  public function jobsPrintGFFParentChildren($gff, $blast_feature_array){
+    foreach ($blast_feature_array as $sq => $value ) {
+      list ($s, $q) = preg_split('/,/' , $sq);
+      $evalue =  $blast_feature_array["$s,$q"]['E'];
+      $parent =  join("\t", array($s, "BLASTRESULT" , "match" , $blast_feature_array["$s,$q"]['SS'] , $blast_feature_array["$s,$q"]['SE'] , $blast_feature_array["$s,$q"]['E'] , $blast_feature_array["$s,$q"]['strand'] , '.' , "ID=$s.$q;Name=$q($evalue)")) . "\n";
+      $child = join("\n",$blast_feature_array["$s,$q"]['HSPs']) . "\n";
+      
+      fwrite($gff,$parent);
+      fwrite($gff,$child);
     }
   }
 }

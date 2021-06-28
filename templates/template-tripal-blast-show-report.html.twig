@@ -1,0 +1,30 @@
+{#
+/**
+ * Display the results of a BLAST job execution
+ */
+#}
+
+<div class="blast-report">
+  <!-- Provide Information to the user about their blast job -->
+  <div class="blast-job-info">
+    <div class="blast-download-info"><strong>Download</strong>:
+      <a href="{{ job_param.files.result.html }}">Alignment</a>,
+      <a href="{{ job_param.files.result.tsv }}">Tab-Delimited</a>,
+      <a href="{{ job_param.files.result.xml }}">XML</a>,
+      <a href="{{ job_param.files.result.gff }}">GFF3</a>
+    </div>
+    <br />
+    <div class="blast-query-info"><strong>Query Information</strong>:
+      
+    <div class="blast-target-info"><strong>Search Target</strong>:
+      
+    <div class="blast-date-info"><strong>Submission Date</strong>:
+      
+    <div class="blast-cmd-info"><strong>BLAST Command executed</strong>:
+      
+    <br />
+    <div class="num-results">
+      <strong>Number of Results</strong>: 
+    </div>
+  </div>
+</div>

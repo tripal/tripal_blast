@@ -14,12 +14,9 @@ use Drupal\Core\Url;
 use Drupal\node\Entity\Node;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
-
 use Drupal\tripal\Services\TripalJob;
 
-
 use Drupal\tripal_blast\Services\TripalBlastProgramHelper;
-
 
 /**
  * Define Tripal BLAST form.
@@ -409,7 +406,7 @@ class TripalBlastForm extends FormBase {
     $service_key = 'tripal_blast.program_' . $blast_program;
     $programs_service = \Drupal::service($service_key);
     $validate_fields = $programs_service->formFieldNames();
-    
+
     foreach($validate_fields as $field_name => $field_validators) {
       $fld_value = $form_state->getValue($field_name);
       
@@ -591,7 +588,7 @@ class TripalBlastForm extends FormBase {
         'output_filename' => $output_filestub,
         'options' => $advanced_options
       );
-
+      
       $job_id = tripal_add_job(
         t('BLAST (@program): @query', array('@program' => $blast_program, '@query' => $blastjob['query_file'])),
         'blast_job',
