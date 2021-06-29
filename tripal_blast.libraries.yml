@@ -37,3 +37,31 @@ tripal-blast-programs:
   css:
     theme:
       css/tripal-blast-programs.css: {}
+
+# Report page style and script.
+tripal-blast-report:
+  version: 1.x
+  js:
+    js/tripal-blast-report.js: {}
+  css:
+    theme:
+      css/tripal-blast-report-page.css: {}
+  dependencies:
+    - core/jquery
+
+# CIVIT JS Library.
+tripal-blast-cvitjs:
+  version: 0.0.1
+  js:
+    /sites/all/assets/vendor/cvitjs/js/lib/require/require.js: {type: file}
+    /sites/all/assets/vendor/cvitjs/js/lib/require/blast_ui-config.js: {}
+  css:
+    theme:
+      /sites/all/assets/vendor/cvitjs/js/lib/bootstrap_embed/css/bootstrap.min.css: {preprocess: false}
+      /sites/all/assets/vendor/cvitjs/js/lib/hopscotch/css/hopscotch.min.css: {preprocess: false}
+      /sites/all/assets/vendor/cvitjs/css/cvit.css: {preprocess: false}
+  dependencies:
+    - core/jquery
+
+    
+      

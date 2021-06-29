@@ -72,7 +72,7 @@ function tripal_blast_theme($existing, $type, $theme, $path) {
     ],  
     // Tripal BLAST Show Report.
     'theme-tripal-blast-show-report' => [
-      'variables' => ['job_param' => []],
+      'variables' => ['report' => []],
       'template' => 'template-tripal-blast-show-report'
     ] 
   ];

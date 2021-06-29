@@ -53,8 +53,7 @@ class TripalBlastReportController extends ControllerBase {
         'status_code' => ''       
       ];
       
-      $blast_job = $job_service->jobsGetJobByJobId($job_id);
-      $report_param = $this->getBlastReportItems($blast_job);
+      $report = $this->prepareReport($job_id);
     }
     else {
       // 4) Job is in Progress
@@ -67,42 +66,53 @@ class TripalBlastReportController extends ControllerBase {
     }
 
     return [
-      // Tripal BLAST Help page theme.
       '#theme' => $theme,
       '#attached' => [
-        'library' => [''] // @TODO: ADD CSS AND JS
+        'library' => ['tripal_blast/tripal-blast-report']
       ],
-      '#job_param' => $report_param
+      '#report' => $report
     ];  
   }
 
   /**
-   * Prepare information relating to the BLAST Jobs.
+   * Prepare report page.
+   * 
+   * @param $job_id
+   *   Job id the report is based on.
+   * 
+   * @return string
+   *   Report page markup.
    */
-  public function getBlastReportItems($blast_job) {
-    // Get blast job details.
+  public function prepareReport($job_id) {
+    // Get job profile.
+    $job_service = \Drupal::service('tripal_blast.job_service');
+    $blast_job = $job_service->jobsGetJobByJobId($job_id);
+     
+    // Add to markup.
     $blast_job->blast_cmd = $blast_job->program;
-    // Determine the BLAST command for display.
     foreach($blast_job->options as $key => $value) {
       $blast_job->blast_cmd .= ' -' . $key . ' ' . $value;
     }
 
-    // CViTjs
-    $blast_job->show_cvit_diagram = FALSE;
+    // CVITJS
+    $blast_job->show_civitjs_diagram = FALSE;
     $config_cvitjs_enabled = \Drupal::config('tripal_blast.settings')
       ->get('tripal_blast_config_visualization.cvitjs_enabled');
-
     if ($config_cvitjs_enabled
-         && isset($blast_job->blastdb->cvitjs_enabled) 
-         && $blast_job->blastdb->cvitjs_enabled == '1') {
+        && $blast_job->blastdb->cvitjs_enabled
+        && $blast_job->blastdb->cvitjs_enabled == '1') {
+        
+      $blast_job->show_civitjs_diagram = TRUE;
       
-      $blast_job->show_cvit_diagram = TRUE;
-
-      // @TODO: ADD CIVIT LIBRARY
+      // Add to libraries.
+      $blast_job->library = 'tripal-blast/tripal-blast-cvitjs';
+      $blast_job->settings = [
+        'dataset' => $blast_job->blastdb->db_name,
+        'gff' => $base_path . '/' . $blast_job->files->result->gff
+      ];
     }
 
-    // Determine the URL of the BLAST form.
-    $blast_job->blast_form_url = 'blast/nucleotide/nucleotide';
+    // Determine the URL of the blast form
     $blast_programs = [
       'blastn'  => ['nucleotide', 'nucleotide'],
       'blastx'  => ['nucleotide', 'protein'],
@@ -110,20 +120,21 @@ class TripalBlastReportController extends ControllerBase {
       'blastp'  => ['protein', 'protein']
     ];
     $route_ui = 'tripal_blast.blast_program';
-    $links_ui = [];
   
     foreach($blast_programs as $name => $param) {
       if ($name == $blast_job->program) {
         list($query, $db) = $param;
-        
         $link = Url::fromRoute($route_ui, ['query' => $query, 'db' => $db]);
-        $blast_job->blast_form_url = \Drupal::l(t($name), $link);
+        // Add to markup.
+        $blast_job->blast_form_url = \Drupal::l($this->t($name), $link);
+        
         break;
       }
     } 
-   
+    
     // Load the XML file.
-    $blast_job->xml = NULL;
+    // Add to markup.
+    $blast_job->xml = TRUE; //NULL; @TODO change value.
     $blast_job->num_results = FALSE;
     $blast_job->too_many_results = FALSE;
 
@@ -131,10 +142,9 @@ class TripalBlastReportController extends ControllerBase {
     if (is_readable($full_path_xml)) {
       $blast_job->num_results = shell_exec('grep -c "<Hit>" ' . escapeshellarg($full_path_xml));
       
-      $config_max_result = \Drupal::config('tripal_blast.settings')
+      $max_results = \Drupal::config('tripal_blast.settings')
         ->get('tripal_blast_config_jobs.max_result');
-      
-      $max_results = intval($config_max_result);
+
       if ($blast_job->num_results < $max_results) {
         $blast_job->xml = simplexml_load_file($full_path_xml);
       }
@@ -143,25 +153,39 @@ class TripalBlastReportController extends ControllerBase {
       }
     }
 
-    // Set ourselves up to do link-out if our blast database is configured to do so.
-    $linkout = FALSE;
-    if ($blast_job->blastdb->linkout->none === FALSE) {
-      $linkout_type  = $blast_job->blastdb->linkout->type;
-      $linkout_regex = $blast_job->blastdb->linkout->regex;
+    $blast_job->num_results_formatted = number_format(floatval($blast_job->num_results));
 
+    $blast_job->linkout = FALSE;
+    if ($blast_job->blastdb->linkout->none === FALSE) {
+      $blast_job->linkout_type  = $blast_job->blastdb->linkout->type;
+      $blast_job->linkout_regex = $blast_job->blastdb->linkout->regex;
+    
       // Note that URL prefix is not required if linkout type is 'custom'
       if (isset($blast_job->blastdb->linkout->db_id->urlprefix) && !empty($blast_job->blastdb->linkout->db_id->urlprefix)) {
-        $linkout_urlprefix = $blast_job->blastdb->linkout->db_id->urlprefix;
+        $blast_job->linkout_urlprefix = $blast_job->blastdb->linkout->db_id->urlprefix;
       }
-
+    
       // Check that we can determine the linkout URL.
       // (ie: that the function specified to do so, exists).
       if (function_exists($blast_job->blastdb->linkout->url_function)) {
-        $url_function = $blast_job->blastdb->linkout->url_function;
-        $linkout = TRUE;
+        $blast_job->url_function = $blast_job->blastdb->linkout->url_function;
+        $blast_job->linkout = TRUE;
       }
     }
 
+    $blast_job->submission_date = \Drupal::service('date.formatter')
+      ->format($blast_job->date_submitted, 'medium');
+
+
+    // Handle no hits. This following array will hold the names of all query
+    // sequences which didn't have any hits.
+    $blast_job->query_with_no_hits = array();
+
+    // Furthermore, if no query sequences have hits we don't want to bother listing
+    // them all but just want to give a single, all-include "No Results" message.
+    $blast_job->no_hits = TRUE;
+
+    $blast_job->hola = '<h1>Test Result</h1>';
     return $blast_job;
   }
 }
