@@ -70,3 +70,65 @@ Future Development
  - The ability to blast against 2+ datasets at the same time
  - Ability to Email user when BLAST is done
  - Automatic cleaning up of BLAST job files after 1 week (make time frame configurable)
+
+ Testing or Development via Docker
+ -----------------------------------
+
+ Testing or development of this module can be done through laceysanderson's Drupal 7, Tripal 3 docker image using the following instructions.
+
+ 1) Pull the most recent image from the Github Package Repository.
+
+ ```
+ docker pull laceysanderson/drupal7dev
+ ```
+
+ 2) Pull the Tripal BLAST module. I suggest creating a dockers directory to ensure you can find the directory mapped to your container ;-p
+
+ ```
+ cd ~/Dockers
+ git clone https://github.com/tripal/tripal_blast
+ cd tripal_blast
+ ```
+
+ 3) Create the needed .env file. This will not be committed to the repository since it's included in the .gitignore file and could provide security issues.
+
+ ```
+ touch .env
+ ```
+
+ Now edit this file with your favourite editor to include the following variables. Make sure to change the values for security reasons!
+
+ ```
+ ##
+ ## DO NOT REMOVE ANY VARIABLES.
+ ##
+ DBADMIN=tripaladmin
+ DBNAME=tripaldb
+ DRUPALADMIN=tripaladmin
+ DRUPALEMAIL=tripaladmin@yourserver.com
+ SITENAME="Tripal BLAST Docker"
+ ```
+
+ 4) Create a running container exposing the website at localhost:8888 and mounting your current directory inside the container.
+
+  - **Make sure to change `DBPASS` and `ADMINPASS` for security reasons.**
+  - Your website admin is the value of `DRUPALADMIN` in the .env file with the password set in the run command below.
+
+ ```
+ docker run --publish=8888:80 --name=tblast -tid \
+   -e DBPASS='somesecurepassword' \
+   -e ADMINPASS='anothersecurepassword' \
+   --env-file=.env \
+   --volume=`pwd`:/var/www/html/sites/all/modules/tripal_blast \
+   laceysanderson/drupal7dev:latest
+ ```
+
+ 5) Provision the container including installation of the software stack including default configuration. This step will take a few minutes.
+
+ ```
+ docker exec -it tblast /app/init_scripts/startup_container.sh
+ ```
+
+**NOTE: You will need to install NCBI Blast+ and this module on the docker container as we have not yet automated this process.**
+
+Now any changes you make in your current directory will be mirrored within the `tblast` docker container. You can interact with the Tripal site at localhost:8888 in your browser.
