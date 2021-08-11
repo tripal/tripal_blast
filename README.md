@@ -34,8 +34,9 @@ tabular, GFF3 or HTML NCBI formats.
 
 Installation
 ------------
-1. Install NCBI BLAST+ on your server (Tested with 2.2.26+). There is a
-   package available for Ubuntu to ease installation.
+1. Install NCBI BLAST+ on your server (Tested with 2.2.26+). Please use the
+   [official NCBI installation documentation](https://www.ncbi.nlm.nih.gov/books/NBK52640/)
+   for your server.
 2. Install this module as you would any Drupal module (ie: download, unpack
    in sites/all/modules and enable through http://[your site]/admin/modules)
 3. Create "Blast Database" nodes for each dataset you want to make available
