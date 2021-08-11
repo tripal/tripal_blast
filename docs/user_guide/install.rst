@@ -4,7 +4,7 @@ Installation
 
 QuickStart
 -----------
-1. Install NCBI BLAST+ on your server (Tested with 2.2.26+). There is a package available for Ubuntu to ease installation.
+1. Install NCBI BLAST+ on your server (Tested with 2.2.26+). Please use the `official NCBI installation documentation <https://www.ncbi.nlm.nih.gov/books/NBK52640/>`_ for your server.
 2. Install this module as you would any Drupal module (ie: download, unpack in ``sites/all/modules`` and enable through ``http://[your site]/admin/modules``)
 3. Create "Blast Database" nodes for each dataset you want to make available for your users to BLAST against. BLAST databases should first be created using the command-line ``makeblastdb`` program with the ``-parse_seqids`` flag.
 4. It's recommended that you also install the Tripal Job Daemon to manage BLAST jobs and ensure they are run soon after being submitted by the user. Without this additional module, administrators will have to execute the tripal jobs either manually or through use of cron jobs.
