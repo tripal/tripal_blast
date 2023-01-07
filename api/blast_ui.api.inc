@@ -554,7 +554,10 @@ function sort_blast_jobs_by_date_submitted_desc($a, $b) {
  * @returm
  *    A base64 encoded image representing the hit information.
  */
-function generate_blast_hit_image($acc = '', $scores, $hits, $tsize, $qsize, $name, $hit_name) {
+function generate_blast_hit_image($acc, $scores, $hits, $tsize, $qsize, $name, $hit_name) {
+  if (!$acc) {
+    $acc = '';
+  }
   $tok = strtok($hits, ";");
   $b_hits = Array();
   while ($tok !== false) {
