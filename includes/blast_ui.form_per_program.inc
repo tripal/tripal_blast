@@ -548,7 +548,7 @@ function blast_ui_per_blast_program_form_submit($form, &$form_state) {
       'program' => $blast_program,
       'query' => $blastjob['query_file'],
       'database' => $blastdb_with_path,
-      'output_filename' => $output_filestub,
+      'output_filestub' => $output_filestub,
       'options' => $advanced_options
     );
 
