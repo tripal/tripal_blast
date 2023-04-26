@@ -5,6 +5,7 @@
  */
 
 use Drupal\Core\Url;
+use \Drupal\Core\Link;
 use Drupal\Core\Render\Markup;
 
 /**
@@ -13,7 +14,8 @@ use Drupal\Core\Render\Markup;
  *
  * @see templates in /templates
  */
-function tripal_blast_theme($existing, $type, $theme, $path) {  
+function tripal_blast_theme($existing, $type, $theme, $path) {
+
   // Links rendered as a markup for the template file.
   // Query type + programs route.
   $blast_programs = [
@@ -27,12 +29,15 @@ function tripal_blast_theme($existing, $type, $theme, $path) {
 
   foreach($blast_programs as $name => $param) {
     list($query, $db) = $param;
-    $link = Url::fromRoute($route_ui, ['query' => $query, 'db' => $db]);
-    $links_ui[ 'link_' . $name ] = \Drupal::l(t($name), $link);
-  } 
-  
+    $links_ui[ 'link_' . $name ] = Link::createFromRoute(
+      t($name),
+      $route_ui,
+      ['query' => $query, 'db' => $db]
+    );
+  }
+
   $context_links = [
-    // MISC/ADMIN. 
+    // MISC/ADMIN.
     'link_config' => '#',
     'link_jobs'    => '#',
     'link_nodeadd'  => '#',
@@ -49,7 +54,7 @@ function tripal_blast_theme($existing, $type, $theme, $path) {
     // Tripal BLAST UI page.
     'theme-tripal-blast-ui' => [
       'variables' => [
-        'context_links' => $links_ui, 
+        'context_links' => $links_ui,
         'recent_jobs' => $recent_jobs
       ],
       'template'  => 'template-tripal-blast-ui',
@@ -69,12 +74,12 @@ function tripal_blast_theme($existing, $type, $theme, $path) {
     'theme-tripal-blast-report-pending' => [
       'variables' => ['data' => []],
       'template' => 'template-tripal-blast-report-pending'
-    ],  
+    ],
     // Tripal BLAST Show Report.
     'theme-tripal-blast-show-report' => [
       'variables' => ['report' => []],
       'template' => 'template-tripal-blast-show-report'
-    ] 
+    ]
   ];
 
   return $variables;
@@ -122,8 +127,8 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
   $suffix = ['.ndb', '.nhr', '.nin', '.not', '.nsq', '.ntf', '.nto',
     '.pdb', '.phr', '.pin', '.pot', '.psq', '.ptf', '.pto'];
 
-  $database = str_replace($suffix, '', $database);  
-  
+  $database = str_replace($suffix, '', $database);
+
   // Check that the database exists before trying to execute the job.
   if (!(file_exists($database . '.nsq') OR file_exists($database . '.psq'))) {
     tripal_report_error(
@@ -179,7 +184,7 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
         $blast_cmd .= ' -' . escapeshellarg($opt) . ' ' . escapeshellarg($val);
       }
     }
-  }  
+  }
 
   // Setting the value of threads by admin page
   $blast_cmd .= ' -num_threads ' . escapeshellarg($blast_threads);
@@ -206,7 +211,7 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
   $format_cmd = escapeshellarg($blast_formatter_command) . ' -archive ' . escapeshellarg($output_file) . ' -outfmt 5 -out ' . escapeshellarg($output_file_xml);
   print "\t\tExecuting $format_cmd\n\n";
   system($format_cmd);
-  
+
   if (!file_exists($output_file_xml)) {
     tripal_report_error(
       'blast_ui',
@@ -221,7 +226,7 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
   $format_cmd = escapeshellarg($blast_formatter_command) . ' -archive ' . escapeshellarg($output_file) . ' -outfmt 7 -out ' . escapeshellarg($output_file_tsv);
   print "\t\tExecuting $format_cmd\n\n";
   system($format_cmd);
-  
+
   if (!file_exists($output_file_tsv)) {
     tripal_report_error(
       'blast_ui',
@@ -231,7 +236,7 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
       ['print' => TRUE]
     );
   }
-  
+
   print "\tGFF\n";
   $job_service = \Drupal::service('tripal_blast.job_service');
   $job_service->jobsConvertTSVtoGFF3($output_file_tsv,$output_file_gff);
@@ -245,7 +250,7 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
       ['print' => TRUE]
     );
   }
-  
+
   print "\tHTML (includes alignments)\n";
   $format_cmd = escapeshellarg($blast_formatter_command) . ' -archive ' . escapeshellarg($output_file) . ' -outfmt 0 -out ' . escapeshellarg($output_file_html) . ' -html';
   print "\t\tExecuting $format_cmd\n\n";
