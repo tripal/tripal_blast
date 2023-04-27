@@ -1,0 +1,43 @@
+
+name: PHPUnit
+on: [push]
+
+env:
+  PKG_NAME: tripal_blast
+  MODULES: "tripal_blast"
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version:
+          - "8.0"
+          - "8.1"
+        pgsql-version:
+          - "13"
+        drupal-version:
+          - "9.3.x-dev"
+          - "9.4.x-dev"
+          - "9.5.x-dev"
+          # - "10.0.x-dev"
+#        exclude:
+#          - php-version: "8.0"
+#            pgsql-version: "13"
+#            drupal-version: "10.0.x-dev"
+
+    steps:
+      # Check out the repo
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      # Here we pull the development tripaldocker image for this combo in our matrix
+      - name: Run Automated testing
+        uses: tripal/test-tripal-action@v1.0
+        with:
+          directory-name: $PKG_NAME
+          modules: $MODULES
+          php-version: ${{ matrix.php-version }}
+          pgsql-version: ${{ matrix.pgsql-version }}
+          drupal-version: ${{ matrix.drupal-version }}

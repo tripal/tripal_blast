@@ -1,0 +1,20 @@
+name: PHPUnit
+on:
+  push:
+    branches:
+      - 4.x
+      - customize-template
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      - name: Run Automated testing
+        uses: tripal/test-tripal-action@v1.0
+        with:
+          directory-name: 'tripal_blast'
+          modules: 'tripal_blast'
+          php-version: '8.1'
+          pgsql-version: '13'
+          drupal-version: '9.4.x-dev'
