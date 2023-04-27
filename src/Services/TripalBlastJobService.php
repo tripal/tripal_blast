@@ -56,15 +56,15 @@ class TripalBlastJobService {
     }
     else {
       return [];
-    }  
+    }
   }
 
   /**
    * Create a table listing recent BLAST jobs.
-   * 
+   *
    * @param $program
    *   An array of program to filter from the jobs history.
-   * 
+   *
    * @return array
    *   Form API table type.
    */
@@ -72,13 +72,14 @@ class TripalBlastJobService {
     $jobs = self::jobsGetRecentJobs($program);
     $jobs_table = [];
     $headers = ['Query Information', 'Search Target', 'Date Requested', '-'];
-    
+
+    $rows = [];
     foreach($jobs as $job) {
       $result_link = '/blast/report/' . self::jobsBlastMakeSecret($job->job_id);
 
       $rows[] = [
-        $job->query_summary, 
-        $job->blastdb->db_name,         
+        $job->query_summary,
+        $job->blastdb->db_name,
         \Drupal::service('date.formatter')->format($job->date_submitted, 'medium'),
         Markup::create('<a href="' . $result_link . '">See Results</a>')
       ];
@@ -211,10 +212,10 @@ class TripalBlastJobService {
 
   /**
    * Get BLAST job by job_id.
-   * 
+   *
    * @param $job_id
    *   Unique id of BLAST job request.
-   * 
+   *
    * @retrun object
    *   Job record matching the job id.
    */
@@ -222,7 +223,7 @@ class TripalBlastJobService {
     $query = \Drupal::database()->select('blastjob', 'jobs');
     $query->fields('jobs');
     $query->condition('jobs.job_id', $job_id);
-    
+
     $blastjob = $query->execute()->fetchObject();
     if (!$blastjob) {
       return FALSE;
@@ -249,9 +250,9 @@ class TripalBlastJobService {
       $job->blastdb->db_name = $config['name'];
       $job->blastdb->db_path = $config['path'];
       $job->blastdb->linkout = new \stdClass();
-      $job->blastdb->linkout->none = $config['dbxref_linkout_type']; 
-      $job->blastdb->db_dbtype = $config['dbtype']; 
-    }    
+      $job->blastdb->linkout->none = $config['dbxref_linkout_type'];
+      $job->blastdb->db_dbtype = $config['dbtype'];
+    }
     else {
       // Otherwise the user uploaded their own database so provide what information we can.
       $job->blastdb = new \stdClass();
@@ -284,7 +285,7 @@ class TripalBlastJobService {
 
   /**
    * Save job information/parameters into blastjob table.
-   * 
+   *
    * @param $job_parameters
    *   Parameters used to execute the job.
    */
@@ -455,12 +456,12 @@ class TripalBlastJobService {
     fclose($tsv);
     fclose($gff);
   }
-  
+
   /**
    * Prints the GFF parent feature and all of its children features
    *
    * @param $blast_feature_array
-   *   an array of the all the child features which is used to generate the smallest 
+   *   an array of the all the child features which is used to generate the smallest
    *   and largest coordinates for the parent
    */
   public function jobsPrintGFFParentChildren($gff, $blast_feature_array){
@@ -469,7 +470,7 @@ class TripalBlastJobService {
       $evalue =  $blast_feature_array["$s,$q"]['E'];
       $parent =  join("\t", array($s, "BLASTRESULT" , "match" , $blast_feature_array["$s,$q"]['SS'] , $blast_feature_array["$s,$q"]['SE'] , $blast_feature_array["$s,$q"]['E'] , $blast_feature_array["$s,$q"]['strand'] , '.' , "ID=$s.$q;Name=$q($evalue)")) . "\n";
       $child = join("\n",$blast_feature_array["$s,$q"]['HSPs']) . "\n";
-      
+
       fwrite($gff,$parent);
       fwrite($gff,$child);
     }

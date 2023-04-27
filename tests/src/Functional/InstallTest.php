@@ -20,7 +20,7 @@ class InstallTest extends ChadoTestBrowserBase {
    *
    * @var array
    */
-  protected static $modules = ['help', 'tripal_blast'];
+  protected static $modules = ['tripal_blast'];
 
   /**
    * Tests that a specific set of pages load with a 200 response.
@@ -43,7 +43,7 @@ class InstallTest extends ChadoTestBrowserBase {
     $this->drupalGet('admin/modules');
     $status_code = $session->getStatusCode();
     $this->assertEquals(200, $status_code, "The module install page should be able to load $context.");
-    $this->assertSession()->pageTextContains( self::$module_name );
+    $this->assertSession()->pageTextContains( 'Tripal BLAST' );
 
   }
 }

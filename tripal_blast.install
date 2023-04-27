@@ -16,12 +16,12 @@ use Drupal\tripal_blast\TripalBlastDatabaseInterface;
 
 /**
  * Implements hook_install().
- * 
+ *
  * @see tripal.info
  */
 function tripal_blast_install() {
   // Retreives the Drupal relative directory for a Tripal module.
-  tripal_create_files_dir('tripal_blast');
+  // @upgrade tripal_create_files_dir('tripal_blast');
 }
 
 /**
@@ -35,12 +35,12 @@ function tripal_blast_uninstall() {
   $blast_db = $entity_query
     ->condition('id', '>', 0)
     ->execute();
-   
+
   // Load multiples or single item load($id)
   $db = $database_entity->loadMultiple($blast_db);
   foreach($db as $id => $db_obj) {
     $db_id = $db_obj->getId();
-    
+
     $databae_entity->load($db_id)
       ->delete();
   }
@@ -50,7 +50,7 @@ function tripal_blast_uninstall() {
  * Implements hook_schema().
  * Create the blast job database table for storing blast job requests.
  */
-function tripal_blast_schema() {  
+function tripal_blast_schema() {
   // BLAST JOBS
   // ------------------------
   // Keeps track of additional information related to tripal blast jobs.
@@ -101,6 +101,6 @@ function tripal_blast_schema() {
       ),
     ),
   );
-  
+
   return $schema;
 }
