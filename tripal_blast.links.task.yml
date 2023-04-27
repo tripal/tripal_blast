@@ -9,23 +9,23 @@
 # Routes to configuration page of this module.
 # /extension/tripal_blast/configuration (is the default tab/task).
 tripal_blast.tab1:
-  title: 'Tripal BLAST: Configuration'
+  title: 'Configuration'
   route_name: tripal_blast.configuration
   base_route: tripal_blast.configuration
   weight: 0
 
+# Tripal BLAST Entity Configuration Tab.
+tripal_blast.tab2:
+  title: 'Query Database'
+  route_name: entity.tripal_blast.blast_database  
+  base_route: tripal_blast.configuration
+  weight: 1
+
 # Tripal BLAST Help Tab.
 # Routes to help page of this module.
 # /extension/tripal_blast/help
-tripal_blast.tab2:
-  title: 'Tripal BLAST: Help'
-  route_name: tripal_blast.help
-  base_route: tripal_blast.configuration
-  weight: 1 
-
-# Tripal BLAST Entity Configuration Tab.
 tripal_blast.tab3:
-  title: 'Tripal BLAST: Query Database'
-  route_name: entity.tripal_blast.blast_database  
+  title: 'Help'
+  route_name: tripal_blast.help
   base_route: tripal_blast.configuration
   weight: 2

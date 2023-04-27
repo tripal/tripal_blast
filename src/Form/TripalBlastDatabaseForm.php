@@ -110,14 +110,6 @@ class TripalBlastDatabaseForm extends EntityForm {
         '#required' => TRUE,
         '#default_value' => $blast_db->getDbXrefLinkout()    
       ];
-
-    // # SUPPORT CVITJS:
-    $form['fld_checkbox_cvitjs'] = [
-      '#type' => 'checkbox',
-      '#title' => $this->t('Visualize using CVITJS'),
-      '#description' => $this->t('Indicate if CViTjs should be used to display hits on a whole genome.'),
-      '#default_value' => $blast_db->getCvitjsEnabled()
-    ]; 
           
     return $form;
   }
@@ -153,9 +145,6 @@ class TripalBlastDatabaseForm extends EntityForm {
     $dblinkout = $form_state->getValue('fld_text_dbxref_linkout_type');
     $dblinkout = trim($dblinkout);
     $blast_db->set('dbxref_linkout_type', $dblinkout);
-    // CVITJS Support.
-    $cvitjs_enabled = $form_state->getValue('fld_checkbox_cvitjs');
-    $blast_db->set('cvitjs_enabled', $cvitjs_enabled);
 
     $blast_db->save();
     $form_state->setRedirect('entity.tripal_blast.blast_database');

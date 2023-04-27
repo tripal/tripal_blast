@@ -26,7 +26,6 @@ class TripalBlastDatabaseListBuilder extends ConfigEntityListBuilder {
     $header['dbxref_id_regexp'] = $this->t('REGEXP Key');
     $header['dbxref_db_id'] = $this->t('DBXref Id');
     $header['dbxref_linkout_type'] = $this->t('Linkout Type');
-    $header['cvitjs_enabled'] = $this->t('Enable CvitJS');
 
     return $header + parent::buildHeader();
   }
@@ -45,9 +44,6 @@ class TripalBlastDatabaseListBuilder extends ConfigEntityListBuilder {
     $row['dbxref_id_regexp'] = $entity->getDbXrefRegExp();
     $row['dbxref_db_id'] = $entity->getDbXref();
     $row['dbxref_linkout_type'] = $entity->getDbXrefLinkout();
-
-    $enabled = $entity->getCvitjsEnabled() ? 'Enabled' : 'Disabled';
-    $row['cvitjs_enabled'] = $enabled;
 
     return $row + parent::buildRow($entity);
   }

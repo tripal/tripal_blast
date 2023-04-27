@@ -56,11 +56,6 @@ tripal_blast_config_sequence:
 tripal_blast_config_jobs:
   max_result: 500
 
-# VISUALIZATION CONFIGURATIONS:
-tripal_blast_config_visualization:
-  cvitjs_enabled: FALSE
-  cvitjs_config: 
-
 # NOTIFICATION CONFIGURATIONS
 tripal_blast_config_notification:
   warning_text:

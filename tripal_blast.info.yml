@@ -4,6 +4,6 @@ description: 'Provides a user interface to allow your users to utilize NCBI BLAS
 core_version_requirement: ^9.2 || ^10
 package: 'Tripal Extensions'
 project: tripal_blast
-configure: tripal_blast.configure
+configure: tripal_blast.configuration
 dependencies:
   - libraries:libraries

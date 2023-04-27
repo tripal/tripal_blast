@@ -48,20 +48,3 @@ tripal-blast-report:
       css/tripal-blast-report-page.css: {}
   dependencies:
     - core/jquery
-
-# CIVIT JS Library.
-tripal-blast-cvitjs:
-  version: 0.0.1
-  js:
-    /sites/all/assets/vendor/cvitjs/js/lib/require/require.js: {type: file}
-    /sites/all/assets/vendor/cvitjs/js/lib/require/blast_ui-config.js: {}
-  css:
-    theme:
-      /sites/all/assets/vendor/cvitjs/js/lib/bootstrap_embed/css/bootstrap.min.css: {preprocess: false}
-      /sites/all/assets/vendor/cvitjs/js/lib/hopscotch/css/hopscotch.min.css: {preprocess: false}
-      /sites/all/assets/vendor/cvitjs/css/cvit.css: {preprocess: false}
-  dependencies:
-    - core/jquery
-
-    
-      

@@ -94,24 +94,6 @@ class TripalBlastReportController extends ControllerBase {
       $blast_job->blast_cmd .= ' -' . $key . ' ' . $value;
     }
 
-    // CVITJS
-    $blast_job->show_civitjs_diagram = FALSE;
-    $config_cvitjs_enabled = \Drupal::config('tripal_blast.settings')
-      ->get('tripal_blast_config_visualization.cvitjs_enabled');
-    if ($config_cvitjs_enabled
-        && $blast_job->blastdb->cvitjs_enabled
-        && $blast_job->blastdb->cvitjs_enabled == '1') {
-        
-      $blast_job->show_civitjs_diagram = TRUE;
-      
-      // Add to libraries.
-      $blast_job->library = 'tripal-blast/tripal-blast-cvitjs';
-      $blast_job->settings = [
-        'dataset' => $blast_job->blastdb->db_name,
-        'gff' => $base_path . '/' . $blast_job->files->result->gff
-      ];
-    }
-
     // Determine the URL of the blast form
     $blast_programs = [
       'blastn'  => ['nucleotide', 'nucleotide'],

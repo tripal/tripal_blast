@@ -109,8 +109,7 @@ class TripalBlastDatabaseService {
         'dbtype' => $config->getDbType(),
         'dbxref_id_regexp' => $config->getDbXrefRegExp(),
         'dbxref_db_id' => $config->getDbXref(),
-        'dbxref_linkout_type' => $config->getDbXrefLinkout(),
-        'cvitjs_enabled' => $config->getCvitjsEnabled()       
+        'dbxref_linkout_type' => $config->getDbXrefLinkout(),   
       ];  
     }
   }

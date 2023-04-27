@@ -26,7 +26,4 @@ tripal_blast.tripalblastdatabase.*:
     dbxref_linkout_type:
       type: 'string'
       label: 'DB Xref Type'
-    cvitjs_enabled:
-      type: 'boolean'
-      label: 'CvitJS Enabled'
     

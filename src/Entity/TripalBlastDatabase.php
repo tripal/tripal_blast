@@ -32,7 +32,6 @@ use Drupal\tripal_blast\TripalBlastDatabaseInterface;
  *     "dbxref_id_regexp" = "dbxref_id_regexp",
  *     "dbxref_db_id" = "dbxref_db_id",
  *     "dbxref_linkout_type" = "dbxref_linkout_type",
- *     "cvitjs_enabled" = "cvitjs_enabled"
  *   },
  *   config_export = {
  *     "id",
@@ -42,7 +41,6 @@ use Drupal\tripal_blast\TripalBlastDatabaseInterface;
  *     "dbxref_id_regexp",
  *     "dbxref_db_id",
  *     "dbxref_linkout_type",
- *     "cvitjs_enabled"
  *   },
  *   links = {
  *     "edit-form" = "/admin/tripal/extension/tripal_blast/configuration/tripalblastdatabase/edit/{tripalblastdatabase}",
@@ -94,12 +92,6 @@ class TripalBlastDatabase extends ConfigEntityBase implements TripalBlastDatabas
   protected $dbxref_linkout_type;
 
   /**
-   * Indicate if CViTjs should be used to display hits on a whole genome.
-   * @var boolean
-   */
-  protected $cvitjs_enabled;
-
-  /**
    * {@inheritdoc}
    */
   public function getId() {
@@ -146,12 +138,5 @@ class TripalBlastDatabase extends ConfigEntityBase implements TripalBlastDatabas
    */
   public function getDbXrefLinkout() {
     return $this->dbxref_linkout_type;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getCvitjsEnabled() {
-    return $this->cvitjs_enabled;
   }
 }

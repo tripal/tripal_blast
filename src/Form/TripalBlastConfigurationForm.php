@@ -157,78 +157,6 @@ class TripalBlastConfigurationForm extends ConfigFormBase {
           able to download but not visualize the results.'),
         '#default_value' => $config->get('tripal_blast_config_jobs.max_result')
       ];
-
-
-    //
-    // # VISUALIZATION CONFIGURATIONS:
-    // If this is set to TRUE (allow civit visualization), set this fieldset/details
-    // to open = TRUE (expanded).
-    $config_cvitjs = $config->get('tripal_blast_config_visualization.civitjs');
-
-    $form['visualization'] = [
-      '#type' => 'details',
-      '#open' => $config_cvitjs,
-      '#title' => $this->t('Enable and configure genome visualization'),
-      '#description' => $this->t('The JavaScript program CViTjs enables users to see BLAST hits on an
-        entire genome assembly. See the help tab for information on how to download and set up CViTjs')
-    ];
-      
-      $absolute_cvitjs_data_path = DRUPAL_ROOT . '/sites/all/libraries/cvitjs/data';
-      $form['visualization']['explanation'] = [
-        '#type' => 'inline_template',
-        '#template' => '
-          <div role="contentinfo" aria-label="Warning message" class="messages messages--warning">
-            <div role="alert">
-              <h2 class="visually-hidden">Warning message</h2>
-              ViTjs is only applicable for genome BLAST targets. After it is enabled here, 
-              CViTjs will need to be enabled for each applicable BLAST target node.
-            </div>
-          </div>
-          <div role="contentinfo" aria-label="Status message" class="messages messages--status">
-            <div role="alert">
-              <h2 class="visually-hidden">Warning message</h2>              
-              <strong>CViTjs Data Location: ' . $absolute_cvitjs_data_path . '</strong>
-              <br />The GFF3 and Genome Target-specific CViTjs configuration files should be located
-              at the above system path. Feel free to organize this directory further.
-              See the "Help" tab for more information.
-            </div>
-          </div>'
-      ];
-
-      $form['visualization']['fld_checkbox_blast_cvitjs_enabled'] = [
-        '#type' => 'checkbox',
-        '#title' => $this->t('Enable CViTjs'),
-        '#description' => $this->t('When checked, CViTjs will be enabled.'),
-        '#default_value' => $config_cvitjs,
-      ];
-    
-      // Get CViTjs confuration text, if possible.
-      // @TODO blast_ui_get_cvit_conf_text() goes in '' the condition below.
-      $default_value = ''; // blast_ui_get_cvit_conf_text()
-      if (!$default_value) {
-        $default_value = 'Unable to get CViTjs configuration information. 
-You will need to enable CViTjs and set and save the path to CViTjs before 
-you can edit the CViTjs configuration text.';
-
-        $disabled = TRUE;
-      }
-      else {
-        $disabled = FALSE;
-      }
-
-      $form['visualization']['fld_text_blast_cvitjs_config'] = [
-        '#type' => 'textarea',
-        '#title' => $this->t('CViTjs configuration'),
-        '#description' => $this->t('This is the contents of the file that defines data directories and 
-          backbone GFF files for each genome assembly target. It is named
-          cvit.conf and is in the root directory for the CViTjs javascript code.
-          This is NOT the config file that is used to build the display for each
-          individual genome. See the help tab for more information about configuration files.'),
-        '#rows' => 10,
-        '#disabled' => $disabled,
-        '#default_value' => $default_value
-      ];
-
     
     //
     // # NOTIFICATION CONFIGURATIONS:
@@ -267,49 +195,6 @@ you can edit the CViTjs configuration text.';
           of the blast program (ie: /usr/bin/). You can leave this blank if you have your $PATH variable set appropriately.'));
       }
     }
-    
-    /* CVIT JS LOCATION/PATH referenced in this validation does not correspond to 
-       a form field above (form build).
-
-    // Check path to CViTjs executable and make sure cvit.conf is writable
-    $fld_name_cvitjs_enabled = 'fld_checkbox_blast_cvitjs_enabled';
-    $fld_value_cvitjs_enabled = getValue($fld_name_cvitjs_enabled);
-
-    if ($fld_value_cvitjs_enabled) {
-      $cvit_path = ''; //@TODO: blast_ui_get_cvit_conf();
-
-      if (!$cvit_path || !file_exists($cvit_path)) {
-        $form_state->setErrorByName('fld_text_cvitjs_path', $this->t('The CViTjs configuration file, cvit.conf, 
-          does not exist at the path given (@cvitjs_path). Please check your path. If you have not yet downloaded 
-          CViTjs, see the help tab for more information.', 
-          ['@cvitjs_path' => $fld_value_cvitjs_enabled]));        
-      }
-
-      if (!is_writable($cvit_path)) {
-        $form_state->setErrorByName('fld_text_cvitjs_path', $this->t('The file $cvit_path is not writable by this page.
-          Please enable write access for apache then try saving these settings again.'));
-      }
-    }
-    */ 
-    
-    // Validate contents of cvitjs configuration text.
-    $is_config_disabled = $form['visualization']['fld_text_blast_cvitjs_config']['#disabled'];
-
-    if (!$is_config_disabled) {
-      // Do this validation only when the textfield (cvitjs config) allows for data.
-      $fld_name_cvitjs_config = 'fld_text_blast_cvitjs_config';
-      $fld_value_cvitjs_config = $form_state->getValue($fld_name_cvitjs_config);
-
-      if ($fld_value_cvitjs_config && !preg_match('/\[general\]\s*\ndata_default =.*/m', $fld_value_cvitjs_config)) {
-        $form_state->setErrorByName($fld_name_cvitjs_config, $this->t('The CViTjs configuration text looks incorrect. 
-          It should contain a [general] section. See the help tab for more information.'));
-      }
-      
-      if ($fld_value_cvitjs_config && !preg_match('/\[.*\]\s*\nconf = .*\ndefaultData =.*/m', $fld_value_cvitjs_config)) {    
-        $form_state->setErrorByName($fld_name_cvitjs_config, $this->t('The CViTjs configuration text looks incorrect. 
-          It should contain one section for each genome target. See the help tab for more information.'));
-      }
-    }
   }
 
   /**
@@ -335,10 +220,6 @@ you can edit the CViTjs configuration text.';
     // JOB CONFIGURATIONS:
     $fld_value_blast_max_results = $form_state->getValue('fld_text_blast_max_results');
 
-    // VISUALIZATION CONFIGURATIONS:
-    $fld_value_blast_cvitjs_enabled = $form_state->getValue('fld_checkbox_blast_cvitjs_enabled');
-    $fld_value_blast_cvitjs_config = $form_state->getValue('fld_text_blast_cvitjs_config');
-
     // NOTIFICATION CONFIGURATIONS:
     $fld_value_blast_warning_text = $form_state->getValue('fld_text_blast_warning_text');
     
@@ -353,25 +234,8 @@ you can edit the CViTjs configuration text.';
       ->set('tripal_blast_config_sequence.nucleotide', $fld_value_blast_nucleotide_example)
       ->set('tripal_blast_config_sequence.protein', $fld_value_blast_protein_example)
       ->set('tripal_blast_config_jobs.max_result', $fld_value_blast_max_results)
-      ->set('tripal_blast_config_visualization.cvitjs_enabled', $fld_value_blast_cvitjs_enabled)
-      ->set('tripal_blast_config_visualization.cvitjs_config', $fld_value_blast_cvitjs_config)
       ->set('tripal_blast_config_notification.warning_text', $fld_value_blast_warning_text)      
       ->save();
-
-    // Save configuration to file.
-    if ($fld_value_blast_cvitjs_enabled && $fld_value_blast_cvitjs_config) {
-      $cvit_conf_path = getcwd() . DIRECTORY_SEPARATOR;
-       //@TODO . blast_ui_get_cvit_conf($form_state['values']['cvitjs_location']);
-      
-      if ($fh = fopen($cvit_conf_path, 'w')) {
-        fwrite($fh, $fld_value_blast_cvitjs_config);
-        fclose($fh);
-      }
-      else {
-        $form_state->setError('fld_text_blast_cvitjs_config', 
-          'Unable to open CViTjs conf file for writing: <pre>' . print_r(error_get_last(), true) . '</pre>');
-      }
-    }
 
     return parent::submitForm($form, $form_state);
   }
