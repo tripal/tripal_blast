@@ -18,5 +18,4 @@ interface TripalBlastDatabaseInterface extends ConfigEntityInterface {
   public function getDbXrefRegExp();
   public function getDbXref();
   public function getDbXrefLinkout();
-  public function getCvitjsEnabled();
 }
