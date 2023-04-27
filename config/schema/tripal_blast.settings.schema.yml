@@ -1,0 +1,61 @@
+# @file
+# Tripal Blast module variables/configuration.
+
+tripal_blast.settings:
+  type: config_object
+  mapping:
+
+    # GENERAL CONFIGURATIONS:
+    tripal_blast_config_general:
+      type: mapping
+      mapping:
+        path:
+          type: string
+          label: 'Path to BLAST executables'
+        threads:
+          type: integer
+          label: 'Processor Threads for Blast'
+        eval:
+          type: float
+          label: 'E-value Threshold'
+        qrange:
+          type: integer
+          label: 'Max Matches in a Query Range'
+
+    # UPLOAD CONFIGURATIONS:
+    tripal_blast_config_upload:
+      type: mapping
+      mapping:
+        allow_query:
+          type: boolean
+          label: 'Allow Query Sequence Upload'
+        allow_target:
+          type: boolean
+          label: 'Allow Target Database Upload'
+
+    # SEQUENCE CONFIGURATIONS:
+    tripal_blast_config_sequence:
+      type: mapping
+      mapping:
+        nucleotide:
+          type: text
+          label: 'Nucleotide Example Fasta Record'
+        protein:
+          type: text
+          label: 'Protein Example Fasta Record'
+
+    # LARGE JOBS CONFIGURATIONS:
+    tripal_blast_config_jobs:
+      type: mapping
+      mapping:
+        max_result:
+          type: integer
+          label: 'Max Results to Display'
+
+    # NOTIFICATION CONFIGURATIONS
+    tripal_blast_config_notification:
+      type: mapping
+      mapping:
+        warning_text:
+          type: text
+          label: 'Warning Text on Blast Page'
