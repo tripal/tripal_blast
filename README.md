@@ -20,8 +20,6 @@ BLAST submissions result in the creation of Tripal jobs which then need to run
 from the command-line. This ensures that long running BLASTs will not cause
 page time-outs but does add some management overhead and might result in longer
 waits for users depending on how often you have cron set to run Tripal jobs.
-You can alternatively use the [Tripal Jobs Daemon](https://github.com/tripal/tripal/tree/7.x-3.x/tripal_daemon)
-to automate running of Tripal Jobs reducing user wait time and your own workload.
 
 The BLAST results page is an expandable summary table with each hit being
 listed as a row in the table with query/hit/e-value information. The row can
@@ -41,6 +39,8 @@ maintainability issues and test coverage.
 
 The following compatibility is proven via automated testing workflows.
 
+![Tripal Version for following tests](https://img.shields.io/badge/Tripal-4.x--dev-green)
+
 | Drupal | 9.3.x | 9.4.x | 9.5.x | 10.0.x |
 |--------|-------|-------|-------|--------|
 | **PHP 8.0** | ![Grid1A-Badge] | ![Grid1B-Badge] | ![Grid1C-Badge] |  |
@@ -58,3 +58,12 @@ The following compatibility is proven via automated testing workflows.
 [Grid2B-Badge]: https://github.com/tripal/tripal_blast/actions/workflows/MAIN-phpunit-Grid2B.yml/badge.svg
 [Grid2C-Badge]: https://github.com/tripal/tripal_blast/actions/workflows/MAIN-phpunit-Grid2C.yml/badge.svg
 [Grid2D-Badge]: https://github.com/tripal/tripal_blast/actions/workflows/MAIN-phpunit-Grid2D.yml/badge.svg
+
+## Docker
+
+```
+git clone https://github.com/tripal/tripal_blast.git
+cd tripal_blast
+docker build --tag=tripal/tripal_blast:latest .
+docker run --publish=80:80 -tid --volume=`pwd`:/var/www/drupal9/web/modules/contrib/tripal_blast tripal/tripal_blast:latest
+```
