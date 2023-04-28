@@ -2,8 +2,7 @@ name: PHPUnit
 on:
   push:
     branches:
-      - 4.x
-      - customize-template
+      - 2.x
 jobs:
   run-tests:
     runs-on: ubuntu-latest
