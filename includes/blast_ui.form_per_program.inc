@@ -557,7 +557,8 @@ function blast_ui_per_blast_program_form_submit($form, &$form_state) {
       'blast_job',
       'run_BLAST_tripal_job',
       $job_args,
-      $user->uid
+      $user->uid,
+      5
     );
 
     $blastjob['result_filestub'] = $output_filestub;
