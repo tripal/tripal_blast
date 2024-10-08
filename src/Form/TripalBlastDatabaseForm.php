@@ -87,7 +87,7 @@ class TripalBlastDatabaseForm extends EntityForm {
         '#type' => 'textfield',
         '#title' => $this->t('Extract Regular Expression'),
         '#description' => $this->t('The Regular Expression to use to extract the id from the FASTA header of the BLAST database hit.'),
-        '#required' => TRUE,
+        '#required' => FALSE,
         '#default_value' => $blast_db->getDbXrefRegExp()  
       ];
 
@@ -97,7 +97,7 @@ class TripalBlastDatabaseForm extends EntityForm {
         '#type' => 'textfield',
         '#title' => $this->t('BLAST database reference'),
         '#description' => $this->t('The Database records from this BLAST Database reference.'),
-        '#required' => TRUE,
+        '#required' => FALSE,
         '#default_value' => $blast_db->getDbXref()    
       ];
     
@@ -107,7 +107,7 @@ class TripalBlastDatabaseForm extends EntityForm {
         '#type' => 'textfield',
         '#title' => $this->t('BLAST database reference linkout type'),
         '#description' => $this->t('Type of linkout to be used for this database reference.'),
-        '#required' => TRUE,
+        '#required' => FALSE,
         '#default_value' => $blast_db->getDbXrefLinkout()    
       ];
           
