@@ -36,7 +36,7 @@
   <div class="report-table">
     {# We are using the drupal table theme functionality to create this listing #}
     {# @see theme_table() for additional documentation #}
-    
+
     {% if (report.xml == true) %}
       <h2>Resulting BLAST hits</h2>
 
@@ -52,8 +52,8 @@
     {% elseif (report.too_many_results == true) %}
       <div class="messages error">
         Your BLAST resulted in {{ report.num_results_formatted }}
-        results which is too many to reasonably display. We have provided the result files for 
-        Download at the top of this page; however, we suggest you re-submit your query using a 
+        results which is too many to reasonably display. We have provided the result files for
+        Download at the top of this page; however, we suggest you re-submit your query using a
         more stringent e-value (i.e. a smaller number)
       </div>
     {% else %}
@@ -63,6 +63,6 @@
           We encountered an error and are unable to load your BLAST results.
         </div>
       </div>
-    {% endif %} 
+    {% endif %}
   </div>
-</div>  
+</div>

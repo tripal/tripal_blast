@@ -546,11 +546,8 @@ class TripalBlastForm extends FormBase {
           ? 'The BLAST database was submitted via user upload.'
           : 'Existing BLAST Database was chosen.';
 
-      tripal_report_error(
-        'blast_ui',
-        TRIPAL_ERROR,
-        "BLAST database %db unaccessible. %msg",
-        ['%db' => $blastdb_with_path, '%msg' => $dbfile_uploaded_msg]
+      \Drupal::service('tripal.logger')->error(
+       "BLAST database $blastdb_with_path unaccessible. $dbfile_uploaded_msg"
       );
 
       $msg = "$dbfile_uploaded_msg BLAST database '$blastdb_with_path' is unaccessible. ";
@@ -587,20 +584,30 @@ class TripalBlastForm extends FormBase {
       $output_filestub = $output_dir . DIRECTORY_SEPARATOR . date('YMd_His') . '.blast';
 
       $job_args = array(
-        'program' => $blast_program,
-        'query' => $blastjob['query_file'],
-        'database' => $blastdb_with_path,
-        'output_filename' => $output_filestub,
-        'options' => $advanced_options
+        0 => $blast_program, // program
+        1 => $blastjob['query_file'], // query
+        2 => $blastdb_with_path, // database
+        3 => $output_filestub, // output_filestub
+        4 => $advanced_options // options
       );
 
+      /*
       $job_id = tripal_add_job(
         t('BLAST (@program): @query', array('@program' => $blast_program, '@query' => $blastjob['query_file'])),
         'blast_job',
         'run_BLAST_tripal_job',
         $job_args,
         \Drupal::currentUser()->id()
-      );
+      );*/
+
+      $current_user = \Drupal::currentUser();
+      $job_id = \Drupal::service('tripal.job')->create([
+        'job_name' => t('BLAST (@program): @query', array('@program' => $blast_program, '@query' => $blastjob['query_file'])),
+        'modulename' => 'tripal_blast',
+        'callback' => 'run_BLAST_tripal_job',
+        'arguments' => $job_args,
+        'uid' => $current_user->id()
+      ]);
 
       $blastjob['result_filestub'] = $output_filestub;
       $blastjob['job_id'] = $job_id;
@@ -672,10 +679,12 @@ class TripalBlastForm extends FormBase {
       $fld_value = $sequence_example;
 
       // Add a note to user, default example may be replaced through the admin interface.
-      $l = \Drupal::l('administartive interface', Url::fromRoute('tripal_blast.configuration'));
+
+      $l = \Drupal\Core\Link::fromTextAndUrl('administartive interface', Url::fromRoute('tripal_blast.configuration'));
       $fld_note = '<div class="tripal-blast-tip">'
-        . $this->t('You can set the example sequence through the @note.', ['@note' => $l])
+        . 'You can set the example sequence through the ' . $l->toString()
         . '</div>';
+
     }
     else {
       $fld_value = '';

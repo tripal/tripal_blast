@@ -1,0 +1,63 @@
+<div class="alignment-row-section hit-visualization" title="Your query sequence is shown at the bottom and the target sequence it aligned to is shown at the top. The shape connecting them indicates how much of the target and query are represented by the hit.">
+	<div class="title">Hit Visualization</div>
+	<img src="data:image/png;base64,{{ hit_visualization }}"/>
+	<p>The image above shows the relationship between query and target for this
+		    particular BLAST hit.</p>
+</div>
+
+<div class="alignment-row-section alignment">
+	<div class="title">Alignment</div>
+
+	{% for hsp in HSPs %}
+		<div class="hsp-title">HSP
+			{{ hsp.Hsp_num }}</div>
+		<div class="alignment-metrics">
+			<span class="identity">
+				Identity=&nbsp;
+				{{ hsp.Hsp_identity }}/{{ hsp.Hsp_align_len }}
+				({{ (hsp.Hsp_identity / hsp.Hsp_align_len * 100)|round(2, 'common') }}%)
+			</span>,&nbsp;
+			<span class="positive">
+				Positive=&nbsp;
+				{{ hsp.Hsp_positive }}/{{ hsp.Hsp_align_len }}
+				({{ (hsp.Hsp_positive / hsp.Hsp_align_len * 100)|round(2, 'common') }}%)
+			</span>
+			<span class="coord-summary">
+				Query Matches
+				{{ hsp.Hsp_query_from }}
+				to
+				{{ hsp.Hsp_query_to }}
+				Hit Matches =
+				{{ hsp.Hsp_hit_from }}
+				to
+				{{ hsp.Hsp_hit_to }}
+			</span>
+		</div>
+
+		<div class="alignment">
+			<div class="alignment-row">
+				{% for chunk in hsp.chunks %}
+					<div class="alignment-subrow">
+						<div class="query">
+							<span class="alignment-title">Query:</span>&nbsp;&nbsp;
+							<span class="alignment-start-coord">{{ chunk.qstart|replace({' ': '&nbsp;'})|raw }}</span>
+							<span class="alignment-residues">{{ chunk.query }}</span>
+							<span class="alignment-stop-coord">{{ chunk.qstop|replace({' ': '&nbsp;'})|raw }}</span>
+						</div>
+						<div class="matches">
+							{{ '&nbsp;' * 8 }}{{ '&nbsp;' * chunk.coord_length|default(0) }}
+							<span class="alignment-residues">{{ chunk.matches|replace({' ': '&nbsp;'})|raw }}</span>
+						</div>
+						<div class="hit">
+							<span class="alignment-title">Sbjct:</span>&nbsp;&nbsp;
+							<span class="alignment-start-coord">{{ chunk.hstart|replace({' ': '&nbsp;'})|raw }}</span>
+							<span class="alignment-residues">{{ chunk.hit }}</span>
+							<span class="alignment-stop-coord">{{ chunk.hstop|replace({' ': '&nbsp;'})|raw }}</span>
+						</div>
+					</div>
+				{% endfor %}
+			</div>
+		</div>
+
+	{% endfor %}
+</div>

@@ -72,13 +72,19 @@ function tripal_blast_theme($existing, $type, $theme, $path) {
     ],
     // Tripal BLAST Report Pending.
     'theme-tripal-blast-report-pending' => [
-      'variables' => ['data' => []],
+      'variables' => ['status' => 'Pending', 'status_code' => 0],
       'template' => 'template-tripal-blast-report-pending'
     ],
     // Tripal BLAST Show Report.
     'theme-tripal-blast-show-report' => [
       'variables' => ['report' => []],
       'template' => 'template-tripal-blast-show-report'
+    ],
+    // Tripal BLAST Report Alignment Row
+    'blast_report_alignment_row' => [
+      'variables' => ['hsps' => NULL, 'hit_visualization' => NULL],
+      'template' => 'template-tripal-blast-report-alignment-row',
+
     ]
   ];
 
@@ -131,12 +137,8 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
 
   // Check that the database exists before trying to execute the job.
   if (!(file_exists($database . '.nsq') OR file_exists($database . '.psq'))) {
-    tripal_report_error(
-      'blast_ui',
-      TRIPAL_ERROR,
-      "Unable to find the BLAST database (ie: @db). Please ensure you have supplied the absolute path not including the file format endings.",
-      ['@db' => $database],
-      ['print' => TRUE]
+    \Drupal::service('tripal.logger')->error(
+      "Unable to find the BLAST database (ie: $database). Please ensure you have supplied the absolute path not including the file format endings."
     );
 
     return FALSE;
@@ -145,12 +147,8 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
   // The BLAST executeable.
   $program = $blast_path . $program;
   if (!file_exists($program)) {
-    tripal_report_error(
-      'blast_ui',
-      TRIPAL_ERROR,
-      "Unable to find the BLAST executable (ie: /usr/bin/blastn). This can be changed in the admin settings; you supplied: @command",
-      ['@command' => $program],
-      ['print' => TRUE]
+    \Drupal::service('tripal.logger')->error(
+      "Unable to find the BLAST executable (ie: /usr/bin/blastn). This can be changed in the admin settings; you supplied: $program"
     );
 
     return FALSE;
@@ -159,12 +157,8 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
   // The blast db formatter executable.
   $blast_formatter_command = $blast_path . 'blast_formatter';
   if (!file_exists($blast_formatter_command)) {
-    tripal_report_error(
-      'blast_ui',
-      TRIPAL_ERROR,
-      "Unable to find the BLAST Formatter executable (ie: /usr/bin/blast_formatter). This can be changed in the admin settings; you supplied: @command",
-      ['@command' => $blast_formatter_command],
-      ['print' => TRUE]
+    \Drupal::service('tripal.logger')->error(
+      "Unable to find the BLAST Formatter executable (ie: /usr/bin/blast_formatter). This can be changed in the admin settings; you supplied: $blast_formatter_command"
     );
 
     return FALSE;
@@ -194,12 +188,8 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
   system($blast_cmd);
 
   if (!file_exists($output_file)) {
-    tripal_report_error(
-      'blast_ui',
-      TRIPAL_ERROR,
-      "BLAST did not complete successfully as is implied by the lack of output file (%file). The command run was @command",
-      ['%file' => $output_file, '@command' => $blast_cmd],
-      ['print' => TRUE]
+    \Drupal::service('tripal.logger')->error(
+      "BLAST did not complete successfully as is implied by the lack of output file ($output_file). The command run was $blast_cmd"
     );
 
     return FALSE;
@@ -213,12 +203,8 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
   system($format_cmd);
 
   if (!file_exists($output_file_xml)) {
-    tripal_report_error(
-      'blast_ui',
-      TRIPAL_ERROR,
-      "Unable to convert BLAST ASN.1 archive to XML (%archive => %file).",
-      ['%archive' => $output_file, '%file' => $output_file_xml],
-      ['print' => TRUE]
+    \Drupal::service('tripal.logger')->error(
+      "Unable to convert BLAST ASN.1 archive to XML ($output_file => $output_file_xml)."
     );
   }
 
@@ -228,12 +214,8 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
   system($format_cmd);
 
   if (!file_exists($output_file_tsv)) {
-    tripal_report_error(
-      'blast_ui',
-      TRIPAL_WARNING,
-      "Unable to convert BLAST ASN.1 archive to Tabular Output (%archive => %file).",
-      ['%archive' => $output_file, '%file' => $output_file_tsv],
-      ['print' => TRUE]
+    \Drupal::service('tripal.logger')->error(
+      "Unable to convert BLAST ASN.1 archive to Tabular Output ($output_file => $output_file_tsv)."
     );
   }
 
@@ -242,12 +224,8 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
   $job_service->jobsConvertTSVtoGFF3($output_file_tsv,$output_file_gff);
 
   if (!file_exists($output_file_gff)) {
-    tripal_report_error(
-      'blast_ui',
-      TRIPAL_WARNING,
-      "Unable to convert BLAST Tabular Output to GFF Output (%archive => %file).",
-      ['%archive' => $output_file, '%file' => $output_file_gff],
-      ['print' => TRUE]
+    \Drupal::service('tripal.logger')->error(
+      "Unable to convert BLAST Tabular Output to GFF Output ($output_file => $output_file_gff)."
     );
   }
 
@@ -257,12 +235,8 @@ function run_BLAST_tripal_job($program, $query, $database, $output_filestub, $op
   system($format_cmd);
 
   if (!file_exists($output_file_tsv)) {
-    tripal_report_error(
-      'blast_ui',
-      TRIPAL_WARNING,
-      "Unable to convert BLAST ASN.1 archive to HTML Output (%archive => %file).",
-      ['%archive' => $output_file, '%file' => $output_file_html],
-      ['print' => TRUE]
+    \Drupal::service('tripal.logger')->error(
+      "Unable to convert BLAST ASN.1 archive to HTML Output ($output_file => $output_file_html)."
     );
   }
 

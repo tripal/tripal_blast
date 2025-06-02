@@ -133,11 +133,8 @@ class TripalBlastJobService {
         return $job_id;
       }
       else {
-        tripal_report_error(
-          'blast_ui',
-          TRIPAL_ERROR,
-          'Unable to decode the blast job_id from :id.',
-          [':id' => $secret]
+        \Drupal::service('tripal.logger')->error(
+          "Unable to decode the blast job_id from $secret."
         );
       }
     }
@@ -152,20 +149,14 @@ class TripalBlastJobService {
           return $job_id;
         }
         else {
-          tripal_report_error(
-            'blast_ui',
-            TRIPAL_ERROR,
-            'Unable to decode the blast job_id from :id.',
-            [':id' => $secret]
+          \Drupal::service('tripal.logger')->error(
+            "Unable to decode the blast job_id from $secret."
           );
         }
       }
       else {
-        tripal_report_error(
-          'blast_ui',
-          TRIPAL_ERROR,
-          'Unable to decode the blast job_id from :id.',
-          array(':id' => $secret)
+        \Drupal::service('tripal.logger')->error(
+          "Unable to decode the blast job_id from $secret."
         );
       }
     }

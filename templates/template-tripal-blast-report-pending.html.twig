@@ -15,12 +15,17 @@
  */
 #}
 
+{{ attach_library('tripal_blast/tripal-blast-page-reload') }}
+
 <div>
-  {% if job.status_code === 0 %}
+{% if status_code is same as(0) %}
+
     <p>Your BLAST has been registered and will be started shortly. This page will automatically refresh.</p>
-  {% elseif job.status_code === 1 %}
+{% elseif status_code is same as(1) %}
+
     <p>Your BLAST job is currently running. The results will be listed here as soon as it completes. This page will automatically refresh.</p>
-  {% elseif job.status_code === 999 %}
-    <p>Unfortunately your BLAST job has been cancelled by an Administrator. This page will automatically refresh.</p>  
+{% elseif status_code is same as(999) %}
+
+    <p>Unfortunately your BLAST job has been cancelled by an Administrator. This page will automatically refresh.</p>
   {% endif %}
 </div>

@@ -17,7 +17,7 @@ class TripalBlastProgramBlastn {
   /**
    * Advanced field names used - refer to this value when
    * validating and submitting fields under advanced options.
-   */  
+   */
   public function formFieldNames() {
     // Keys match field names used in form definition below.
     $field_name_validator = [
@@ -25,7 +25,7 @@ class TripalBlastProgramBlastn {
       'eVal' => ['number'],
       'wordSize' => [],
       'M&MScores' => [],
-     'gabCost' => []
+      'gapCost' => []
     ];
 
     return $field_name_validator;
@@ -36,11 +36,11 @@ class TripalBlastProgramBlastn {
    * This form function is meant to be called within another form definition.
    *
    * @param $blast_cache
-   *   BLAST job history to reference information information contained. 
-   * 
+   *   BLAST job history to reference information information contained.
+   *
    * @return array
    *   Additional form field definitions.
-   */  
+   */
   public function formOptions($blast_cache) {
     $blast = self::BLASTn;
 
@@ -51,7 +51,7 @@ class TripalBlastProgramBlastn {
     $defaults = TripalBlastProgramHelper::programGetDefaultValues($options, $blast);
 
     $form_alter = [];
-    $container = 'ALG' ; 
+    $container = 'ALG' ;
 
     $form_alter[ $container ] = [
       '#type' => 'details',
@@ -74,8 +74,8 @@ class TripalBlastProgramBlastn {
         '#title' => t('Max target sequences:'),
         '#options' => $max_target_options,
         '#default_value' => $defaults['max_target_seqs'],
-        '#description' => t('Select the maximum number of unique target sequences per 
-          query sequence to show results for. Results returned may not be the highest scoring hits. 
+        '#description' => t('Select the maximum number of unique target sequences per
+          query sequence to show results for. Results returned may not be the highest scoring hits.
           <a href="https://academic.oup.com/bioinformatics/article/35/9/1613/5106166" target="_blank">More Information</a>'),
       ];
 
@@ -87,8 +87,8 @@ class TripalBlastProgramBlastn {
         '#default_value' => $defaults['evalue'],
         '#size' => 12,
         '#maxlength' => 20,
-        '#description' => t('Expected number of chance matches in a random model. This number should be give in a decimal format. 
-          <a href="https://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml#expect" target="_blank">More Information</a> | 
+        '#description' => t('Expected number of chance matches in a random model. This number should be give in a decimal format.
+          <a href="https://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml#expect" target="_blank">More Information</a> |
           <a href="https://www.youtube.com/watch?v=nO0wJgZRZJs" target="_blank">Expect value video tutorial</a>'),
       ];
 
@@ -108,7 +108,7 @@ class TripalBlastProgramBlastn {
       '#title' => t('Scoring parameters'),
       '#open' => TRUE,
     ];
-      
+
       //
       // # FIELD: MATCH AND MISMATCH.
       $mm_options = TripalBlastProgramHelper::programGetMatchMismatch($blast);
@@ -131,7 +131,7 @@ class TripalBlastProgramBlastn {
 
       //
       // # FIELD: GAP COST.
-      $mm_set = $defaults['matchmiss'];     
+      $mm_set = $defaults['matchmiss'];
       $gap_cost_options = TripalBlastProgramHelper::programGetGapCost($blast, $mm_set);
       $form_alter[ $container ]['scoring_param']['gapCost'] = [
         '#type' => 'select',
@@ -143,16 +143,16 @@ class TripalBlastProgramBlastn {
         '#prefix' => '<div id="tripal-blast-wrapper-fld-select-gap-cost">',
         '#suffix' => '</div>',
       ];
-        
+
     return $form_alter;
   }
 
   /**
    * Map advanced options specific to this program to BLAST keywords.
-   * 
+   *
    * @param $advanced_field_names
    *   Values set from form ($form_state).
-   * 
+   *
    * @return array
    *   Form values mapped to BLAST keywords.
    */

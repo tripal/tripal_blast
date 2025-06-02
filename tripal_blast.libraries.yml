@@ -48,3 +48,9 @@ tripal-blast-report:
       css/tripal-blast-report-page.css: {}
   dependencies:
     - core/jquery
+
+# Reload page when report is pending
+tripal-blast-page-reload:
+  version: 1.x
+  js:
+    js/tripal-blast-page-reload.js: {}
