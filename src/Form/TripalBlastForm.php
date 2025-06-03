@@ -186,7 +186,6 @@ class TripalBlastForm extends FormBase {
           '#ajax' => [
             'callback' => '::ajaxShowExampleSequenceCallback',
             'wrapper'  => 'tripal-blast-wrapper-ajax-fasta-textarea',
-            'method'   => 'replace',
             'effect'   => 'fade',
             'progress' => 'throbber',
             'message'  => ''
