@@ -1,0 +1,5 @@
+services:
+  tripal_blast.commands:
+    class: \Drupal\tripal_blast\Commands\TripalBlastCommands
+    tags:
+      - { name: drush.command }
