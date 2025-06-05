@@ -137,7 +137,6 @@ class TripalBlastReportController extends ControllerBase {
     }
 
     $blast_job->num_results_formatted = number_format(floatval($blast_job->num_results));
-
     $blast_job->linkout = FALSE;
     if ($blast_job->blastdb->linkout->none === FALSE) {
       $blast_job->linkout_type  = $blast_job->blastdb->linkout->type;
@@ -175,11 +174,16 @@ class TripalBlastReportController extends ControllerBase {
     $blast_job->files->result->html = str_replace(DRUPAL_ROOT . '/', '', $blast_job->files->result->html);
     $blast_job->files->result->gff = str_replace(DRUPAL_ROOT . '/', '', $blast_job->files->result->gff);
 
-    $blast_job->hola = is_bool($blast_job->xml) ? '' : $this->createXMLTableReport($blast_job->xml, $blast_job->linkout, $blast_job->no_hits);
+    $blast_job->hola = is_bool($blast_job->xml) ? '' : $this->createXMLTableReport($blast_job);
     return $blast_job;
   }
 
-  function createXMLTableReport($xml, $linkout, $no_hits) {
+  function createXMLTableReport($blast_job) {
+    
+    $xml = $blast_job->xml;
+    $linkout= $blast_job->linkout;
+    $no_hits = $blast_job->no_hits;
+    
     // Specify the header of the table
     $header = array(
       'arrow-col' =>  array('data' => '', 'class' => array('arrow-col')),
@@ -263,8 +267,85 @@ class TripalBlastReportController extends ControllerBase {
 
             // Then for each hit hsp, keep track of the start of first hsp and the end of
             // the last hsp. Keep in mind that hsps might not be recorded in order.
+            $alignment = [];
             foreach ($hit->{'Hit_hsps'}->children() as $hsp_xml) {
-              $HSPs[] = (array) $hsp_xml;
+              // Twig doesn't allow dash '-' in the variable name so we have to rename the variable passed to twig
+              $hsp_array = (array) $hsp_xml;
+              $hsp_array['Hsp_bit_score'] = $hsp_array['Hsp_bit-score'];
+              $hsp_array['Hsp_query_from'] = $hsp_array['Hsp_query-from'];
+              $hsp_array['Hsp_query_to'] = $hsp_array['Hsp_query-to'];
+              $hsp_array['Hsp_hit_from'] = $hsp_array['Hsp_hit-from'];
+              $hsp_array['Hsp_hit_to'] = $hsp_array['Hsp_hit-to'];
+              $hsp_array['Hsp_query_frame'] = $hsp_array['Hsp_query-frame'];
+              $hsp_array['Hsp_hit_frame'] = $hsp_array['Hsp_hit-frame'];
+              $hsp_array['Hsp_align_len'] = $hsp_array['Hsp_align-len'];
+              // We want to display the alignment with a max 60 residues per line with line numbers indicated.
+              // First break up the strings.
+              $query = str_split($hsp_array['Hsp_qseq'], 60);
+              $matches = str_split($hsp_array['Hsp_midline'], 60);
+              $hit = str_split($hsp_array['Hsp_hseq'], 60);
+              // determine the max length of the coordinate string to use when padding.
+              $coord_length = strlen($hsp_array['Hsp_hit-from']) + 3;
+              $coord_length = (strlen($hsp_array['Hsp_query-to']) + 3 > $coord_length) ? strlen($hsp_array['Hsp_query-to']) + 3 : $coord_length;
+              $coord = [];
+              foreach (array_keys($query) as $k) {
+                // Determine the current coordinates.
+                $coord['index'] = $k;
+                $coord['qstart'] = $hsp_array['Hsp_query_from'] + ($k * 60);
+                $coord['qstart'] = ($k == 0) ? $coord['qstart'] : $coord['qstart'];
+                
+                // code added to fix the range issue
+                // Cordinates can increase or decrease
+                if($hsp_array['Hsp_hit_from'] < $hsp_array['Hsp_hit_to']) {
+                  $coord['hstart'] = $hsp_array['Hsp_hit_from'] + ($k * 60);
+                }
+                else {
+                  $coord['hstart'] = $hsp_array['Hsp_hit_from'] - ($k * 60);
+                }
+                $coord['qstop'] = $hsp_array['Hsp_query_from'] + (($k + 1) * 60) - 1;
+                $coord['qstop'] = ($coord['qstop'] > $hsp_array['Hsp_query_to']) ? $hsp_array['Hsp_query_to'] : $coord['qstop'];
+                
+                if ($hsp_array['Hsp_hit_from'] < $hsp_array['Hsp_hit_to']) {
+                  $coord['hstop'] = $hsp_array['Hsp_hit_from'] + (($k + 1) * 60) - 1;
+                  $coord['hstop'] = ($coord['hstop'] > $hsp_array['Hsp_hit_to']) ? $hsp_array['Hsp_hit_to'] : $coord['hstop'];
+                  
+                }
+                else {
+                  $coord['hstop'] = $hsp_array['Hsp_hit_from'] - (($k + 1) * 60) + 1;
+                  $coord['hstop'] = ($coord['hstop'] < $hsp_array['Hsp_hit_to']) ? $hsp_array['Hsp_hit_to'] : $coord['hstop'];
+                }
+                
+                // Pad these coordinates to ensure columned display.
+                foreach ($coord as $ck => $val) {
+                  $pad_type = (preg_match('/start/', $ck)) ? STR_PAD_LEFT : STR_PAD_RIGHT;
+                  $coord[$ck] = str_pad($val, $coord_length, '#', $pad_type);
+                  $coord[$ck] =  str_replace('#', '&nbsp', $coord[$ck]);
+                }                
+                
+                $alignment [] =  '<div class="alignment-subrow">';
+                $alignment [] =  '<div class="query">';
+                $alignment [] =  '<span class="alignment-title">Query:</span>&nbsp;&nbsp;';
+                $alignment [] = '<span class="alignment-start-coord">' . $coord['qstart'] . '</span>';
+                $alignment [] =  '<span class="alignment-residues">' . $query[$k] . '</span>';
+                $alignment [] = '<span class="alignment-stop-coord">' . $coord['qstop'] . '</span>';
+                $alignment [] = '</div>';
+                $alignment [] = '<div class="matches">';
+                $alignment [] =  str_repeat('&nbsp;', 8);
+                $alignment [] =  str_repeat('&nbsp;', $coord_length);
+                $alignment [] = '<span class="alignment-residues">' .  str_replace(' ', '&nbsp', $matches[$k]) . '</span>';
+                $alignment [] = '</div>';
+                $alignment [] = '<div class="hit">';
+                $alignment [] = '<span class="alignment-title">Sbjct:</span>&nbsp;&nbsp;';
+                $alignment [] = '<span class="alignment-start-coord">' . $coord['hstart'] . '</span>';
+                $alignment [] = '<span class="alignment-residues">' . $hit[$k] . '</span>';
+                $alignment [] = '<span class="alignment-stop-coord">' . $coord['hstop'] . '</span>';
+                $alignment [] = '</div>';
+                $alignment [] = '</div>';
+          
+              }
+              $hsp_array['alignment'] = $alignment;
+              
+              $HSPs[] = $hsp_array;
 
               if ($track_start > $hsp_xml->{'Hsp_hit-from'}) {
                 $track_start = $hsp_xml->{'Hsp_hit-from'} . "";
@@ -289,7 +370,6 @@ class TripalBlastReportController extends ControllerBase {
             $range_end = (int) $track_end; // + 50000;
             if ($range_start < 1) $range_start = 1;
 
-
             // Call the function to generate the hit image.
             $hit_img = $this->generateBlastHitImage(
               $target_name,
@@ -300,7 +380,6 @@ class TripalBlastReportController extends ControllerBase {
               $q_name,
               $hit_name_short
             );
-
 
             // State what should be in the alignment row for theme_table() later.
             $alignment_row = array(

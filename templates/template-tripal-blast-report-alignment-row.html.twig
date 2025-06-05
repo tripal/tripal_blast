@@ -36,25 +36,8 @@
 
 		<div class="alignment">
 			<div class="alignment-row">
-				{% for chunk in hsp.chunks %}
-					<div class="alignment-subrow">
-						<div class="query">
-							<span class="alignment-title">Query:</span>&nbsp;&nbsp;
-							<span class="alignment-start-coord">{{ chunk.qstart|replace({' ': '&nbsp;'})|raw }}</span>
-							<span class="alignment-residues">{{ chunk.query }}</span>
-							<span class="alignment-stop-coord">{{ chunk.qstop|replace({' ': '&nbsp;'})|raw }}</span>
-						</div>
-						<div class="matches">
-							{{ '&nbsp;' * 8 }}{{ '&nbsp;' * chunk.coord_length|default(0) }}
-							<span class="alignment-residues">{{ chunk.matches|replace({' ': '&nbsp;'})|raw }}</span>
-						</div>
-						<div class="hit">
-							<span class="alignment-title">Sbjct:</span>&nbsp;&nbsp;
-							<span class="alignment-start-coord">{{ chunk.hstart|replace({' ': '&nbsp;'})|raw }}</span>
-							<span class="alignment-residues">{{ chunk.hit }}</span>
-							<span class="alignment-stop-coord">{{ chunk.hstop|replace({' ': '&nbsp;'})|raw }}</span>
-						</div>
-					</div>
+				{% for k, v in hsp.alignment %}
+					{{ v|raw }}
 				{% endfor %}
 			</div>
 		</div>

@@ -82,7 +82,7 @@ function tripal_blast_theme($existing, $type, $theme, $path) {
     ],
     // Tripal BLAST Report Alignment Row
     'blast_report_alignment_row' => [
-      'variables' => ['hsps' => NULL, 'hit_visualization' => NULL],
+      'variables' => ['HSPs' => NULL, 'hit_visualization' => NULL],
       'template' => 'template-tripal-blast-report-alignment-row',
 
     ]
