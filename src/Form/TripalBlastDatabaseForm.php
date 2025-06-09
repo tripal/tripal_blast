@@ -93,22 +93,31 @@ class TripalBlastDatabaseForm extends EntityForm {
 
       //
       // # BLAST DATABASE REFERENCE:
+      $db_options = 
+      \Drupal::database()
+      ->select('chado.db', 'd')
+      ->fields('d', ['db_id', 'name'])
+      ->execute()
+      ->fetchAllKeyed();
+      $db_options[0] = 'n/a';
       $form['regular_expression']['fld_text_dbxref_db_id'] = [
-        '#type' => 'textfield',
+        '#type' => 'select',
+        '#options' => $db_options,
         '#title' => $this->t('BLAST database reference'),
         '#description' => $this->t('The Database records from this BLAST Database reference.'),
         '#required' => FALSE,
-        '#default_value' => $blast_db->getDbXref()    
+        '#default_value' => $blast_db->getDbXref() ? $blast_db->getDbXref() : 0  
       ];
     
       //
       // # BLAST DATABASE REFERENCE LINKOUT:
       $form['regular_expression']['fld_text_dbxref_linkout_type'] = [
-        '#type' => 'textfield',
+        '#type' => 'select',
+        '#options' => ['none' => 'none', 'link' => 'link', 'jbrowse' => 'jbrowse'],
         '#title' => $this->t('BLAST database reference linkout type'),
         '#description' => $this->t('Type of linkout to be used for this database reference.'),
-        '#required' => FALSE,
-        '#default_value' => $blast_db->getDbXrefLinkout()    
+        '#required' => TRUE,
+        '#default_value' => $blast_db->getDbXrefLinkout() ? $blast_db->getDbXrefLinkout() : 'none'    
       ];
           
     return $form;

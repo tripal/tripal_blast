@@ -138,9 +138,10 @@ class TripalBlastReportController extends ControllerBase {
 
     $blast_job->num_results_formatted = number_format(floatval($blast_job->num_results));
     $blast_job->linkout = FALSE;
-    if ($blast_job->blastdb->linkout->none === FALSE) {
+
+    if ($blast_job->blastdb->linkout->none != 'none') {
       $blast_job->linkout_type  = $blast_job->blastdb->linkout->type;
-      $blast_job->linkout_regex = $blast_job->blastdb->linkout->regex;
+      $blast_job->linkout_regex = $blast_job->blastdb->linkout->id_regexp;
 
       // Note that URL prefix is not required if linkout type is 'custom'
       if (isset($blast_job->blastdb->linkout->db_id->urlprefix) && !empty($blast_job->blastdb->linkout->db_id->urlprefix)) {
@@ -181,9 +182,9 @@ class TripalBlastReportController extends ControllerBase {
   function createXMLTableReport($blast_job) {
     
     $xml = $blast_job->xml;
-    $linkout= $blast_job->linkout;
+    $linkout= $blast_job->blastdb->linkout;
     $no_hits = $blast_job->no_hits;
-    
+
     // Specify the header of the table
     $header = array(
       'arrow-col' =>  array('data' => '', 'class' => array('arrow-col')),
@@ -267,7 +268,7 @@ class TripalBlastReportController extends ControllerBase {
 
             // Then for each hit hsp, keep track of the start of first hsp and the end of
             // the last hsp. Keep in mind that hsps might not be recorded in order.
-            $alignment = [];
+
             foreach ($hit->{'Hit_hsps'}->children() as $hsp_xml) {
               // Twig doesn't allow dash '-' in the variable name so we have to rename the variable passed to twig
               $hsp_array = (array) $hsp_xml;
@@ -288,6 +289,7 @@ class TripalBlastReportController extends ControllerBase {
               $coord_length = strlen($hsp_array['Hsp_hit-from']) + 3;
               $coord_length = (strlen($hsp_array['Hsp_query-to']) + 3 > $coord_length) ? strlen($hsp_array['Hsp_query-to']) + 3 : $coord_length;
               $coord = [];
+              $alignment = [];
               foreach (array_keys($query) as $k) {
                 // Determine the current coordinates.
                 $coord['index'] = $k;
@@ -402,9 +404,32 @@ class TripalBlastReportController extends ControllerBase {
             // tripal blast database used as a search target. Thus we only want to
             // determine a link-out if it's actually supported... ;-)
             if ($linkout) {
+              
+              $linkout_regex = $linkout->id_regex;
+              $urlprefix = \Drupal::database()->select('chado.db', 'd')->fields('d', ['urlprefix'])->condition('db_id', $linkout->db_id)->execute()->fetchField();
+              
+              // Create display name for the hit, use provided Regex to extract the display name if it's available
+              $hit_displayname = (string) $hit_name;
+              if ($linkout_regex == 'default') {
+                $linkout_regex = '/^(\S+) .*/';
+              }
+              if (trim($linkout_regex)) {
+                if (preg_match($linkout_regex, $hit_displayname, $matches)) {
+                  $hit_displayname = $matches[1];
+                }
+              }
+              
+              // Generate the link according to its type
+              $linkout_service = \Drupal::service('tripal_blast.linkout');
+              if ($linkout->type == 'jbrowse') {
+                $hit_displayname = $linkout_service->generateJbrowseLink($urlprefix, $hit_displayname, $HSPs);
+              } if ($linkout->type == 'link') {
+                $hit_displayname = $linkout_service->generateLink($urlprefix, $hit_displayname);
+              }
 
               // First extract the linkout text using the regex provided through
               // the Tripal blast database node.
+              /*
               if (preg_match($linkout_regex, $hit_name, $linkout_match)) {
                 $hit->{'linkout_id'} = $linkout_match[1];
                 $hit->{'hit_name'} = $hit_name;
@@ -423,10 +448,10 @@ class TripalBlastReportController extends ControllerBase {
                     'Target'     => $blast_job->blastdb->db_name,
                   )
                 );
-              }
+              }*/
 
               // Replace the target name with the link.
-              $summary_row['data']['hit']['data'] = $hit_name;
+              $summary_row['data']['hit']['data'] = $hit_displayname;
             }
 
             // ADD TO TABLE ROWS

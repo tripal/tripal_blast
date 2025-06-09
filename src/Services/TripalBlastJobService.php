@@ -243,6 +243,9 @@ class TripalBlastJobService {
       $job->blastdb->db_path = $config['path'];
       $job->blastdb->linkout = new \stdClass();
       $job->blastdb->linkout->none = $config['dbxref_linkout_type'];
+      $job->blastdb->linkout->type = $config['dbxref_linkout_type'];
+      $job->blastdb->linkout->db_id = $config['dbxref_db_id'];
+      $job->blastdb->linkout->id_regex = $config['dbxref_id_regexp'];
       $job->blastdb->db_dbtype = $config['dbtype'];
     }
     else {

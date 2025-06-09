@@ -6,7 +6,7 @@
 tripal-blast-ui:
   version: 1.x
   js:
-    js/jquery-accordion.js: {}
+    js/jquery-ui.min.js: {}
     js/tripal-blast-ui.js: {}
   css:
     theme:
