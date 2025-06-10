@@ -77,12 +77,14 @@ class TripalBlastJobService {
     foreach($jobs as $job) {
       $result_link = '/blast/report/' . self::jobsBlastMakeSecret($job->job_id);
 
-      $rows[] = [
-        $job->query_summary,
-        $job->blastdb->db_name,
-        \Drupal::service('date.formatter')->format($job->date_submitted, 'medium'),
-        Markup::create('<a href="' . $result_link . '">See Results</a>')
-      ];
+      if (isset($job->blastdb->db_name)) {
+        $rows[] = [
+          $job->query_summary,
+          $job->blastdb->db_name,
+          \Drupal::service('date.formatter')->format($job->date_submitted, 'medium'),
+          Markup::create('<a href="' . $result_link . '">See Results</a>')
+        ];
+      }
     }
 
     $jobs_table = [
@@ -238,15 +240,17 @@ class TripalBlastJobService {
       $config = \Drupal::service('tripal_blast.database_service')
         ->getDatabaseConfig($blastjob->target_blastdb);
 
-      $job->blastdb = new \stdClass();
-      $job->blastdb->db_name = $config['name'];
-      $job->blastdb->db_path = $config['path'];
-      $job->blastdb->linkout = new \stdClass();
-      $job->blastdb->linkout->none = $config['dbxref_linkout_type'];
-      $job->blastdb->linkout->type = $config['dbxref_linkout_type'];
-      $job->blastdb->linkout->db_id = $config['dbxref_db_id'];
-      $job->blastdb->linkout->id_regex = $config['dbxref_id_regexp'];
-      $job->blastdb->db_dbtype = $config['dbtype'];
+      if ($config) {
+        $job->blastdb = new \stdClass();
+        $job->blastdb->db_name = $config['name'];
+        $job->blastdb->db_path = $config['path'];
+        $job->blastdb->linkout = new \stdClass();
+        $job->blastdb->linkout->none = $config['dbxref_linkout_type'];
+        $job->blastdb->linkout->type = $config['dbxref_linkout_type'];
+        $job->blastdb->linkout->db_id = $config['dbxref_db_id'];
+        $job->blastdb->linkout->id_regex = $config['dbxref_id_regexp'];
+        $job->blastdb->db_dbtype = $config['dbtype'];
+      }
     }
     else {
       // Otherwise the user uploaded their own database so provide what information we can.

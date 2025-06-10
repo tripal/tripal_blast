@@ -137,24 +137,6 @@ class TripalBlastReportController extends ControllerBase {
     }
 
     $blast_job->num_results_formatted = number_format(floatval($blast_job->num_results));
-    $blast_job->linkout = FALSE;
-
-    if ($blast_job->blastdb->linkout->none != 'none') {
-      $blast_job->linkout_type  = $blast_job->blastdb->linkout->type;
-      $blast_job->linkout_regex = $blast_job->blastdb->linkout->id_regexp;
-
-      // Note that URL prefix is not required if linkout type is 'custom'
-      if (isset($blast_job->blastdb->linkout->db_id->urlprefix) && !empty($blast_job->blastdb->linkout->db_id->urlprefix)) {
-        $blast_job->linkout_urlprefix = $blast_job->blastdb->linkout->db_id->urlprefix;
-      }
-
-      // Check that we can determine the linkout URL.
-      // (ie: that the function specified to do so, exists).
-      if (function_exists($blast_job->blastdb->linkout->url_function)) {
-        $blast_job->url_function = $blast_job->blastdb->linkout->url_function;
-        $blast_job->linkout = TRUE;
-      }
-    }
 
     $blast_job->submission_date = \Drupal::service('date.formatter')
       ->format($blast_job->date_submitted, 'medium');
@@ -180,9 +162,9 @@ class TripalBlastReportController extends ControllerBase {
   }
 
   function createXMLTableReport($blast_job) {
-    
+
     $xml = $blast_job->xml;
-    $linkout= $blast_job->blastdb->linkout;
+    $linkout= isset($blast_job->blastdb->linkout) ? $blast_job->blastdb->linkout : NULL;
     $no_hits = $blast_job->no_hits;
 
     // Specify the header of the table
@@ -296,7 +278,7 @@ class TripalBlastReportController extends ControllerBase {
                 $coord['index'] = $k;
                 $coord['qstart'] = $hsp_array['Hsp_query_from'] + ($k * 60);
                 $coord['qstart'] = ($k == 0) ? $coord['qstart'] : $coord['qstart'];
-                
+
                 // code added to fix the range issue
                 // Cordinates can increase or decrease
                 if($hsp_array['Hsp_hit_from'] < $hsp_array['Hsp_hit_to']) {
@@ -307,24 +289,24 @@ class TripalBlastReportController extends ControllerBase {
                 }
                 $coord['qstop'] = $hsp_array['Hsp_query_from'] + (($k + 1) * 60) - 1;
                 $coord['qstop'] = ($coord['qstop'] > $hsp_array['Hsp_query_to']) ? $hsp_array['Hsp_query_to'] : $coord['qstop'];
-                
+
                 if ($hsp_array['Hsp_hit_from'] < $hsp_array['Hsp_hit_to']) {
                   $coord['hstop'] = $hsp_array['Hsp_hit_from'] + (($k + 1) * 60) - 1;
                   $coord['hstop'] = ($coord['hstop'] > $hsp_array['Hsp_hit_to']) ? $hsp_array['Hsp_hit_to'] : $coord['hstop'];
-                  
+
                 }
                 else {
                   $coord['hstop'] = $hsp_array['Hsp_hit_from'] - (($k + 1) * 60) + 1;
                   $coord['hstop'] = ($coord['hstop'] < $hsp_array['Hsp_hit_to']) ? $hsp_array['Hsp_hit_to'] : $coord['hstop'];
                 }
-                
+
                 // Pad these coordinates to ensure columned display.
                 foreach ($coord as $ck => $val) {
                   $pad_type = (preg_match('/start/', $ck)) ? STR_PAD_LEFT : STR_PAD_RIGHT;
                   $coord[$ck] = str_pad($val, $coord_length, '#', $pad_type);
                   $coord[$ck] =  str_replace('#', '&nbsp', $coord[$ck]);
-                }                
-                
+                }
+
                 $alignment [] =  '<div class="alignment-subrow">';
                 $alignment [] =  '<div class="query">';
                 $alignment [] =  '<span class="alignment-title">Query:</span>&nbsp;&nbsp;';
@@ -344,10 +326,10 @@ class TripalBlastReportController extends ControllerBase {
                 $alignment [] = '<span class="alignment-stop-coord">' . $coord['hstop'] . '</span>';
                 $alignment [] = '</div>';
                 $alignment [] = '</div>';
-          
+
               }
               $hsp_array['alignment'] = $alignment;
-              
+
               $HSPs[] = $hsp_array;
 
               if ($track_start > $hsp_xml->{'Hsp_hit-from'}) {
@@ -405,10 +387,10 @@ class TripalBlastReportController extends ControllerBase {
             // tripal blast database used as a search target. Thus we only want to
             // determine a link-out if it's actually supported... ;-)
             if ($linkout) {
-              
+
               $linkout_regex = $linkout->id_regex;
               $urlprefix = \Drupal::database()->select('chado.db', 'd')->fields('d', ['urlprefix'])->condition('db_id', $linkout->db_id)->execute()->fetchField();
-              
+
               // Create display name for the hit, use provided Regex to extract the display name if it's available
               $hit_displayname = (string) $hit_name;
               if ($linkout_regex == 'default') {
@@ -419,7 +401,7 @@ class TripalBlastReportController extends ControllerBase {
                   $hit_displayname = $matches[1];
                 }
               }
-              
+
               // Generate the link according to its type
               $linkout_service = \Drupal::service('tripal_blast.linkout');
               if ($linkout->type == 'jbrowse') {
