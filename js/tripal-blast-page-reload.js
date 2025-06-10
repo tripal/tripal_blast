@@ -3,7 +3,7 @@
     attach: function (context, settings) {
       setTimeout(function () {
         window.location.reload(1);
-      }, 5000);
+      }, 10000);
     }
   };
 })(jQuery, Drupal);

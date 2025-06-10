@@ -399,7 +399,7 @@ class TripalBlastProgramHelper {
   public static function programGetDefaultValues($options, $program) {
     // restore previous values or set to default
     $max_target = (isset($options['max_target_seqs']))
-      ? $options['max_target_seqs'] : 500;
+      ? $options['max_target_seqs'] : 100;
 
     $short_queries = (isset($options['shortQueries']))
       ? $options['shortQueries'] : TRUE;
