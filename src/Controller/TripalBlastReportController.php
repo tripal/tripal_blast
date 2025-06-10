@@ -272,6 +272,7 @@ class TripalBlastReportController extends ControllerBase {
             foreach ($hit->{'Hit_hsps'}->children() as $hsp_xml) {
               // Twig doesn't allow dash '-' in the variable name so we have to rename the variable passed to twig
               $hsp_array = (array) $hsp_xml;
+              $hsp_array['query_name'] = $query_name;
               $hsp_array['Hsp_bit_score'] = $hsp_array['Hsp_bit-score'];
               $hsp_array['Hsp_query_from'] = $hsp_array['Hsp_query-from'];
               $hsp_array['Hsp_query_to'] = $hsp_array['Hsp_query-to'];

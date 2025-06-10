@@ -55,7 +55,7 @@ class TripalBlastLinkOut {
       
       // Format the hsp for inclusion in the subfeatures section of the track later.
       $hsp_def = t(
-          '{"start":@start,"end":@end,"strand":"@strand","type":"@type"}',
+          '{%22start%22:@start,%22end%22:@end,%22strand%22:%22@strand%22,%22type%22:%22@type%22}',
           array(
             '@start' => $hsp_start,
             '@end' => $hsp_end,
@@ -90,21 +90,20 @@ class TripalBlastLinkOut {
         );
     
     // Next we want to add our BLAST hit to the JBrowse.
+    
     $jbrowse_query['addFeatures'] = t(
-        'addFeatures=[{"seq_id":"@id","start":@min,"end":@max,"name":"@name","subfeatures":[@hspcoords]}]',
+        'addFeatures=[{%22seq_id%22:%22@id%22,%22start%22:@min,%22end%22:@max,%22name%22:%22@name%22,%22subfeatures%22:[@hspcoords]}]',
         array(
           '@id' => $hitname,
-          '@name' => $info['query_name'] . ' Blast Hit',
+          '@name' => $hsp['query_name'] . ' Blast Hit',
           '@min' => $min,
           '@max' => $max,
           '@hspcoords' => join ("," , $ranges)
         ));
-    
+
     // Then add a track to display our new feature.
-    $jbrowse_query['addTracks'] = 'addTracks=[{"label":"blast","key":"BLAST Result","type":"JBrowse/View/Track/HTMLFeatures","store":"url"}]';
-    
+    $jbrowse_query['addTracks'] = 'addTracks=[{%22label%22:%22blast%22,%22key%22:%22BLAST Result%22,%22type%22:%22JBrowse/View/Track/HTMLFeatures%22,%22store%22:%22url%22}]';    
     $url_postfix = implode('&', $jbrowse_query);
-    
     $hit_url = $url_prefix . $url_postfix;
 
     $link = Link::fromTextAndUrl($hitname, Url::fromUri($hit_url))->toRenderable();
