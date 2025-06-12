@@ -58,7 +58,7 @@ class TripalBlastReportController extends ControllerBase {
     }
     else {
       // 4) Job is in Progress
-      $theme = 'theme-tripal-blast-report_pending';
+      $theme = 'theme-tripal-blast-report-pending';
       $job_param = [
         'job_id' => '',
         'status' => 1,
@@ -151,11 +151,19 @@ class TripalBlastReportController extends ControllerBase {
     $blast_job->no_hits = TRUE;
 
     // Convert file paths into relative paths for the report page to create links
-    $blast_job->files->result->archive = str_replace(DRUPAL_ROOT . '/', '', $blast_job->files->result->archive);
-    $blast_job->files->result->xml = str_replace(DRUPAL_ROOT . '/', '', $blast_job->files->result->xml);
-    $blast_job->files->result->tsv = str_replace(DRUPAL_ROOT . '/', '', $blast_job->files->result->tsv);
-    $blast_job->files->result->html = str_replace(DRUPAL_ROOT . '/', '', $blast_job->files->result->html);
-    $blast_job->files->result->gff = str_replace(DRUPAL_ROOT . '/', '', $blast_job->files->result->gff);
+    $path_to_remove = DRUPAL_ROOT . '/';
+    $slurm = \Drupal::config('tripal_blast.settings')->get('tripal_blast_config_cluster.slurm');
+    if ($slurm) {
+      $nfs_mount = \Drupal::config('tripal_blast.settings')->get('tripal_blast_config_cluster.nfs_mount');
+      $host = gethostname();
+      $nfs_dir = str_replace('$HOSTNAME', $host, $nfs_mount);
+      $path_to_remove = rtrim($nfs_dir, '/') . '/';
+    }
+    $blast_job->files->result->archive = str_replace($path_to_remove, '', $blast_job->files->result->archive);
+    $blast_job->files->result->xml = str_replace($path_to_remove, '', $blast_job->files->result->xml);
+    $blast_job->files->result->tsv = str_replace($path_to_remove, '', $blast_job->files->result->tsv);
+    $blast_job->files->result->html = str_replace($path_to_remove, '', $blast_job->files->result->html);
+    $blast_job->files->result->gff = str_replace($path_to_remove, '', $blast_job->files->result->gff);
 
     $blast_job->hola = is_bool($blast_job->xml) ? '' : $this->createXMLTableReport($blast_job);
     return $blast_job;

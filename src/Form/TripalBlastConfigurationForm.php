@@ -176,6 +176,59 @@ class TripalBlastConfigurationForm extends ConfigFormBase {
         '#default_value' => $config->get('tripal_blast_config_notification.warning_text')
       );
 
+      //
+      // # CLUSTER CONFIGURATIONS:
+      $form['cluster'] = array(
+        '#type' => 'details',
+        '#open' => FALSE,
+        '#title' => $this->t('SLURM Cluster'),
+        '#description' => $this->t('This permits running jobs on a SLURM cluster.'),
+      );
+      
+      $form['cluster']['slurm'] = array(
+        '#type' => 'checkbox',
+        '#title' => $this->t('Run job on a SLURM cluster'),
+        '#default_value' => $config->get('tripal_blast_config_cluster.slurm')
+      );
+      
+      $form['cluster']['bin_path'] = array(
+        '#type' => 'textfield',
+        '#title' => $this->t('Path to search for the SLURM sbatch script: (e.g. /opt/slurm/bin)'),
+        '#default_value' => $config->get('tripal_blast_config_cluster.bin_path')
+      );
+      
+      $form['cluster']['nfs_mount'] = array(
+        '#type' => 'textfield',
+        '#title' => $this->t('NFS mount point of the Drupal root directory on all cluster nodes'),
+        '#default_value' => $config->get('tripal_blast_config_cluster.nfs_mount'),
+        '#required' => TRUE
+      );
+      
+      $form['cluster']['nfs_temp'] = array(
+        '#type' => 'textfield',
+        '#title' => $this->t('NFS mount point to store SLURM scripts and STDOUT/STDERR output on all cluster nodes'),
+        '#default_value' => $config->get('tripal_blast_config_cluster.nfs_temp'),
+        '#required' => TRUE
+      );
+      
+      $form['cluster']['partition'] = array(
+        '#type' => 'textfield',
+        '#title' => $this->t('SLURM partition to run the job'),
+        '#default_value' => $config->get('tripal_blast_config_cluster.partition')
+      );
+      
+      $form['cluster']['account'] = array(
+        '#type' => 'textfield',
+        '#title' => $this->t('SLURM account for running the job'),
+        '#default_value' => $config->get('tripal_blast_config_cluster.account')
+      );
+      
+      $form['cluster']['precmd'] = array(
+        '#type' => 'textfield',
+        '#title' => $this->t('Command to run before launching the Tripal job. (e.g. loading a minimally required version of PHP with \'ml php\')'),
+        '#default_value' => $config->get('tripal_blast_config_cluster.precmd')
+      );
+      
     return parent::buildForm($form, $form_state);
   }
 
@@ -223,6 +276,15 @@ class TripalBlastConfigurationForm extends ConfigFormBase {
     // NOTIFICATION CONFIGURATIONS:
     $fld_value_blast_warning_text = $form_state->getValue('fld_text_blast_warning_text');
     
+    // CLUSTER CONFIGURATIONS:
+    $slurm = $form_state->getValue('slurm');
+    $bin_path = $form_state->getValue('bin_path');
+    $nfs_mount = $form_state->getValue('nfs_mount');
+    $nfs_temp = $form_state->getValue('nfs_temp');
+    $partition = $form_state->getValue('partition');
+    $account = $form_state->getValue('account');
+    $precmd = $form_state->getValue('precmd');
+    
     // Set defined variables.
     $this->configFactory->getEditable(static::SETTINGS)
       ->set('tripal_blast_config_general.path', $fld_value_blast_path)
@@ -234,7 +296,14 @@ class TripalBlastConfigurationForm extends ConfigFormBase {
       ->set('tripal_blast_config_sequence.nucleotide', $fld_value_blast_nucleotide_example)
       ->set('tripal_blast_config_sequence.protein', $fld_value_blast_protein_example)
       ->set('tripal_blast_config_jobs.max_result', $fld_value_blast_max_results)
-      ->set('tripal_blast_config_notification.warning_text', $fld_value_blast_warning_text)      
+      ->set('tripal_blast_config_notification.warning_text', $fld_value_blast_warning_text)
+      ->set('tripal_blast_config_cluster.slurm', $slurm)
+      ->set('tripal_blast_config_cluster.bin_path', $bin_path)
+      ->set('tripal_blast_config_cluster.nfs_mount', $nfs_mount)
+      ->set('tripal_blast_config_cluster.nfs_temp', $nfs_temp)
+      ->set('tripal_blast_config_cluster.partition', $partition)
+      ->set('tripal_blast_config_cluster.account', $account)
+      ->set('tripal_blast_config_cluster.precmd', $precmd)
       ->save();
 
     return parent::submitForm($form, $form_state);

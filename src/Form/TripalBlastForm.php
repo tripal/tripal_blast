@@ -441,6 +441,19 @@ class TripalBlastForm extends FormBase {
 
     $fld_select_db_value = $form_state->getValue('SELECT_DB');
     $db = $fld_select_db_value ?? NULL;
+    
+    // If SLURM is enabled, get its configuration
+    $slurm = \Drupal::config('tripal_blast.settings')->get('tripal_blast_config_cluster.slurm');
+    $tmp_dir = \Drupal::config('tripal_blast.settings')->get('tripal_blast_config_cluster.nfs_temp');
+    $bin_path = \Drupal::config('tripal_blast.settings')->get('tripal_blast_config_cluster.bin_path');
+    $nfs_dir = '';
+    if ($slurm) {
+      $tmp_dir = rtrim($tmp_dir, '/') . '/';
+      $bin_path = rtrim($bin_path, '/') . '/';
+      $nfs_mount = \Drupal::config('tripal_blast.settings')->get('tripal_blast_config_cluster.nfs_mount');
+      $host = gethostname();
+      $nfs_dir = str_replace('$HOSTNAME', $host, $nfs_mount);
+    }
 
     // We want to save information about the blast job to the database for recent jobs &
     // edit and resubmit functionality.
@@ -465,7 +478,7 @@ class TripalBlastForm extends FormBase {
       if ($var_qflag_value == 'seqQuery') {
         $seq_content = $form_state->getValue('FASTA');
 
-        $query_file = \Drupal::service('file_system')->getTempDirectory() . '/' . date('YMd_His') . '_query.fasta';
+        $query_file = $slurm ? $tmp_dir . date('YMd_His') . '_query.fasta' : \Drupal::service('file_system')->getTempDirectory() . '/' . date('YMd_His') . '_query.fasta';
         $blastjob['query_file'] = $query_file;
 
         file_put_contents ($blastjob['query_file'], $seq_content);
@@ -580,6 +593,9 @@ class TripalBlastForm extends FormBase {
       // We want to save all result files (.asn, .xml, .tsv, .html) in the public files directory.
       // Usually [drupal root]/sites/default/files.
       $output_dir = tripal_get_files_dir('tripal_blast');
+      if ($slurm) {
+        $output_dir = $nfs_dir . str_replace(\Drupal::root(), '', $output_dir);
+      }
       $output_filestub = $output_dir . DIRECTORY_SEPARATOR . date('YMd_His') . '.blast';
 
       $job_args = array(
@@ -632,6 +648,45 @@ class TripalBlastForm extends FormBase {
       // issues. If you do not want to run tripal jobs manually, look into installing
       // Tripal daemon which will run jobs as they're submitted or set up a cron job to
       // launch the tripal jobs on a specified schedule.
+      
+      // Run the job on SLURM Cluster
+      if ($slurm) {
+        $user = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id()); // Username to run the Tripal Job
+        if ($user) {
+          $admin = $user->getAccountName();
+          $partition = \Drupal::config('tripal_blast.settings')->get('tripal_blast_config_cluster.partition');
+          $account = \Drupal::config('tripal_blast.settings')->get('tripal_blast_config_cluster.account');
+          $precmd = \Drupal::config('tripal_blast.settings')->get('tripal_blast_config_cluster.precmd');
+          $prefix = trim($precmd) ? $precmd . ';' : '';
+          $cmd = $prefix . "cd $nfs_dir; drush trp-run-jobs --username=$admin --parallel --job_id=$job_id";
+          $script = $tmp_dir . "/blast_job.$job_id.sh";
+          $handle = fopen($script, 'w');
+          fwrite($handle, "#!/bin/bash\n");
+          if ($partition) {
+            fwrite($handle, "#SBATCH --partition=$partition\n");
+          }
+          if ($account) {
+            fwrite($handle, "#SBATCH --account=$account\n");
+          }
+          fwrite($handle, "#SBATCH --output=$tmp_dir/squeue.$job_id.out\n");
+          fwrite($handle, "#SBATCH --error $tmp_dir/squeue.$job_id.err\n");
+          fwrite($handle, "#SBATCH --job-name tripal.$job_id\n");
+          fwrite($handle, "#SBATCH --get-user-env\n");
+          fwrite($handle, "#SBATCH --nodes=1\n");
+          fwrite($handle, "#SBATCH --ntasks=1\n");
+          fwrite($handle, "#SBATCH --chdir=$nfs_dir\n");
+          fwrite($handle, "#SBATCH --cpus-per-task=1\n");
+          fwrite($handle, "#SBATCH --time=24:00:00\n");
+          fwrite($handle, $cmd);
+          fclose($handle);
+          
+          exec($bin_path . "sbatch $script", $stdout, $return);
+          \Drupal::messenger()->addMessage('SLURM enabled: ' . $stdout[0]);
+        }
+        else {
+          \Drupal::messenger()->addError('Admin user not found. Abort.');
+        }
+      }
 
       // Redirect to the BLAST results page
       $go = '/blast/report/' . $job_encode_id;
