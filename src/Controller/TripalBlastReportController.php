@@ -85,6 +85,15 @@ class TripalBlastReportController extends ControllerBase {
    *   Report page markup.
    */
   public function prepareReport($job_id) {
+    
+    // If SLURM is enabled
+    $slurm = \Drupal::config('tripal_blast.settings')->get('tripal_blast_config_cluster.slurm');
+    if ($slurm) {
+      $nfs_mount = \Drupal::config('tripal_blast.settings')->get('tripal_blast_config_cluster.nfs_mount');
+      $host = gethostname();
+      $nfs_dir = str_replace('$HOSTNAME', $host, $nfs_mount);
+    }
+    
     // Get job profile.
     $job_service = \Drupal::service('tripal_blast.job_service');
     $blast_job = $job_service->jobsGetJobByJobId($job_id);
@@ -122,13 +131,15 @@ class TripalBlastReportController extends ControllerBase {
     $blast_job->too_many_results = FALSE;
 
     $full_path_xml = $blast_job->files->result->xml;
+    $full_path_xml = $slurm ? str_replace(rtrim($nfs_dir, '/') . '/', DRUPAL_ROOT . '/', $full_path_xml) : $full_path_xml;
+
     if (is_readable($full_path_xml)) {
       $blast_job->num_results = shell_exec('grep -c "<Hit>" ' . escapeshellarg($full_path_xml));
 
       $max_results = \Drupal::config('tripal_blast.settings')
         ->get('tripal_blast_config_jobs.max_result');
 
-      if ($max_results == 0 || $blast_job->num_results < $max_results) {
+      if ($max_results == 0 || $blast_job->num_results <= $max_results) {
         $blast_job->xml = simplexml_load_file($full_path_xml);
       }
       else {
@@ -151,14 +162,8 @@ class TripalBlastReportController extends ControllerBase {
     $blast_job->no_hits = TRUE;
 
     // Convert file paths into relative paths for the report page to create links
-    $path_to_remove = DRUPAL_ROOT . '/';
-    $slurm = \Drupal::config('tripal_blast.settings')->get('tripal_blast_config_cluster.slurm');
-    if ($slurm) {
-      $nfs_mount = \Drupal::config('tripal_blast.settings')->get('tripal_blast_config_cluster.nfs_mount');
-      $host = gethostname();
-      $nfs_dir = str_replace('$HOSTNAME', $host, $nfs_mount);
-      $path_to_remove = rtrim($nfs_dir, '/') . '/';
-    }
+    $path_to_remove = $slurm ? rtrim($nfs_dir, '/') . '/' : DRUPAL_ROOT . '/';
+    
     $blast_job->files->result->archive = str_replace($path_to_remove, '', $blast_job->files->result->archive);
     $blast_job->files->result->xml = str_replace($path_to_remove, '', $blast_job->files->result->xml);
     $blast_job->files->result->tsv = str_replace($path_to_remove, '', $blast_job->files->result->tsv);
