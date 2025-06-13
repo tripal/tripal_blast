@@ -653,7 +653,7 @@ class TripalBlastForm extends FormBase {
       if ($slurm) {
         $user = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id()); // Username to run the Tripal Job
         if ($user) {
-          $admin = $user->getAccountName();
+          $admin = $this->getAnyAdminName();
           $partition = \Drupal::config('tripal_blast.settings')->get('tripal_blast_config_cluster.partition');
           $account = \Drupal::config('tripal_blast.settings')->get('tripal_blast_config_cluster.account');
           $precmd = \Drupal::config('tripal_blast.settings')->get('tripal_blast_config_cluster.precmd');
@@ -750,5 +750,32 @@ class TripalBlastForm extends FormBase {
     $form['B']['query'][$fld_name_fasta]['#suffix'] = $fld_note;
 
     return $form['B']['query']['FASTA'];
+  }
+
+  function getAnyAdminName() {
+    $roles = \Drupal::entityTypeManager()->getStorage('user_role')->loadMultiple();
+    $admin_role_id = NULL;
+    foreach ($roles as $role) {
+      if ($role->hasPermission('administer site configuration')) {
+        // Found a role with admin-level permission.
+        $admin_role_id = $role->getOriginalId();
+        break;
+      }
+    }
+    $admin_name = NULL;
+    if ($admin_role_id) {
+      $user_storage = \Drupal::entityTypeManager()->getStorage('user');
+      $user_ids = \Drupal::entityQuery('user')
+      ->accessCheck(FALSE)
+        ->condition('status', 1) // Only active users
+        ->condition('roles', $admin_role_id)
+        ->execute();
+      $admin_id = reset($user_ids);
+      if ($admin_id) {
+        $user = \Drupal\user\Entity\User::load($admin_id);
+        $admin_name = $user->getAccountName();
+      }
+    }
+    return $admin_name;
   }
 }
