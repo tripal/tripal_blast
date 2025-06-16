@@ -691,7 +691,7 @@ class TripalBlastForm extends FormBase {
       // Redirect to the BLAST results page
       $go = '/blast/report/' . $job_encode_id;
       $redirect = new RedirectResponse(Url::fromUserInput($go)->toString());
-      $redirect->send();
+      $form_state->setResponse($redirect);
     }
   }
 
