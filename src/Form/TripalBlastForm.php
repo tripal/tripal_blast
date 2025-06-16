@@ -316,14 +316,15 @@ class TripalBlastForm extends FormBase {
 
     if ($group_json && is_array(json_decode($group_json, TRUE))) {
       $new_opts = [];
-      foreach($group_json AS $key => $val) {
+      $group_array = json_decode($group_json, TRUE);
+      foreach($group_array AS $key => $val) {
         $new_opts[$key] = [];
       }
       $new_opts['Other'] = [];
 
       foreach($dbs AS $k => $v) {
         $has_match = FALSE;
-        foreach($group_json AS $key => $val) {
+        foreach($group_array AS $key => $val) {
           if (preg_match("/$val/i", $v)) {
             $new_opts[$key][$k] =$v;
             $has_match = TRUE;
