@@ -210,7 +210,7 @@ class TripalBlastForm extends FormBase {
           ->get('tripal_blast_config_upload.allow_query');
 
         // We don't current support this well so disabling for now.
-        $is_query_upload_true = $config_query_upload ?? TRUE;
+          $is_query_upload_true = $config_query_upload ?? TRUE;
         if (FALSE) {
           // Upload a file as an alternative to enter a query sequence.
           $form['#attributes']['enctype'] = 'multipart/form-data';
@@ -255,6 +255,7 @@ class TripalBlastForm extends FormBase {
           //
           // # FIELD: SELECT DATABASE.
           $blast_db = $db_service->getDatabaseByType($db_type);
+          $blast_db = $this->dbsToOptGroups($blast_db);
           $form['B']['db']['SELECT_DB'] = [
             '#type' => 'select',
             '#title' => $this->t('%type BLAST Databases:', ['%type' => ucfirst($query)]),
@@ -305,6 +306,52 @@ class TripalBlastForm extends FormBase {
     return $form;
   }
 
+  /**
+   * Put BLAST db into groups if desired
+   * @param unknown $dbs
+   * @return unknown
+   */
+  public function dbsToOptGroups($dbs) {
+    $group_json = json_decode(\Drupal::config('tripal_blast.settings')->get('tripal_blast_config_optgroup.group_json'), TRUE);
+    
+    if (is_array($group_json)) {
+      $new_opts = [];
+      foreach($group_json AS $key => $val) {
+        $new_opts[$key] = [];
+      }
+      $new_opts['Other'] = [];
+      
+      foreach($dbs AS $k => $v) {
+        $has_match = FALSE;
+        foreach($group_json AS $key => $val) {
+          if (preg_match("/$val/i", $v)) {
+            $new_opts[$key][$k] =$v;
+            $has_match = TRUE;
+           break; 
+          }
+        }
+        if (!$has_match) {
+          $new_opts['Other'][$k] = $v;
+        }
+      }
+      // Remove empty group
+      $opts = array();
+      foreach ($new_opts AS $k => $v) {
+        if (is_array($v) && count($v) == 0) {
+          continue;
+        }
+        else {
+          $opts[$k] = $v;
+        }
+      }
+      return $opts;
+    }
+    else {
+      return $dbs;
+    }
+  }
+  
+  
   /**
    * {@inheritdoc}
    * Validate BLAST request.

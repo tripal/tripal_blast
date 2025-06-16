@@ -229,6 +229,21 @@ class TripalBlastConfigurationForm extends ConfigFormBase {
         '#default_value' => $config->get('tripal_blast_config_cluster.precmd')
       );
       
+      //
+      // # Optgroup CONFIGURATIONS:
+      $form['optgroup'] = array(
+        '#type' => 'details',
+        '#open' => FALSE,
+        '#title' => $this->t('Optgroup'),
+        '#description' => $this->t('Separate BLAST database options into groups in the dropdown of BLAST UI'),
+      );
+      
+      $form['optgroup']['group_json'] = array(
+        '#type' => 'textarea',
+        '#title' => $this->t('Group JSON'),
+        '#description' => $this->t('Input a JSON object and use its key and values to group the BLAST databases. For example, if you wish to put value1 and value2 into a group named \'key\', pass a JSON object like: {"key":  "value1", "key": "value2"}. Regular expression will be used to match the values.'),
+        '#default_value' => $config->get('tripal_blast_config_optgroup.group_json')
+      );
     return parent::buildForm($form, $form_state);
   }
 
@@ -246,6 +261,15 @@ class TripalBlastConfigurationForm extends ConfigFormBase {
       if(!file_exists($blast_path) ) {  
         $form_state->setErrorByName('fld_text_blast_path', $this->t('Please enter a valid path not including the name 
           of the blast program (ie: /usr/bin/). You can leave this blank if you have your $PATH variable set appropriately.'));
+      }
+    }
+    
+    // Validate optgroup array
+    $group_json = $form_state->getValue('group_json');
+    if (trim($group_json)) {
+      $return = json_decode($group_json, TRUE);
+      if (!is_array($return)) {
+        $form_state->setErrorByName('fld_text_blast_json_group', $this->t('Please enter a valid JSON object.'));
       }
     }
   }
@@ -284,6 +308,7 @@ class TripalBlastConfigurationForm extends ConfigFormBase {
     $partition = $form_state->getValue('partition');
     $account = $form_state->getValue('account');
     $precmd = $form_state->getValue('precmd');
+    $group_json = $form_state->getValue('group_json');
     
     // Set defined variables.
     $this->configFactory->getEditable(static::SETTINGS)
@@ -304,6 +329,7 @@ class TripalBlastConfigurationForm extends ConfigFormBase {
       ->set('tripal_blast_config_cluster.partition', $partition)
       ->set('tripal_blast_config_cluster.account', $account)
       ->set('tripal_blast_config_cluster.precmd', $precmd)
+      ->set('tripal_blast_config_optgroup.group_json', $group_json)
       ->save();
 
     return parent::submitForm($form, $form_state);
