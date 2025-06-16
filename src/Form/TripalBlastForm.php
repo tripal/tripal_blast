@@ -312,22 +312,22 @@ class TripalBlastForm extends FormBase {
    * @return unknown
    */
   public function dbsToOptGroups($dbs) {
-    $group_json = json_decode(\Drupal::config('tripal_blast.settings')->get('tripal_blast_config_optgroup.group_json'), TRUE);
-    
-    if (is_array($group_json)) {
+    $group_json = \Drupal::config('tripal_blast.settings')->get('tripal_blast_config_optgroup.group_json');
+
+    if ($group_json && is_array(json_decode($group_json, TRUE))) {
       $new_opts = [];
       foreach($group_json AS $key => $val) {
         $new_opts[$key] = [];
       }
       $new_opts['Other'] = [];
-      
+
       foreach($dbs AS $k => $v) {
         $has_match = FALSE;
         foreach($group_json AS $key => $val) {
           if (preg_match("/$val/i", $v)) {
             $new_opts[$key][$k] =$v;
             $has_match = TRUE;
-           break; 
+           break;
           }
         }
         if (!$has_match) {
@@ -350,8 +350,8 @@ class TripalBlastForm extends FormBase {
       return $dbs;
     }
   }
-  
-  
+
+
   /**
    * {@inheritdoc}
    * Validate BLAST request.
@@ -488,7 +488,7 @@ class TripalBlastForm extends FormBase {
 
     $fld_select_db_value = $form_state->getValue('SELECT_DB');
     $db = $fld_select_db_value ?? NULL;
-    
+
     // If SLURM is enabled, get its configuration
     $slurm = \Drupal::config('tripal_blast.settings')->get('tripal_blast_config_cluster.slurm');
     $tmp_dir = \Drupal::config('tripal_blast.settings')->get('tripal_blast_config_cluster.nfs_temp');
@@ -695,7 +695,7 @@ class TripalBlastForm extends FormBase {
       // issues. If you do not want to run tripal jobs manually, look into installing
       // Tripal daemon which will run jobs as they're submitted or set up a cron job to
       // launch the tripal jobs on a specified schedule.
-      
+
       // Run the job on SLURM Cluster
       if ($slurm) {
         $user = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id()); // Username to run the Tripal Job
@@ -726,7 +726,7 @@ class TripalBlastForm extends FormBase {
           fwrite($handle, "#SBATCH --time=24:00:00\n");
           fwrite($handle, $cmd);
           fclose($handle);
-          
+
           exec($bin_path . "sbatch $script", $stdout, $return);
           \Drupal::messenger()->addMessage('SLURM enabled: ' . $stdout[0]);
         }
