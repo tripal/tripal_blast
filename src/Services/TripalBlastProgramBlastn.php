@@ -121,7 +121,6 @@ class TripalBlastProgramBlastn {
         '#ajax' => [
           'callback' => '::ajaxFieldUpdateCallback',
           'wrapper'  => 'tripal-blast-wrapper-fld-select-gap-cost',
-          'method'   => 'replace',
           'event'    => 'change',
           'effect'   => 'fade',
           'progress' => 'throbber',

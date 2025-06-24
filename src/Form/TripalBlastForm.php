@@ -225,8 +225,8 @@ class TripalBlastForm extends FormBase {
               ['%max_size' => round($file_upload_max_size / 1024 / 1024, 1) . 'MB']
             ),
             '#upload_validators' => array(
-              'file_validate_extensions' => array('fasta fna fa fas'),
-              'file_validate_size' => array($file_upload_max_size),
+              'FileExtension' => array('fasta fna fa fas'),
+              'FileSizeLimit' => $file_upload_max_size,
             ),
           );
         }
@@ -499,6 +499,12 @@ class TripalBlastForm extends FormBase {
       $nfs_mount = \Drupal::config('tripal_blast.settings')->get('tripal_blast_config_cluster.nfs_mount');
       $host = gethostname();
       $nfs_dir = str_replace('$HOSTNAME', $host, $nfs_mount);
+      $upload = $form_state->getValue('upQuery_path');
+      if ($upload) {
+        $destination = str_replace(\Drupal::service('file_system')->getTempDirectory() . '/', $tmp_dir, $upload);
+        copy($upload, $destination);
+        $form_state->setValue('upQuery_path', $destination);
+      }
     }
 
     // We want to save information about the blast job to the database for recent jobs &
