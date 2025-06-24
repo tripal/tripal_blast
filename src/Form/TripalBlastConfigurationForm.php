@@ -1,7 +1,7 @@
 <?php
 /**
- * @file 
- * This is the controller for Tripal BLAST Configuration form. 
+ * @file
+ * This is the controller for Tripal BLAST Configuration form.
  */
 
 namespace Drupal\tripal_blast\Form;
@@ -12,7 +12,7 @@ use Drupal\Core\Form\FormStateInterface;
 /**
  * Defines TripalBlastConfigurationForm class.
  * Constructs admin pages configuration page.
- * Page is laid out in tabs/task. 
+ * Page is laid out in tabs/task.
  * @see tripal_blast.links.tasks.yml
  */
 class TripalBlastConfigurationForm extends ConfigFormBase {
@@ -41,7 +41,7 @@ class TripalBlastConfigurationForm extends ConfigFormBase {
   public function buildForm(array $form, FormStateInterface $form_state) {
     // Configuration/module variables.
     $config = $this->config(static::SETTINGS);
-   
+
     //
     // # GENERAL CONFIGURATIONS:
     $form['general'] = [
@@ -49,11 +49,11 @@ class TripalBlastConfigurationForm extends ConfigFormBase {
       '#title' => t('General'),
       '#open' => TRUE,
     ];
-  
-      $form['general']['fld_text_blast_path'] = [  
+
+      $form['general']['fld_text_blast_path'] = [
         '#type' => 'textfield',
         '#title' => $this->t('Enter the path of the BLAST program'),
-        '#description' => $this->t('You can ignore if your $PATH variable is set. 
+        '#description' => $this->t('You can ignore if your $PATH variable is set.
           Otherwise, enter the absoulte path to bin folder. For example, /opt/blast/2.2.29+/bin/'),
         '#default_value' => $config->get('tripal_blast_config_general.path')
       ];
@@ -61,32 +61,32 @@ class TripalBlastConfigurationForm extends ConfigFormBase {
       $form['general']['fld_text_blast_threads'] = [
         '#type' => 'textfield',
         '#title' => $this->t('Enter the number of CPU threads to use in blast search.'),
-        '#description' => $this->t('You can increase the number to reduce the search time. 
-          Before you increase, please check your hardware configurations. 
+        '#description' => $this->t('You can increase the number to reduce the search time.
+          Before you increase, please check your hardware configurations.
           A value of one(1) can result in a slower search for some programs eg. tblastn.'),
         '#default_value' => $config->get('tripal_blast_config_general.threads')
       ];
-    
+
       $form['general']['fld_text_blast_eval'] = [
         '#type' => 'textfield',
         '#title' => $this->t('Default e-value (Expected Threshold)'),
-        '#description' => $this->t('Expected number of chance matches in a random model. 
+        '#description' => $this->t('Expected number of chance matches in a random model.
           This number should be give in a decimal format.'),
         '#default_value' => $config->get('tripal_blast_config_general.eval')
       ];
-    
+
       $form['general']['fld_text_blast_qrange'] = [
         '#type' => 'textfield',
         '#title' => $this->t('Default max matches in a query range'),
-        '#description' => $this->t('Limit the number of matches to a query range. 
-          This option is useful if many strong matches to one part of a query may prevent 
+        '#description' => $this->t('Limit the number of matches to a query range.
+          This option is useful if many strong matches to one part of a query may prevent
           BLAST from presenting weaker matches to another part of the query.'),
         '#default_value' => $config->get('tripal_blast_config_general.qrange')
       ];
 
-    
+
     //
-    // # FILE UPLOAD CONFIGURATIONS:  
+    // # FILE UPLOAD CONFIGURATIONS:
     $form['file_upload'] = [
       '#type' => 'details',
       '#open' => FALSE,
@@ -103,7 +103,7 @@ class TripalBlastConfigurationForm extends ConfigFormBase {
         '#description' => $this->t('When checked, a query file upload field will be available on BLAST request forms.'),
         '#default_value' => $config->get('tripal_blast_config_upload.allow_query')
       ];
-    
+
       $form['file_upload']['fld_checkbox_blast_target_upload'] = [
         '#type' => 'checkbox',
         '#title' => $this->t('Enable Target Sequence Upload'),
@@ -111,15 +111,15 @@ class TripalBlastConfigurationForm extends ConfigFormBase {
         '#default_value' => $config->get('tripal_blast_config_upload.allow_target')
       ];
 
-    
+
     //
-    // # SEQUENCE CONFIGURATIONS:  
+    // # SEQUENCE CONFIGURATIONS:
     $form['example_sequence'] = [
       '#type' => 'details',
       '#open' => FALSE,
       '#title' => t('Set Example Sequences'),
-      '#description' => t('There is the ability to show example sequences built-in to the various 
-        BLAST forms. Use the following fields to set these example sequences. 
+      '#description' => t('There is the ability to show example sequences built-in to the various
+        BLAST forms. Use the following fields to set these example sequences.
         This allows you to provide more relevant examples to your users.
         More information: <a href="@fasta-format-url" target="_blank">FASTA format</a>.',
         ['@fasta-format-url' => 'https://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml'])
@@ -139,25 +139,25 @@ class TripalBlastConfigurationForm extends ConfigFormBase {
         '#default_value' => $config->get('tripal_blast_config_sequence.protein')
       ];
 
-    
+
     //
-    // # JOBS CONFIGURATIONS:  
+    // # JOBS CONFIGURATIONS:
     $form['protection'] = [
       '#type' => 'details',
       '#open' => FALSE,
       '#title' => $this->t('Protect against large jobs'),
-      '#description' => $this->t('Depending on the size and nature of your target databases, 
+      '#description' => $this->t('Depending on the size and nature of your target databases,
         you may wish to constrain use of this module.'),
     ];
 
       $form['protection']['fld_text_blast_max_results'] = [
         '#type' => 'textfield',
         '#title' => $this->t('Maximum number of results to show on report page'),
-        '#description' => $this->t('If there are more hits that this, the user is 
+        '#description' => $this->t('If there are more hits that this, the user is
           able to download but not visualize the results.'),
         '#default_value' => $config->get('tripal_blast_config_jobs.max_result')
       ];
-    
+
     //
     // # NOTIFICATION CONFIGURATIONS:
     $form['notification'] = array(
@@ -184,51 +184,49 @@ class TripalBlastConfigurationForm extends ConfigFormBase {
         '#title' => $this->t('SLURM Cluster'),
         '#description' => $this->t('This permits running jobs on a SLURM cluster.'),
       );
-      
+
       $form['cluster']['slurm'] = array(
         '#type' => 'checkbox',
         '#title' => $this->t('Run job on a SLURM cluster'),
         '#default_value' => $config->get('tripal_blast_config_cluster.slurm')
       );
-      
+
       $form['cluster']['bin_path'] = array(
         '#type' => 'textfield',
         '#title' => $this->t('Path to search for the SLURM sbatch script: (e.g. /opt/slurm/bin)'),
         '#default_value' => $config->get('tripal_blast_config_cluster.bin_path')
       );
-      
+
       $form['cluster']['nfs_mount'] = array(
         '#type' => 'textfield',
-        '#title' => $this->t('NFS mount point of the Drupal root directory on all cluster nodes'),
+        '#title' => $this->t('NFS mount point of the Drupal root directory on all cluster nodes. (essential for slurm to work properly)'),
         '#default_value' => $config->get('tripal_blast_config_cluster.nfs_mount'),
-        '#required' => TRUE
       );
-      
+
       $form['cluster']['nfs_temp'] = array(
         '#type' => 'textfield',
-        '#title' => $this->t('NFS mount point to store SLURM scripts and STDOUT/STDERR output on all cluster nodes'),
+        '#title' => $this->t('NFS mount point to store SLURM scripts and STDOUT/STDERR output on all cluster nodes. (essential for slurm to work properly)'),
         '#default_value' => $config->get('tripal_blast_config_cluster.nfs_temp'),
-        '#required' => TRUE
       );
-      
+
       $form['cluster']['partition'] = array(
         '#type' => 'textfield',
         '#title' => $this->t('SLURM partition to run the job'),
         '#default_value' => $config->get('tripal_blast_config_cluster.partition')
       );
-      
+
       $form['cluster']['account'] = array(
         '#type' => 'textfield',
         '#title' => $this->t('SLURM account for running the job'),
         '#default_value' => $config->get('tripal_blast_config_cluster.account')
       );
-      
+
       $form['cluster']['precmd'] = array(
         '#type' => 'textfield',
         '#title' => $this->t('Command to run before launching the Tripal job. (e.g. loading a minimally required version of PHP with \'ml php\')'),
         '#default_value' => $config->get('tripal_blast_config_cluster.precmd')
       );
-      
+
       //
       // # Optgroup CONFIGURATIONS:
       $form['optgroup'] = array(
@@ -237,7 +235,7 @@ class TripalBlastConfigurationForm extends ConfigFormBase {
         '#title' => $this->t('Optgroup'),
         '#description' => $this->t('Separate BLAST database options into groups in the dropdown of BLAST UI'),
       );
-      
+
       $form['optgroup']['group_json'] = array(
         '#type' => 'textarea',
         '#title' => $this->t('Group JSON'),
@@ -258,12 +256,12 @@ class TripalBlastConfigurationForm extends ConfigFormBase {
     $blast_path = $fld_value_blast_path . 'blastn';
 
     if(!empty($fld_value_blast_path)) {
-      if(!file_exists($blast_path) ) {  
-        $form_state->setErrorByName('fld_text_blast_path', $this->t('Please enter a valid path not including the name 
+      if(!file_exists($blast_path) ) {
+        $form_state->setErrorByName('fld_text_blast_path', $this->t('Please enter a valid path not including the name
           of the blast program (ie: /usr/bin/). You can leave this blank if you have your $PATH variable set appropriately.'));
       }
     }
-    
+
     // Validate optgroup array
     $group_json = $form_state->getValue('group_json');
     if (trim($group_json)) {
@@ -279,7 +277,7 @@ class TripalBlastConfigurationForm extends ConfigFormBase {
    * Save configuration.
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    // Field Values: 
+    // Field Values:
     // GENERAL CONFIGURATIONS:
     $fld_value_blast_path = $form_state->getValue('fld_text_blast_path');
     $fld_value_blast_threads = $form_state->getValue('fld_text_blast_threads');
@@ -299,7 +297,7 @@ class TripalBlastConfigurationForm extends ConfigFormBase {
 
     // NOTIFICATION CONFIGURATIONS:
     $fld_value_blast_warning_text = $form_state->getValue('fld_text_blast_warning_text');
-    
+
     // CLUSTER CONFIGURATIONS:
     $slurm = $form_state->getValue('slurm');
     $bin_path = $form_state->getValue('bin_path');
@@ -309,13 +307,13 @@ class TripalBlastConfigurationForm extends ConfigFormBase {
     $account = $form_state->getValue('account');
     $precmd = $form_state->getValue('precmd');
     $group_json = $form_state->getValue('group_json');
-    
+
     // Set defined variables.
     $this->configFactory->getEditable(static::SETTINGS)
       ->set('tripal_blast_config_general.path', $fld_value_blast_path)
       ->set('tripal_blast_config_general.threads', $fld_value_blast_threads)
       ->set('tripal_blast_config_general.eval', $fld_value_blast_eval)
-      ->set('tripal_blast_config_general.qrange', $fld_value_blast_qrange)    
+      ->set('tripal_blast_config_general.qrange', $fld_value_blast_qrange)
       ->set('tripal_blast_config_upload.allow_query', $fld_value_blast_query_upload)
       ->set('tripal_blast_config_upload.allow_target', $fld_value_blast_target_upload)
       ->set('tripal_blast_config_sequence.nucleotide', $fld_value_blast_nucleotide_example)

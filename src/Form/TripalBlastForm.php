@@ -12,6 +12,7 @@ use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\InvokeCommand;
 use Drupal\Core\Url;
 use Drupal\node\Entity\Node;
+use Drupal\file\Entity\File;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 use Drupal\tripal\Services\TripalJob;
@@ -209,9 +210,7 @@ class TripalBlastForm extends FormBase {
         $config_query_upload = \Drupal::config('tripal_blast.settings')
           ->get('tripal_blast_config_upload.allow_query');
 
-        // We don't current support this well so disabling for now.
-          $is_query_upload_true = $config_query_upload ?? TRUE;
-        if (FALSE) {
+        if ($config_query_upload) {
           // Upload a file as an alternative to enter a query sequence.
           $form['#attributes']['enctype'] = 'multipart/form-data';
 
@@ -222,8 +221,7 @@ class TripalBlastForm extends FormBase {
             '#description' => $this->t('The file should be a plain-text FASTA
               (.fasta, .fna, .fa, .fas) file. In other words, it cannot have formatting as is the
               case with MS Word (.doc, .docx) or Rich Text Format (.rtf). It cannot be greater
-              than %max_size in size. <strong>Don\'t forget to press the Upload button before
-              attempting to submit your BLAST.</strong>',
+              than %max_size in size.',
               ['%max_size' => round($file_upload_max_size / 1024 / 1024, 1) . 'MB']
             ),
             '#upload_validators' => array(
@@ -277,7 +275,7 @@ class TripalBlastForm extends FormBase {
               '#description' => t('The file should be a plain-text FASTA (.fasta, .fna, .fa) file.
                 In other words, it cannot have formatting as is the case with MS Word (.doc, .docx)
                 or Rich Text Format (.rtf). It cannot be greater than %max_size in size.
-                <strong>Don\'t forget to press the Upload button before attempting to submit your BLAST.</strong>',
+                ',
                 ['%max_size' => round($file_upload_max_size / 1024 / 1024,1) . 'MB']),
               '#upload_validators' => [
                 'file_validate_extensions' => ['fasta fna fa'],
@@ -374,15 +372,15 @@ class TripalBlastForm extends FormBase {
     $fld_file_query_value = $form_state->getValue('UPLOAD');
 
     if($fld_file_query_value) {
-      $file = file_load($fld_file_query_value);
+      $file = File::load($fld_file_query_value[0]);
     }
 
     $fld_fasta_value = $form_state->getValue('FASTA');
-    if (is_object($file)) {
+    if ($file) {
       // If the $file is populated then this a newly uploaded, temporary file.
-      $form_state->setValue('qFlag', 'upQuery');
 
-      $file_uri = \Drupal::service('file_system')->realpath($file->uri);
+      $form_state->setValue('qFlag', 'upQuery');
+      $file_uri = \Drupal::service('file_system')->realpath($file->getFileUri());
       $form_state->setValue('upQuery_path', $file_uri);
     }
     elseif (!empty($fld_fasta_value)) {
@@ -419,13 +417,13 @@ class TripalBlastForm extends FormBase {
     $fld_select_db_value = $form_state->getValue('SELECT_DB');
 
     if ($fld_file_db_value) {
-      $file = file_load($fld_file_db_value);
+      $file = File::load($fld_file_db_value[0]);
 
-      if (is_object($file)) {
+      if ($file) {
         // If the $file is populated then this is a newly uploaded, temporary file.
         $form_state->setValue('dbFlag', 'upDB');
 
-        $file_uri = \Drupal::service('file_system')->realpath($file->uri);
+        $file_uri = \Drupal::service('file_system')->realpath($file->getFileUri());
         $form_state->setValue('upDB_path', $file_uri);
       }
       elseif (empty($fld_select_db_value)) {
