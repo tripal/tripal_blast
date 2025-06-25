@@ -239,7 +239,7 @@ class TripalBlastConfigurationForm extends ConfigFormBase {
       $form['optgroup']['group_json'] = array(
         '#type' => 'textarea',
         '#title' => $this->t('Group JSON'),
-        '#description' => $this->t('Input a JSON object and use its key and values to group the BLAST databases. For example, if you wish to put value1 and value2 into a group named \'key\', pass a JSON object like: {"key":  "value1", "key": "value2"}. Regular expression will be used to match the values.'),
+        '#description' => $this->t('Input a JSON object and use its key and value to group the BLAST databases. For example, if you wish to group databases by species, pass a JSON object like: {"Vaccinium corymbosum genome":  "Vaccinium corymbosum"}. Any database containing "Vaccinium corymbosum" in its name will be put under "Vaccinium corymbosum genome" group.'),
         '#default_value' => $config->get('tripal_blast_config_optgroup.group_json')
       );
     return parent::buildForm($form, $form_state);
