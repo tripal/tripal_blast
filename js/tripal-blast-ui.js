@@ -17,7 +17,6 @@
       var win = $('#tripal-blast-information-window');
 
       $('#' + infoLink)
-        .once('#' + infoLink)
         .each(function() {
           $(this).click(function(e) {
             e.preventDefault();
