@@ -4,13 +4,13 @@ namespace Drupal\Tests\tripal_blast\Functional;
 
 use Drupal\Core\Url;
 use Drupal\Tests\tripal_chado\Functional\ChadoTestBrowserBase;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Simple test to ensure that main page loads with module enabled.
- *
- * @group TripalBlast
- * @group Installation
  */
+#[Group('TripalBlast')]
+#[Group('Installation')]
 class InstallTest extends ChadoTestBrowserBase {
 
   protected $defaultTheme = 'stark';
