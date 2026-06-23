@@ -5,12 +5,14 @@ namespace Drupal\Tests\tripal_blast\Functional;
 use Drupal\Core\Url;
 use Drupal\Tests\tripal_chado\Functional\ChadoTestBrowserBase;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 
 /**
  * Checks the main user program listing found at SITE/blast.
  */
 #[Group('TripalBlast')]
 #[Group('User Interface')]
+#[RunTestsInSeparateProcesses]
 class UserInterfaceTest extends ChadoTestBrowserBase {
 
   protected $defaultTheme = 'stark';
