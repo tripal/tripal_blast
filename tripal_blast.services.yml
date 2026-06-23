@@ -14,3 +14,5 @@ services:
     class: Drupal\tripal_blast\Services\TripalBlastProgramTblastn
   tripal_blast.program_blastp:
     class: Drupal\tripal_blast\Services\TripalBlastProgramBlastp
+  tripal_blast.hook_service:
+    class: 'Drupal\tripal_blast\Hook\TripalBlastHooks'
