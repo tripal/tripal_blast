@@ -3,9 +3,9 @@
   "build": {
     "dockerfile": "Dockerfile",
     "args": {
-      "drupalversion": "10.4.x-dev",
-      "phpversion": "8.3",
-      "pgsqlversion": "16"
+      "drupalversion": "11.x-dev",
+      "phpversion": "8.5",
+      "pgsqlversion": "18"
     }
   },
   "workspaceMount": "source=${localWorkspaceFolder},target=/var/www/drupal/web/modules/contrib/tripal_blast,type=bind",

@@ -1,6 +1,6 @@
-ARG drupalversion='10.2.x-dev'
-ARG phpversion='8.3'
-ARG pgsqlversion="16"
+ARG drupalversion='11.x-dev'
+ARG phpversion='8.5'
+ARG pgsqlversion="18"
 FROM tripalproject/tripaldocker:drupal${drupalversion}-php${phpversion}-pgsql${pgsqlversion}
 
 LABEL org.opencontainers.image.source=https://github.com/tripal/tripal_blast
