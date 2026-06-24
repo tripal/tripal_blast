@@ -587,17 +587,17 @@ class TripalBlastForm extends FormBase {
       $output_filestub = $output_dir . DIRECTORY_SEPARATOR . date('YMd_His') . '.blast';
 
       $job_args = array(
-        'program' => $blast_program,
-        'query' => $blastjob['query_file'],
-        'database' => $blastdb_with_path,
-        'output_filestub' => $output_filestub,
-        'options' => $advanced_options
+        $blast_program,
+        $blastjob['query_file'],
+        $blastdb_with_path,
+        $output_filestub,
+        $advanced_options
       );
 
       $job_id = tripal_add_job(
         t('BLAST (@program): @query', array('@program' => $blast_program, '@query' => $blastjob['query_file'])),
         'blast_job',
-        'run_BLAST_tripal_job',
+        ['Drupal\tripal_blast\Services\TripalBlastJobService', 'runJob'],
         $job_args,
         \Drupal::currentUser()->id()
       );
