@@ -4,31 +4,30 @@
  */
 
 // Attach behavior.
-(function($, Drupal){
+(function($, Drupal, once){
   Drupal.behaviors.TripalBlastUI = {
     attach: function (context, settings) {
-      $('#tripal-blast-accordion').accordion({
+      $('#tripal-blast-accordion', context).accordion({
         icons: false,
         collapsible: true
       });
 
-      // Listen to what is BLAST information link.      
+      // Listen to what is BLAST information link.
       var infoLink = 'tripal-blast-nav-blast';
-      var win = $('#tripal-blast-information-window');
+      var win = $('#tripal-blast-information-window', context);
 
-      $('#' + infoLink)
-        .once('#' + infoLink)
-        .each(function() {
-          $(this).click(function(e) {
-            e.preventDefault();
+      once('tripal-blast-info', '#' + infoLink, context).forEach(function (element) {
+        $(element).click(function(e) {
+          e.preventDefault();
 
-            if (win.is(':visible')) {
-              win.slideUp();
-            }
-            else {
-              win.slideDown();
-            }
-          });
+          if (win.is(':visible')) {
+            win.slideUp();
+          }
+          else {
+            win.slideDown();
+          }
         });
-
-}}})(jQuery, Drupal);
+      });
+    }
+  };
+})(jQuery, Drupal, once);
