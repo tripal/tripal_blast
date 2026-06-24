@@ -16,10 +16,10 @@ class TripalBlastProgramHelper {
    *
    * The options are the same for all programs
    * and describe the maximum number of aligned sequences to keep.
-   * 
+   *
    * @param $program_name
    *   String, established program name - blastn, blastx, blastp and tblastn.
-   * 
+   *
    * @param array
    *   Number range.
    */
@@ -42,7 +42,7 @@ class TripalBlastProgramHelper {
           5000  => t('5000'),
           10000 => t('10000'),
           20000 => t('20000'),
-        ];    
+        ];
     }
 
     return $max_target;
@@ -53,7 +53,7 @@ class TripalBlastProgramHelper {
    *
    * @param $program_name
    *   String, established program name - blastn, blastx, blastp and tblastn.
-   * 
+   *
    * @param array
    *   Number range.
    */
@@ -97,7 +97,7 @@ class TripalBlastProgramHelper {
    *
    * @param $program_name
    *   String, established program name - blastn, blastx, blastp and tblastn.
-   * 
+   *
    * @param array
    *   Matrix ids/keys.
    */
@@ -118,14 +118,14 @@ class TripalBlastProgramHelper {
 
   /**
    * Fill the gap penalty dropdown list with appropriate options given a selected matrix.
-   * 
+   *
    * @param $key
    *   String, matrix id or key defined in programGetScoringMatrix().
    *
    * @return
-   *   An array containing open and extension gap values for the chosen matrix 
+   *   An array containing open and extension gap values for the chosen matrix
    *   (to fill the second dropdown list)
-   * 
+   *
    * @dependencies
    *   programGetScoringMatrix() and programMakeGaps().
    */
@@ -140,9 +140,9 @@ class TripalBlastProgramHelper {
       case 'PAM70':
         $matrix_gap = ['8_2', '7_2', '6_2', '11_1', '10_1', '9_1', '12_3', '11_2'];
         break;
-      
+
       case 'PAM250':
-        $matrix_gap = ['15_3', '14_3', '13_3', '12_3', '11_3', '17_2', '16_2', '15_2', 
+        $matrix_gap = ['15_3', '14_3', '13_3', '12_3', '11_3', '17_2', '16_2', '15_2',
                        '14_2', '13_2', '21_1', '20_1', '19_1', '18_1', '17_1'];
         break;
 
@@ -155,37 +155,37 @@ class TripalBlastProgramHelper {
         break;
 
       case 'BLOSUM45':
-        $matrix_gap = ['13_3', '12_3', '11_3', '10_3', '15_2', '14_2', '13_2', '12_2', '19_1', 
+        $matrix_gap = ['13_3', '12_3', '11_3', '10_3', '15_2', '14_2', '13_2', '12_2', '19_1',
                        '18_1', '17_1', '16_1'];
         break;
 
       case 'BLOSUM50':
-        $matrix_gap = ['13_3', '12_3', '11_3', '10_3', '9_3', '16_2', '15_2', '14_2', '13_2', '12_2', 
+        $matrix_gap = ['13_3', '12_3', '11_3', '10_3', '9_3', '16_2', '15_2', '14_2', '13_2', '12_2',
                        '19_1', '18_1', '17_1', '16_1', '15_1'];
         break;
 
       case 'BLOSUM90':
         $matrix_gap = ['9_2', '8_2', '7_2', '6_2', '11_1', '10_1', '9_1'];
     }
-    
+
     return TripalBlastProgramHelper::programMakeGap($matrix_gap);
   }
 
   /**
    * Expand matrix gap per matrix key gap array (value 1 _ value 2).
-   * 
-   * @param $gap_array 
+   *
+   * @param $gap_array
    *   Array of gap abbreviations base on the matrix key.
    *
    * @return array
    *   Deconstructed gap (value 1 and value 2).
-   * 
+   *
    * @see
    *   programGetGapForMatrix().
    */
   public static function programMakeGap($gap_array) {
     $gap = [];
-     
+
     foreach($gap_array as $value) {
       list($value1, $value2) = explode('_', $value);
       $gap[ $value ] = t('Existence: @value1 Extension: @value2', ['@value1' => $value1, '@value2' => $value2]);
@@ -196,17 +196,21 @@ class TripalBlastProgramHelper {
 
   /**
    * Translate gap abbreviation into blast gap open and extend costs.
-   * @param $gap_key 
+   * @param $gap_key
    *   A gap open/extend abbreviation
    */
   public static function programSetGap($gap_key) {
-    $parts = explode('-', $gap_key);
-    return ['gapOpen' => $parts[0], 'gapExtend' => $parts[1]];
+    $parts = explode('-', (string) $gap_key);
+
+    return [
+      'gapOpen' => $parts[0] ?? '',
+      'gapExtend' => $parts[1] ?? '',
+    ];
   }
 
   /**
-   * Translate mismatch/match ratio option into blast penalty/reward options. 
-   * 
+   * Translate mismatch/match ratio option into blast penalty/reward options.
+   *
    * @param $mm_score
    *   Match and mismatch value.
    */
@@ -242,16 +246,16 @@ class TripalBlastProgramHelper {
         $reward = 1;
         break;
     }
-  
+
     return ['penalty' => $penalty, 'reward' => $reward];
   }
 
   /**
    * Reward and penalty for matching and mismatching bases.
-   * 
+   *
    * @param $program_name
    *   String, established program name - blastn, blastx, blastp and tblastn.
-   * 
+   *
    * @return array
    */
   public static function programGetMatchMismatch($program_name) {
@@ -265,17 +269,17 @@ class TripalBlastProgramHelper {
         5 => t('1,-1')
       ]
     ];
-    
+
     return $mm[ $program_name ] ?? '';
   }
 
   /**
-   * Cost to create and extend a gap in an alignment. 
-   * 
+   * Cost to create and extend a gap in an alignment.
+   *
    * @param $program_name
    *   String, established program name - blastn, blastx, blastp and tblastn.
    * @param $mm_set
-   *   Value selected in Match/Mismatch field (as default). 
+   *   Value selected in Match/Mismatch field (as default).
    */
   public static function programGetGapCost($program_name, $mm_set) {
     $gap = [];
@@ -305,12 +309,12 @@ class TripalBlastProgramHelper {
 
           case 5: //1, -1
             $gap = ['5_2', '3_2', '2_2', '1_2', '0_2', '4_1', '3_1', '2_1'];
-        }        
+        }
     }
 
     return TripalBlastProgramHelper::programMakeGap($gap);
-  } 
-  
+  }
+
   /**
    * FASTA validating parser
    *
@@ -336,11 +340,11 @@ class TripalBlastProgramHelper {
     $fastaSeqRegEx = ($query == 'nucleotide')
       ? '/^[ATCGNUKMBVSWDYRHatcgnukmbvswdyrh\[\/\]\s\n\r]*$/'
       : '/^[acdefghiklmnpqrstvwyACDEFGHIKLMNPQRSTVWY\*\-\s\n\r]*$/';
-    
+
       $defRegEx      = '/^>\S.*/';
 
     // For each line of the sequence.
-    foreach (explode("\n", $fasta_sequence) as $line) {      
+    foreach (explode("\n", $fasta_sequence) as $line) {
       if (isset($line[0]) && $line[0] == '>') {
         // Is this a definition line?
         if (!preg_match($defRegEx, $line)) {
@@ -360,12 +364,12 @@ class TripalBlastProgramHelper {
 
   /**
    * Validate field callback.
-   * 
+   *
    * @param $value
    *   Value to validate to match the type.
    * @param $type
    *   Value type to test a given value.
-   * 
+   *
    * @return boolean
    *   True if value and type match, false otherwise.
    */
@@ -379,10 +383,10 @@ class TripalBlastProgramHelper {
       case 'number':
         if (!is_numeric($value)) {
           $is_valid['result'] = FALSE;
-          $is_valid['message'] = 'The e-value should be a very small number (scientific notation is supported). 
+          $is_valid['message'] = 'The e-value should be a very small number (scientific notation is supported).
             For example, <em>0.001</em> or, even better, <em>1e-10</em>.';
         }
-        
+
         break;
     }
 
@@ -392,7 +396,7 @@ class TripalBlastProgramHelper {
   /**
    * Get default form values; may come from saved job data if user is re-running
    * a previous job.
-   * 
+   *
    * @param $options
    * @param $program
    */
@@ -400,15 +404,15 @@ class TripalBlastProgramHelper {
     // restore previous values or set to default
     $max_target = (isset($options['max_target_seqs']))
       ? $options['max_target_seqs'] : 500;
-  
+
     $short_queries = (isset($options['shortQueries']))
       ? $options['shortQueries'] : TRUE;
-  
+
     $eval = \Drupal::config('tripal_blast.settings')
-      ->get('tripal_blast_config_general.eval');   
+      ->get('tripal_blast_config_general.eval');
     $evalue = (isset($options['evalue']))
       ? $options['evalue'] : $eval;
-  
+
     $word_size = (isset($options['word_size']))
       ? $options['word_size'] : 11;
 
@@ -416,16 +420,16 @@ class TripalBlastProgramHelper {
     $matchmiss = 0;
     $reward = (isset($options['reward']))
       ? $options['reward'] : 1;
-  
+
     $penalty = (isset($options['penalty']))
       ? $options['penalty'] : -2;
-  
+
     if ($reward == 1) {
       switch ($penalty) {
         case -1:
           $matchmiss = 5;
           break;
-      
+
         case -2:
           $matchmiss = 0;
           break;
@@ -476,7 +480,7 @@ class TripalBlastProgramHelper {
       }
     }
     $gap = $gapopen.'_'.$gapextend;
-  
+
     // matrix
     $matrix = (isset($options['matrix']))
       ? $options['matrix'] : 'BLOSUM62';
