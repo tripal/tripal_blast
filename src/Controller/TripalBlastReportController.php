@@ -23,6 +23,7 @@ class TripalBlastReportController extends ControllerBase {
     $job = $tripaljob->getJob();
 
     if ($job->start_time == NULL AND $job->end_time == NULL) {
+      $this->messenger()->addMessage($this->t('Your BLAST job is in the queue and will be processed shortly. Please remain on this page to see your results.'));
       // 1) Job is in the Queue.
       $theme = 'theme-tripal-blast-report-pending';
       $job_param = [
@@ -32,12 +33,23 @@ class TripalBlastReportController extends ControllerBase {
       ];
     }
     elseif (strtolower($job->status) == 'cancelled') {
+      $this->messenger()->addWarning($this->t('Your BLAST job has been cancelled by an administrator.'));
       // 2) Job has been Cancelled.
       $theme = 'theme-tripal-blast-report-pending';
       $job_param = [
         'job_id' => '',
         'status' => 'Cancelled',
         'status_code' => 999
+      ];
+    }
+    elseif (strtolower($job->status) == 'error') {
+      $this->messenger()->addError($this->t('Your BLAST job has encountered an error.'));
+      // 2) Job has encountered an error.
+      $theme = 'theme-tripal-blast-report-pending';
+      $job_param = [
+        'job_id' => '',
+        'status' => 'Error',
+        'status_code' => 666
       ];
     }
     elseif ($job->end_time !== NULL) {
@@ -53,11 +65,11 @@ class TripalBlastReportController extends ControllerBase {
     }
     else {
       // 4) Job is in Progress
-      $theme = 'theme-tripal-blast-report_pending';
+      $theme = 'theme-tripal-blast-report-pending';
       $job_param = [
         'job_id' => '',
-        'status' => 1,
-        'status_code' => 'Running'
+        'status' => 'Running',
+        'status_code' => 1
       ];
     }
 

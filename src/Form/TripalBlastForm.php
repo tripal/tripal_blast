@@ -590,7 +590,7 @@ class TripalBlastForm extends FormBase {
         'program' => $blast_program,
         'query' => $blastjob['query_file'],
         'database' => $blastdb_with_path,
-        'output_filename' => $output_filestub,
+        'output_filestub' => $output_filestub,
         'options' => $advanced_options
       );
 
