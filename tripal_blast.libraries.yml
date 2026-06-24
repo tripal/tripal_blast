@@ -6,28 +6,14 @@
 tripal-blast-ui:
   version: 1.x
   js:
-    js/jquery-accordion.js: {}
+    js/jquery-ui-accordion.min.js: {}
     js/tripal-blast-ui.js: {}
   css:
     theme:
       css/tripal-blast-ui.css: {}
   dependencies:
     - core/jquery
-    - core/jquery.once
-
-# Library used in Admin page to generate content tabs
-# element showing BLAST configuration help topics.
-tripal-blast-admin:
-  version: 1.x
-  js:
-    js/jquery-tabs.js: {}
-    js/tripal-blast-admin.js: {}
-  css:
-    theme:
-      css/tripal-blast-tabs.css: {}
-  dependencies:
-    - core/jquery
-    - core/jquery.once
+    - core/once
 
 # Library used in BLAST pages/programs.
 tripal-blast-programs:
@@ -48,3 +34,5 @@ tripal-blast-report:
       css/tripal-blast-report-page.css: {}
   dependencies:
     - core/jquery
+    - core/drupal
+    - core/once
