@@ -8,11 +8,18 @@ namespace Drupal\tripal_blast\Services;
 use Drupal\Core\Render\Markup;
 use Drupal\tripal\Services\TripalJob;
 use Drupal\tripal\Services\TripalLogger;
+use Drupal\tripal_blast\Services\TripalBlastProgramHelper;
 
 class TripalBlastJobService {
 
-  public function __construct(TripalLogger $logger) {
-    $this->logger = $logger;
+  /**
+   * Constructs a new TripalBlastJobService object.
+   *
+   * @param \Drupal\tripal\Services\TripalLogger|null $logger
+   *   The Tripal logger service.
+   */
+  public function __construct(?TripalLogger $logger = NULL) {
+    $this->logger = $logger ?? \Drupal::service('tripal.logger');
   }
   /**
    * The Tripal logger service.
@@ -323,6 +330,15 @@ class TripalBlastJobService {
     $output_file_tsv = $output_filestub . '.tsv';
     $output_file_html = $output_filestub . '.html';
     $output_file_gff = $output_filestub . '.gff';
+
+    // Gap open and gap extend costs are required for blastn and blastp.
+    // We are given them in integer pairs (ie: 5_2) but BLAST requires them to
+    // be passed in as separate options.
+    if (array_key_exists('gapopen', $options)) {
+      $gap_parts = TripalBlastProgramHelper::programSetGap($options['gapopen']);
+      $options += $gap_parts;
+    }
+
 
     print "\nExecuting $program\n\n";
     print "Query: $query\n";
