@@ -7,8 +7,20 @@ namespace Drupal\tripal_blast\Services;
 
 use Drupal\Core\Render\Markup;
 use Drupal\tripal\Services\TripalJob;
+use Drupal\tripal\Services\TripalLogger;
 
 class TripalBlastJobService {
+
+  public function __construct(TripalLogger $logger) {
+    $this->logger = $logger;
+  }
+  /**
+   * The Tripal logger service.
+   *
+   * @var \Drupal\tripal\Services\TripalLogger
+   */
+  protected TripalLogger $logger;
+
   /**
    * Retrieve the number or recent jobs.
    */
@@ -133,12 +145,7 @@ class TripalBlastJobService {
         return $job_id;
       }
       else {
-        tripal_report_error(
-          'blast_ui',
-          TRIPAL_ERROR,
-          'Unable to decode the blast job_id from :id.',
-          [':id' => $secret]
-        );
+        $this->logger->error('Unable to decode the blast job_id from :id.', [':id' => $secret]);
       }
     }
     else {
@@ -152,21 +159,11 @@ class TripalBlastJobService {
           return $job_id;
         }
         else {
-          tripal_report_error(
-            'blast_ui',
-            TRIPAL_ERROR,
-            'Unable to decode the blast job_id from :id.',
-            [':id' => $secret]
-          );
+          $this->logger->error('Unable to decode the blast job_id from :id.', [':id' => $secret]);
         }
       }
       else {
-        tripal_report_error(
-          'blast_ui',
-          TRIPAL_ERROR,
-          'Unable to decode the blast job_id from :id.',
-          array(':id' => $secret)
-        );
+        $this->logger->error('Unable to decode the blast job_id from :id.', [':id' => $secret]);
       }
     }
 
@@ -342,6 +339,8 @@ class TripalBlastJobService {
     $blast_threads = \Drupal::config('tripal_blast.settings')
       ->get('tripal_blast_config_general.threads');
 
+    $logger = \Drupal::service('tripal.logger');
+
     // Strip the extension off the BLAST target
     $suffix = [
       '.ndb',
@@ -364,13 +363,7 @@ class TripalBlastJobService {
 
     // Check that the database exists before trying to execute the job.
     if (!(file_exists($database . '.nsq') or file_exists($database . '.psq'))) {
-      tripal_report_error(
-        'blast_ui',
-        TRIPAL_ERROR,
-        "Unable to find the BLAST database (ie: @db). Please ensure you have supplied the absolute path not including the file format endings.",
-        ['@db' => $database],
-        ['print' => TRUE]
-      );
+      $logger->error("Unable to find the BLAST database (ie: @db). Please ensure you have supplied the absolute path not including the file format endings.", ['@db' => $database]);
 
       return FALSE;
     }
@@ -378,13 +371,7 @@ class TripalBlastJobService {
     // The BLAST executeable.
     $program = $blast_path . $program;
     if (!file_exists($program)) {
-      tripal_report_error(
-        'blast_ui',
-        TRIPAL_ERROR,
-        "Unable to find the BLAST executable (ie: /usr/bin/blastn). This can be changed in the admin settings; you supplied: @command",
-        ['@command' => $program],
-        ['print' => TRUE]
-      );
+      $logger->error("Unable to find the BLAST executable (ie: /usr/bin/blastn). This can be changed in the admin settings; you supplied: @command", ['@command' => $program]);
 
       return FALSE;
     }
@@ -392,13 +379,7 @@ class TripalBlastJobService {
     // The blast db formatter executable.
     $blast_formatter_command = $blast_path . 'blast_formatter';
     if (!file_exists($blast_formatter_command)) {
-      tripal_report_error(
-        'blast_ui',
-        TRIPAL_ERROR,
-        "Unable to find the BLAST Formatter executable (ie: /usr/bin/blast_formatter). This can be changed in the admin settings; you supplied: @command",
-        ['@command' => $blast_formatter_command],
-        ['print' => TRUE]
-      );
+      $logger->error("Unable to find the BLAST Formatter executable (ie: /usr/bin/blast_formatter). This can be changed in the admin settings; you supplied: @command", ['@command' => $blast_formatter_command]);
 
       return FALSE;
     }
@@ -427,13 +408,7 @@ class TripalBlastJobService {
     system($blast_cmd);
 
     if (!file_exists($output_file)) {
-      tripal_report_error(
-        'blast_ui',
-        TRIPAL_ERROR,
-        "BLAST did not complete successfully as is implied by the lack of output file (%file). The command run was @command",
-        ['%file' => $output_file, '@command' => $blast_cmd],
-        ['print' => TRUE]
-      );
+      $logger->error("BLAST did not complete successfully as is implied by the lack of output file (%file). The command run was @command", ['%file' => $output_file, '@command' => $blast_cmd]);
 
       return FALSE;
     }
@@ -446,13 +421,7 @@ class TripalBlastJobService {
     system($format_cmd);
 
     if (!file_exists($output_file_xml)) {
-      tripal_report_error(
-        'blast_ui',
-        TRIPAL_ERROR,
-        "Unable to convert BLAST ASN.1 archive to XML (%archive => %file).",
-        ['%archive' => $output_file, '%file' => $output_file_xml],
-        ['print' => TRUE]
-      );
+      $logger->error("Unable to convert BLAST ASN.1 archive to XML (%archive => %file).", ['%archive' => $output_file, '%file' => $output_file_xml]);
     }
 
     print "\tTab-delimited\n";
@@ -461,13 +430,7 @@ class TripalBlastJobService {
     system($format_cmd);
 
     if (!file_exists($output_file_tsv)) {
-      tripal_report_error(
-        'blast_ui',
-        TRIPAL_WARNING,
-        "Unable to convert BLAST ASN.1 archive to Tabular Output (%archive => %file).",
-        ['%archive' => $output_file, '%file' => $output_file_tsv],
-        ['print' => TRUE]
-      );
+      $logger->warning("Unable to convert BLAST ASN.1 archive to Tabular Output (%archive => %file).", ['%archive' => $output_file, '%file' => $output_file_tsv]);
     }
 
     print "\tGFF\n";
@@ -475,13 +438,7 @@ class TripalBlastJobService {
     $job_service->jobsConvertTSVtoGFF3($output_file_tsv, $output_file_gff);
 
     if (!file_exists($output_file_gff)) {
-      tripal_report_error(
-        'blast_ui',
-        TRIPAL_WARNING,
-        "Unable to convert BLAST Tabular Output to GFF Output (%archive => %file).",
-        ['%archive' => $output_file, '%file' => $output_file_gff],
-        ['print' => TRUE]
-      );
+      $logger->warning("Unable to convert BLAST Tabular Output to GFF Output (%archive => %file).", ['%archive' => $output_file, '%file' => $output_file_gff]);
     }
 
     print "\tHTML (includes alignments)\n";
@@ -490,13 +447,7 @@ class TripalBlastJobService {
     system($format_cmd);
 
     if (!file_exists($output_file_tsv)) {
-      tripal_report_error(
-        'blast_ui',
-        TRIPAL_WARNING,
-        "Unable to convert BLAST ASN.1 archive to HTML Output (%archive => %file).",
-        ['%archive' => $output_file, '%file' => $output_file_html],
-        ['print' => TRUE]
-      );
+      $logger->warning("Unable to convert BLAST ASN.1 archive to HTML Output (%archive => %file).", ['%archive' => $output_file, '%file' => $output_file_html]);
     }
 
     print "\nDone!\n";

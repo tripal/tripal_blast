@@ -6,6 +6,8 @@ services:
     class: Drupal\tripal_blast\Services\TripalBlastDatabaseService
   tripal_blast.job_service:
     class: Drupal\tripal_blast\Services\TripalBlastJobService
+    arguments:
+      - '@tripal.logger'
   tripal_blast.program_blastn:
     class: Drupal\tripal_blast\Services\TripalBlastProgramBlastn
   tripal_blast.program_blastx:
