@@ -63,7 +63,7 @@ class TripalBlastHooks {
         'template' => 'template-tripal-blast-message',
       ],
       'theme-tripal-blast-report-pending' => [
-        'variables' => ['data' => []],
+        'variables' => ['job' => []],
         'template' => 'template-tripal-blast-report-pending',
       ],
       'theme-tripal-blast-show-report' => [

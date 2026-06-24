@@ -1,9 +1,4 @@
 <?php
-/**
- * @file 
- * This is the controller for Tripal BLAST help page.
- */
-
 namespace Drupal\tripal_blast\Controller;
 
 use Drupal\Core\Url;
@@ -12,16 +7,17 @@ use Drupal\tripal\Services\TripalJob;
 
 /**
  * Defines TripalBlastReportController class.
- * 
  */
-class TripalBlastReportController extends ControllerBase {  
+class TripalBlastReportController extends ControllerBase {
   public function report($job_id) {
+    $report = NULL;
+
     // BLASTs are run as a Tripal job. As such we need to determine whether the current
     // BLAST is in the queue, running or complete in order to determine what to show the user
     // decode the job_id
     $job_service = \Drupal::service('tripal_blast.job_service');
     $job_id = $job_service->jobsBlastRevealSecret($job_id);
-    
+
     $tripaljob = new TripalJob;
     $tripaljob->load($job_id);
     $job = $tripaljob->getJob();
@@ -31,8 +27,8 @@ class TripalBlastReportController extends ControllerBase {
       $theme = 'theme-tripal-blast-report-pending';
       $job_param = [
         'job_id' => '',
-        'status' => 'Pending',        
-        'status_code' => 0        
+        'status' => 'Pending',
+        'status_code' => 0
       ];
     }
     elseif (strtolower($job->status) == 'cancelled') {
@@ -40,8 +36,8 @@ class TripalBlastReportController extends ControllerBase {
       $theme = 'theme-tripal-blast-report-pending';
       $job_param = [
         'job_id' => '',
-        'status' => 'Cancelled',        
-        'status_code' => 999        
+        'status' => 'Cancelled',
+        'status_code' => 999
       ];
     }
     elseif ($job->end_time !== NULL) {
@@ -49,10 +45,10 @@ class TripalBlastReportController extends ControllerBase {
       $theme = 'theme-tripal-blast-show-report';
       $job_param = [
         'job_id' => $job_id,
-        'status' => '',        
-        'status_code' => ''       
+        'status' => '',
+        'status_code' => ''
       ];
-      
+
       $report = $this->prepareReport($job_id);
     }
     else {
@@ -60,8 +56,8 @@ class TripalBlastReportController extends ControllerBase {
       $theme = 'theme-tripal-blast-report_pending';
       $job_param = [
         'job_id' => '',
-        'status' => 1,        
-        'status_code' => 'Running'        
+        'status' => 1,
+        'status_code' => 'Running'
       ];
     }
 
@@ -70,16 +66,17 @@ class TripalBlastReportController extends ControllerBase {
       '#attached' => [
         'library' => ['tripal_blast/tripal-blast-report']
       ],
-      '#report' => $report
-    ];  
+      '#report' => $report,
+      '#job' => $job_param,
+    ];
   }
 
   /**
    * Prepare report page.
-   * 
+   *
    * @param $job_id
    *   Job id the report is based on.
-   * 
+   *
    * @return string
    *   Report page markup.
    */
@@ -87,7 +84,7 @@ class TripalBlastReportController extends ControllerBase {
     // Get job profile.
     $job_service = \Drupal::service('tripal_blast.job_service');
     $blast_job = $job_service->jobsGetJobByJobId($job_id);
-     
+
     // Add to markup.
     $blast_job->blast_cmd = $blast_job->program;
     foreach($blast_job->options as $key => $value) {
@@ -102,18 +99,18 @@ class TripalBlastReportController extends ControllerBase {
       'blastp'  => ['protein', 'protein']
     ];
     $route_ui = 'tripal_blast.blast_program';
-  
+
     foreach($blast_programs as $name => $param) {
       if ($name == $blast_job->program) {
         list($query, $db) = $param;
         $link = Url::fromRoute($route_ui, ['query' => $query, 'db' => $db]);
         // Add to markup.
         $blast_job->blast_form_url = \Drupal::l($this->t($name), $link);
-        
+
         break;
       }
-    } 
-    
+    }
+
     // Load the XML file.
     // Add to markup.
     $blast_job->xml = TRUE; //NULL; @TODO change value.
@@ -123,7 +120,7 @@ class TripalBlastReportController extends ControllerBase {
     $full_path_xml = DRUPAL_ROOT . DIRECTORY_SEPARATOR . $blast_job->files->result->xml;
     if (is_readable($full_path_xml)) {
       $blast_job->num_results = shell_exec('grep -c "<Hit>" ' . escapeshellarg($full_path_xml));
-      
+
       $max_results = \Drupal::config('tripal_blast.settings')
         ->get('tripal_blast_config_jobs.max_result');
 
@@ -141,12 +138,12 @@ class TripalBlastReportController extends ControllerBase {
     if ($blast_job->blastdb->linkout->none === FALSE) {
       $blast_job->linkout_type  = $blast_job->blastdb->linkout->type;
       $blast_job->linkout_regex = $blast_job->blastdb->linkout->regex;
-    
+
       // Note that URL prefix is not required if linkout type is 'custom'
       if (isset($blast_job->blastdb->linkout->db_id->urlprefix) && !empty($blast_job->blastdb->linkout->db_id->urlprefix)) {
         $blast_job->linkout_urlprefix = $blast_job->blastdb->linkout->db_id->urlprefix;
       }
-    
+
       // Check that we can determine the linkout URL.
       // (ie: that the function specified to do so, exists).
       if (function_exists($blast_job->blastdb->linkout->url_function)) {
