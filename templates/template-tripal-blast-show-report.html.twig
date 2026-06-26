@@ -7,10 +7,11 @@
 <div class="blast-report">
   <div class="blast-job-info">
     <div class="blast-download-info"><strong>Download</strong>:
-    <a href="../../{{ report.files.result.html }}">Alignment</a>,
-    <a href="../../{{ report.files.result.tsv }}">Tab-Delimited</a>,
-    <a href="../../{{ report.files.result.xml }}">XML</a>,
-    <a href="../../{{ report.files.result.gff }}">GFF3</a>
+      {% for file in report.files.result %}
+        {% if file.uri is not empty %}
+          <a href="{{ file_url(file.uri) }}" class="blast-download-link" target="_blank">{{ file.label|trim }}</a>{% if not loop.last %}, {% else %}.{% endif %}
+        {% endif %}
+      {% endfor %}
     </div>
     <br />
     <div class="blast-query-info"><strong>Query Information</strong>:
@@ -36,8 +37,8 @@
   <div class="report-table">
     {# We are using the drupal table theme functionality to create this listing #}
     {# @see theme_table() for additional documentation #}
-    
-    {% if (report.xml == true) %}
+
+    {% if report.xml and report.num_results > 0 %}
       <h2>Resulting BLAST hits</h2>
 
       <p>
@@ -47,13 +48,17 @@
       </p>
 
       {# CONSTRUCT TABLE #}
-      {{ report.hola|raw }}
 
-    {% elseif (report.too_many_results == true) %}
+    {% elseif report.num_results == 0 %}
+      <div class="messages warning">
+        Your BLAST resulted in no hits. Please try again with a different query or database.
+      </div>
+
+    {% elseif report.too_many_results == true %}
       <div class="messages error">
         Your BLAST resulted in {{ report.num_results_formatted }}
-        results which is too many to reasonably display. We have provided the result files for 
-        Download at the top of this page; however, we suggest you re-submit your query using a 
+        results which is too many to reasonably display. We have provided the result files for
+        Download at the top of this page; however, we suggest you re-submit your query using a
         more stringent e-value (i.e. a smaller number)
       </div>
     {% else %}
@@ -63,6 +68,6 @@
           We encountered an error and are unable to load your BLAST results.
         </div>
       </div>
-    {% endif %} 
+    {% endif %}
   </div>
-</div>  
+</div>

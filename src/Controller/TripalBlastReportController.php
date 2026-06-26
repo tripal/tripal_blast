@@ -1,6 +1,7 @@
 <?php
 namespace Drupal\tripal_blast\Controller;
 
+use Drupal\Core\Link;
 use Drupal\Core\Url;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\tripal\Services\TripalJob;
@@ -117,7 +118,7 @@ class TripalBlastReportController extends ControllerBase {
         list($query, $db) = $param;
         $link = Url::fromRoute($route_ui, ['query' => $query, 'db' => $db]);
         // Add to markup.
-        $blast_job->blast_form_url = \Drupal::l($this->t($name), $link);
+        $blast_job->blast_form_url = Link::fromTextAndUrl($name, $link)->toString();
 
         break;
       }
@@ -129,7 +130,7 @@ class TripalBlastReportController extends ControllerBase {
     $blast_job->num_results = FALSE;
     $blast_job->too_many_results = FALSE;
 
-    $full_path_xml = DRUPAL_ROOT . DIRECTORY_SEPARATOR . $blast_job->files->result->xml;
+    $full_path_xml = $blast_job->files->result['xml']['absolute_path'];
     if (is_readable($full_path_xml)) {
       $blast_job->num_results = shell_exec('grep -c "<Hit>" ' . escapeshellarg($full_path_xml));
 
@@ -176,7 +177,6 @@ class TripalBlastReportController extends ControllerBase {
     // them all but just want to give a single, all-include "No Results" message.
     $blast_job->no_hits = TRUE;
 
-    $blast_job->hola = '<h1>Test Result</h1>';
     return $blast_job;
   }
 }
