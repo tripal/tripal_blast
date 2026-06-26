@@ -198,11 +198,11 @@ class TripalBlastProgramHelper {
    *   A gap open/extend abbreviation
    */
   public static function programSetGap($gap_key) {
-    $parts = explode('-', (string) $gap_key);
+    $parts = explode('_', (string) $gap_key);
 
     return [
-      'gapOpen' => $parts[0] ?? '',
-      'gapExtend' => $parts[1] ?? '',
+      'gapopen' => $parts[0] ?? '',
+      'gapextend' => $parts[1] ?? '',
     ];
   }
 

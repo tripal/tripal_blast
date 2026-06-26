@@ -387,9 +387,9 @@ class TripalBlastJobService {
     // be passed in as separate options.
     if (array_key_exists('gapopen', $options)) {
       $gap_parts = TripalBlastProgramHelper::programSetGap($options['gapopen']);
-      $options += $gap_parts;
+      unset($options['gapopen']);
+      $options = array_merge($options, $gap_parts);
     }
-
 
     print "\nExecuting $program\n\n";
     print "Query: $query\n";
