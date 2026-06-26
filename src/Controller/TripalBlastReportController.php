@@ -94,14 +94,26 @@ class TripalBlastReportController extends ControllerBase {
    *   Report page markup.
    */
   public function prepareReport($job_id) {
+    $logger = \Drupal::logger('tripal_blast');
+
     // Get job profile.
     $job_service = \Drupal::service('tripal_blast.job_service');
-    $blast_job = $job_service->jobsGetJobByJobId($job_id);
+    $blast_job = $job_service->jobsGetJobByJobId($job_id, ['skip_file_check' => TRUE]);
 
     // Add to markup.
-    $blast_job->blast_cmd = $blast_job->program;
-    foreach($blast_job->options as $key => $value) {
-      $blast_job->blast_cmd .= ' -' . $key . ' ' . $value;
+    $output_files = array_map(fn($item) => $item['absolute_path'], $blast_job->files->result);
+    try {
+      $job_service = \Drupal::service('tripal_blast.job_service');
+      $blast_job->blast_cmd = $job_service->getBlastCommand(
+        $blast_job->program,
+        $blast_job->files->query,
+        $blast_job->files->target,
+        $output_files,
+        $blast_job->options
+      )[0];
+    } catch (\Exception $e) {
+      $this->messenger()->addError($this->t('Unable to generate the BLAST command for execution. Please contact the site administrator.'));
+      $logger->error("Unable to generate the BLAST command for execution for job ID @job_id. The error was: @error", ['@job_id' => $job_id, '@error' => $e->getMessage()]);
     }
 
     // Determine the URL of the blast form

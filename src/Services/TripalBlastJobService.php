@@ -235,11 +235,21 @@ class TripalBlastJobService {
    *
    * @param $job_id
    *   Unique id of BLAST job request.
+   * @param array $options
+   *   Supported keys include:
+   *   - skip_file_check: If FALSE then check that the result files exist.
+   *     Default is FALSE.
    *
-   * @retrun object
+   * @return object
    *   Job record matching the job id.
    */
-  public function jobsGetJobByJobId($job_id) {
+  public function jobsGetJobByJobId($job_id, array $options = []) {
+
+    // Set defaults.
+    $options += [
+      'skip_file_check' => FALSE
+    ];
+
     $query = \Drupal::database()->select('blastjob', 'jobs');
     $query->fields('jobs');
     $query->condition('jobs.job_id', $job_id);
@@ -329,13 +339,14 @@ class TripalBlastJobService {
       $job->files->result[$type]['label'] = $label;
 
       // If this file exists then we can add it to the job.
-      if (file_exists($blastjob->result_filestub . $suffix)) {
+      if (file_exists($blastjob->result_filestub . $suffix) || $options['skip_file_check']) {
         $job->files->result[$type]['absolute_path'] = $blastjob->result_filestub . $suffix;
         $job->files->result[$type]['uri'] = $uri . $suffix;
         $job->files->result[$type]['label'] = $label;
       }
     }
 
+    dpm($job, 'job');
     return $job;
   }
 
@@ -360,27 +371,32 @@ class TripalBlastJobService {
   }
 
   /**
-   * Run BLAST (should be called from the command-line)
+   * Generate the BLAST command for execution.
    *
-   * @param $program
-   *   Which BLAST program to run (ie: 'blastn', 'tblastn', tblastx', 'blastp','blastx')
-   * @param $query
-   *   The full path and filename of the query FASTA file
-   * @param $database
-   *   The full path and filename prefix (excluding .nhr, .nin, .nsq, etc.)
-   * @param $output_filestub
-   *   The filename (not including path) to give the results. Should not include file type suffix
-   * @param $options
-   *   An array of additional option where the key is the name of the option used by
-   *   BLAST (ie: 'num_alignments') and the value is relates to this particular
-   *   BLAST job (ie: 250)
+   * @param string $program
+   *   The BLAST program to execute. Supported values include 'blastn',
+   *   'tblastn', tblastx', 'blastp','blastx'.
+   * @param string $query
+   *   The full path to the file containing the query sequence.
+   * @param string $database
+   *   The full path to the file containing the BLAST database.
+   * @param array $output_file
+   *   The output file paths where the key is the file type (ie: 'xml', 'tsv',
+   *   'html', 'gff', 'archive') and the value is the full path to the file.
+   * @param array &$options
+   *   The BLAST options.
+   *
+   * @return array
+   *   The two BLAST commands. Specifically, the first command is the BLAST
+   *   command and the second command is the BLAST formatter command.
+   *
+   * @throws /Exception
+   *   Throws an exception if the any of the following do not exist:
+   *   - BLAST database
+   *   - Specific BLAST Command
+   *   - BLAST Formatter Command
    */
-  public static function runJob($program, $query, $database, $output_filestub, $options, $job_id = NULL) {
-    $output_file = $output_filestub . '.asn';
-    $output_file_xml = $output_filestub . '.xml';
-    $output_file_tsv = $output_filestub . '.tsv';
-    $output_file_html = $output_filestub . '.html';
-    $output_file_gff = $output_filestub . '.gff';
+  public function getBlastCommand(string $program, string $query, string $database, array $output_file, array &$options): array {
 
     // Gap open and gap extend costs are required for blastn and blastp.
     // We are given them in integer pairs (ie: 5_2) but BLAST requires them to
@@ -391,13 +407,6 @@ class TripalBlastJobService {
       $options = array_merge($options, $gap_parts);
     }
 
-    print "\nExecuting $program\n\n";
-    print "Query: $query\n";
-    print "Database: $database\n";
-    print "Results File: $output_file\n";
-
-    print "Options:\n";
-
     // Allow administrators to use an absolute path for these commands.
     // Defaults to using $PATH.
     $blast_path = \Drupal::config('tripal_blast.settings')
@@ -405,8 +414,6 @@ class TripalBlastJobService {
 
     $blast_threads = \Drupal::config('tripal_blast.settings')
       ->get('tripal_blast_config_general.threads');
-
-    $logger = \Drupal::service('tripal.logger');
 
     // Strip the extension off the BLAST target
     $suffix = [
@@ -430,34 +437,27 @@ class TripalBlastJobService {
 
     // Check that the database exists before trying to execute the job.
     if (!(file_exists($database . '.nsq') or file_exists($database . '.psq'))) {
-      $logger->error("Unable to find the BLAST database (ie: @db). Please ensure you have supplied the absolute path not including the file format endings.", ['@db' => $database]);
-
-      return FALSE;
+      throw new \Exception("Unable to find the BLAST database (ie: @db). Please ensure you have supplied the absolute path not including the file format endings.", ['@db' => $database]);
     }
 
     // The BLAST executeable.
     $program = $blast_path . $program;
     if (!file_exists($program)) {
-      $logger->error("Unable to find the BLAST executable (ie: /usr/bin/blastn). This can be changed in the admin settings; you supplied: @command", ['@command' => $program]);
-
-      return FALSE;
+      throw new \Exception("Unable to find the BLAST executable (ie: /usr/bin/blastn). This can be changed in the admin settings; you supplied: @command", ['@command' => $program]);
     }
 
     // The blast db formatter executable.
     $blast_formatter_command = $blast_path . 'blast_formatter';
     if (!file_exists($blast_formatter_command)) {
-      $logger->error("Unable to find the BLAST Formatter executable (ie: /usr/bin/blast_formatter). This can be changed in the admin settings; you supplied: @command", ['@command' => $blast_formatter_command]);
-
-      return FALSE;
+      throw new \Exception("Unable to find the BLAST Formatter executable (ie: /usr/bin/blast_formatter). This can be changed in the admin settings; you supplied: @command", ['@command' => $blast_formatter_command]);
     }
 
     // Note: all variables are escaped (adds single quotes around their values) for security reasons.
-    $blast_cmd = escapeshellarg($program) . ' -query ' . escapeshellarg($query) . ' -db ' . escapeshellarg($database) . ' -out ' . escapeshellarg($output_file) . ' -outfmt=11';
+    $blast_cmd = escapeshellarg($program) . ' -query ' . escapeshellarg($query) . ' -db ' . escapeshellarg($database) . ' -out ' . escapeshellarg($output_file['archive']) . ' -outfmt=11';
     if (!empty($options)) {
       foreach ($options as $opt => $val) {
         $val = trim($val);
         if (!empty($val)) {
-          print "\t$opt: $val\n";
           // We want to escape all the option values since they were supplied via
           // user input. These values should also have been checked in the
           // advanced form _validate functions but this adds an extra layer of
@@ -470,12 +470,61 @@ class TripalBlastJobService {
     // Setting the value of threads by admin page
     $blast_cmd .= ' -num_threads ' . escapeshellarg($blast_threads);
 
-    print "\nExecuting the following BLAST command:\n" . $blast_cmd . "\n";
+    return [$blast_cmd, $blast_formatter_command];
+  }
 
+  /**
+   * Run BLAST (should be called from the command-line)
+   *
+   * @param $program
+   *   Which BLAST program to run (ie: 'blastn', 'tblastn', tblastx', 'blastp','blastx')
+   * @param $query
+   *   The full path and filename of the query FASTA file
+   * @param $database
+   *   The full path and filename prefix (excluding .nhr, .nin, .nsq, etc.)
+   * @param $output_filestub
+   *   The filename (not including path) to give the results. Should not include file type suffix
+   * @param $options
+   *   An array of additional option where the key is the name of the option used by
+   *   BLAST (ie: 'num_alignments') and the value is relates to this particular
+   *   BLAST job (ie: 250)
+   */
+  public static function runJob($program, $query, $database, $output_filestub, $options, $job_id = NULL) {
+    $logger = \Drupal::service('tripal.logger');
+
+    $output_file['archive'] = $output_filestub . '.asn';
+    $output_file['xml'] = $output_filestub . '.xml';
+    $output_file['tsv'] = $output_filestub . '.tsv';
+    $output_file['html'] = $output_filestub . '.html';
+    $output_file['gff'] = $output_filestub . '.gff';
+
+    try {
+      $job_service = \Drupal::service('tripal_blast.job_service');
+      [$blast_cmd, $blast_formatter_command] = $job_service->getBlastCommand($program, $query, $database, $output_file, $options);
+    }
+    catch (\Exception $e) {
+      $logger->error("Unable to generate the BLAST command for execution. The error was: @error", ['@error' => $e->getMessage()]);
+      return FALSE;
+    }
+
+    print "\nExecuting $program\n\n";
+    print "Query: $query\n";
+    print "Database: $database\n";
+    print "Results File: " . $output_file['archive'] . "\n";
+
+    print "Options:\n";
+    foreach ($options as $opt => $val) {
+      $val = trim($val);
+      if (!empty($val)) {
+        print "\t$opt: $val\n";
+      }
+    }
+
+    print "\nExecuting the following BLAST command:\n" . $blast_cmd . "\n";
     system($blast_cmd);
 
-    if (!file_exists($output_file)) {
-      $logger->error("BLAST did not complete successfully as is implied by the lack of output file (%file). The command run was @command", ['%file' => $output_file, '@command' => $blast_cmd]);
+    if (!file_exists($output_file['archive'])) {
+      $logger->error("BLAST did not complete successfully as is implied by the lack of output file (%file). The command run was @command", ['%file' => $output_file['archive'], '@command' => $blast_cmd]);
 
       return FALSE;
     }
@@ -483,38 +532,38 @@ class TripalBlastJobService {
     print "\nGenerating additional download formats...\n";
 
     print "\tXML\n";
-    $format_cmd = escapeshellarg($blast_formatter_command) . ' -archive ' . escapeshellarg($output_file) . ' -outfmt 5 -out ' . escapeshellarg($output_file_xml);
+    $format_cmd = escapeshellarg($blast_formatter_command) . ' -archive ' . escapeshellarg($output_file['archive']) . ' -outfmt 5 -out ' . escapeshellarg($output_file['xml']);
     print "\t\tExecuting $format_cmd\n\n";
     system($format_cmd);
 
-    if (!file_exists($output_file_xml)) {
-      $logger->error("Unable to convert BLAST ASN.1 archive to XML (%archive => %file).", ['%archive' => $output_file, '%file' => $output_file_xml]);
+    if (!file_exists($output_file['xml'])) {
+      $logger->error("Unable to convert BLAST ASN.1 archive to XML (%archive => %file).", ['%archive' => $output_file['archive'], '%file' => $output_file['xml']]);
     }
 
     print "\tTab-delimited\n";
-    $format_cmd = escapeshellarg($blast_formatter_command) . ' -archive ' . escapeshellarg($output_file) . ' -outfmt 7 -out ' . escapeshellarg($output_file_tsv);
+    $format_cmd = escapeshellarg($blast_formatter_command) . ' -archive ' . escapeshellarg($output_file['archive']) . ' -outfmt 7 -out ' . escapeshellarg($output_file['tsv']);
     print "\t\tExecuting $format_cmd\n\n";
     system($format_cmd);
 
-    if (!file_exists($output_file_tsv)) {
-      $logger->warning("Unable to convert BLAST ASN.1 archive to Tabular Output (%archive => %file).", ['%archive' => $output_file, '%file' => $output_file_tsv]);
+    if (!file_exists($output_file['tsv'])) {
+      $logger->warning("Unable to convert BLAST ASN.1 archive to Tabular Output (%archive => %file).", ['%archive' => $output_file['archive'], '%file' => $output_file['tsv']]);
     }
 
     print "\tGFF\n";
     $job_service = \Drupal::service('tripal_blast.job_service');
-    $job_service->jobsConvertTSVtoGFF3($output_file_tsv, $output_file_gff);
+    $job_service->jobsConvertTSVtoGFF3($output_file['tsv'], $output_file['gff']);
 
-    if (!file_exists($output_file_gff)) {
-      $logger->warning("Unable to convert BLAST Tabular Output to GFF Output (%archive => %file).", ['%archive' => $output_file, '%file' => $output_file_gff]);
+    if (!file_exists($output_file['gff'])) {
+      $logger->warning("Unable to convert BLAST Tabular Output to GFF Output (%archive => %file).", ['%archive' => $output_file['archive'], '%file' => $output_file['gff']]);
     }
 
     print "\tHTML (includes alignments)\n";
-    $format_cmd = escapeshellarg($blast_formatter_command) . ' -archive ' . escapeshellarg($output_file) . ' -outfmt 0 -out ' . escapeshellarg($output_file_html) . ' -html';
+    $format_cmd = escapeshellarg($blast_formatter_command) . ' -archive ' . escapeshellarg($output_file['archive']) . ' -outfmt 0 -out ' . escapeshellarg($output_file['html']) . ' -html';
     print "\t\tExecuting $format_cmd\n\n";
     system($format_cmd);
 
-    if (!file_exists($output_file_tsv)) {
-      $logger->warning("Unable to convert BLAST ASN.1 archive to HTML Output (%archive => %file).", ['%archive' => $output_file, '%file' => $output_file_html]);
+    if (!file_exists($output_file['html'])) {
+      $logger->warning("Unable to convert BLAST ASN.1 archive to HTML Output (%archive => %file).", ['%archive' => $output_file['archive'], '%file' => $output_file['html']]);
     }
 
     print "\nDone!\n";
