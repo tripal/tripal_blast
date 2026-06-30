@@ -9,6 +9,10 @@ LABEL org.opencontainers.image.licenses=GPL-3.0-or-later
 
 COPY . /var/www/drupal/web/modules/contrib/tripal_blast
 
+## Set correct config based on versions.
+RUN rm ./phpunit.xml
+RUN bash /var/www/drupal/web/modules/contrib/tripal/set_phpunit_config.sh
+
 ## Install NCBI Blast+.
 RUN cd / \
   && wget https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/2.2.30/ncbi-blast-2.2.30+-x64-linux.tar.gz \
