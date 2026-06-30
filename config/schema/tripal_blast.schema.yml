@@ -1,7 +1,7 @@
 # @file
 # Tripal Blast Configuration Entity Schema
 
-tripal_blast.tripalblastdatabase.*:
+tripal_blast.database.*:
   type: config_entity
   label: 'BLAST Configuration Entity'
   mapping:
@@ -26,4 +26,3 @@ tripal_blast.tripalblastdatabase.*:
     dbxref_linkout_type:
       type: 'string'
       label: 'DB Xref Type'
-    

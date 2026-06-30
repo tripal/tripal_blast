@@ -22,7 +22,7 @@ use Drupal\tripal_blast\TripalBlastDatabaseInterface;
     ],
   ],
   admin_permission: 'administer tripal',
-  config_prefix: 'tripal_blast',
+  config_prefix: 'database',
   entity_keys: [
     'id' => 'id',
     'name' => 'name',
