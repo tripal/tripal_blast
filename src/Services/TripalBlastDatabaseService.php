@@ -15,7 +15,7 @@ class TripalBlastDatabaseService {
   const CONFIG_ENTITY_NAME = 'tripalblastdatabase';
 
   /**
-   Get a specific BlastDB.
+   * Get a specific BlastDB.
    *
    * @param $identifiers
    *   An array of identifiers used to determine which BLAST DB to retrieve.
@@ -63,9 +63,7 @@ class TripalBlastDatabaseService {
   public function getDatabaseByType($type = 'n') {
     // Type can be the full word ie. nucleotide and protein,
     // or the one character value n and p for nucloetide and protein, respectively.
-    if (strlen($type) > 1) {
-      $type = ($type == 'nucleotide') ? 'n' : 'p';
-    }
+    $type = $this->translateType($type);
 
     $storage = \Drupal::entityTypeManager()->getStorage(static::CONFIG_ENTITY_NAME);
     $entity_query = $storage->getQuery();
@@ -123,7 +121,7 @@ class TripalBlastDatabaseService {
    * @return char
    *   n for nucleotide and p for protein.
    */
-  public function translateDatabaseType($type) {
+  protected function translateType(string $type): string {
     $type = (string) $type;
     if (strlen($type) > 1) {
       return ($type == 'nucleotide') ? 'n' : 'p';
@@ -133,13 +131,12 @@ class TripalBlastDatabaseService {
   }
 
   /**
-   * Determine the BLAST program given the type of database type
-   * and program.
+   * Determine the BLAST program given the type of database and query.
    *
-   * @param $type
-   *   BLAST database query type ie: nucleotide or protein.
-   * @param $program
-   *   BLAST program.
+   * @param $database_type
+   *   BLAST database type (i.e. nucleotide or protein).
+   * @param $query_type
+   *   BLAST query type (i.e. nucleotide or protein).
    *
    * @return string
    *   BLAST program: blastn, blastx, tblastn, blastp.
@@ -147,21 +144,20 @@ class TripalBlastDatabaseService {
    * @see routing.yml - $type and $program can be parsed using the
    * request url.
    */
-  public function getProgramName($type, $program) {
+  public function getProgramName(string $database_type, string $query_type): ?string {
+    $database_type = $this->translateType($database_type);
+    $query_type = $this->translateType($query_type);
     $db_types = [
       'n' => [
-        'nucleotide' => 'blastn',
-        'protein' => 'blastx'
+        'n' => 'blastn',
+        'p' => 'blastx'
       ],
       'p' => [
-        'nucleotide' => 'tblastn',
-        'protein' => 'blastp'
+        'n' => 'tblastn',
+        'p' => 'blastp'
       ]
     ];
 
-    $type = $this->translateDatabaseType($type);
-    $program = (string) $program;
-
-    return $db_types[$type][$program] ?? NULL;
+    return $db_types[$database_type][$query_type] ?? NULL;
   }
 }
