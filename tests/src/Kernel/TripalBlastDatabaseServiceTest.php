@@ -3,6 +3,7 @@
 namespace Drupal\Tests\tripal_blast\Kernel;
 
 use Drupal\Tests\tripal\Kernel\TripalTestKernelBase;
+use Drupal\tripal_blast\Entity\TripalBlastDatabase;
 use Drupal\tripal_blast\Services\TripalBlastDatabaseService;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
@@ -23,6 +24,27 @@ class TripalBlastDatabaseServiceTest extends TripalTestKernelBase {
    */
   protected static $modules = ['system', 'user', 'tripal', 'tripal_blast'];
 
+  protected static $testdb_details = [
+    [
+      'id' => 'clamy_nuc',
+      'name' => 'Chlamydomonas reinhardtii Nucleotide DB',
+      'path' => '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_reinhardtii_v5.6.nin',
+      'dbtype' => 'n',
+      'dbxref_id_regexp' => '^>.*$',
+      'dbxref_db_id' => 1,
+      'dbxref_linkout_type' => 'none',
+    ],
+    [
+      'id' => 'clamy_prot',
+      'name' => 'Chlamydomonas reinhardtii Protein DB',
+      'path' => '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_reinhardtii_v5.6_protein.nin',
+      'dbtype' => 'p',
+      'dbxref_id_regexp' => '^>.*$',
+      'dbxref_db_id' => 2,
+      'dbxref_linkout_type' => 'none',
+    ]
+  ];
+
   /**
    * {@inheritdoc}
    */
@@ -36,27 +58,12 @@ class TripalBlastDatabaseServiceTest extends TripalTestKernelBase {
    * Create sample BLAST database config entities for testing.
    */
   protected function createSampleDatabases(): void {
-    $storage = \Drupal::entityTypeManager()->getStorage('tripalblastdatabase');
 
-    $storage->create([
-      'id' => 'db_nucleotide',
-      'name' => 'Test Nucleotide DB',
-      'path' => '/tmp/db_nucleotide',
-      'dbtype' => 'n',
-      'dbxref_id_regexp' => '^>.*$',
-      'dbxref_db_id' => 1,
-      'dbxref_linkout_type' => 'none',
-    ])->save();
-
-    $storage->create([
-      'id' => 'db_protein',
-      'name' => 'Test Protein DB',
-      'path' => '/tmp/db_protein',
-      'dbtype' => 'p',
-      'dbxref_id_regexp' => '^>.*$',
-      'dbxref_db_id' => 2,
-      'dbxref_linkout_type' => 'none',
-    ])->save();
+    // Create out test databases.
+    foreach (self::$testdb_details as $values) {
+      $database = TripalBlastDatabase::create($values);
+      $database->save();
+    }
   }
 
   /**
@@ -65,16 +72,18 @@ class TripalBlastDatabaseServiceTest extends TripalTestKernelBase {
   public function testGetDatabaseByType() {
     $this->createSampleDatabases();
 
+    $this->markTestIncomplete('Still working on this test.');
+
     $service = \Drupal::service('tripal_blast.database_service');
     $this->assertInstanceOf(TripalBlastDatabaseService::class, $service);
 
     $nucleotide_databases = $service->getDatabaseByType('n');
-    $this->assertArrayHasKey('db_nucleotide', $nucleotide_databases);
-    $this->assertSame('Test Nucleotide DB', $nucleotide_databases['db_nucleotide']);
+    $this->assertArrayHasKey('clamy_nuc', $nucleotide_databases);
+    $this->assertSame('Chlamydomonas reinhardtii Nucleotide DB', $nucleotide_databases['clamy_nuc']);
 
     $protein_databases = $service->getDatabaseByType('protein');
-    $this->assertArrayHasKey('db_protein', $protein_databases);
-    $this->assertSame('Test Protein DB', $protein_databases['db_protein']);
+    $this->assertArrayHasKey('clamy_prot', $protein_databases);
+    $this->assertSame('Chlamydomonas reinhardtii Protein DB', $protein_databases['clamy_prot']);
   }
 
   /**

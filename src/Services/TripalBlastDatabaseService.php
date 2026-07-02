@@ -38,15 +38,15 @@ class TripalBlastDatabaseService {
       $condition['value'] = $identifiers['path'];
     }
 
-    $database_entity = \Drupal::entityTypeManager()->getStorage(static::CONFIG_ENTITY_NAME);
-    $entity_query = $database_entity->getQuery();
+    $storage = \Drupal::entityTypeManager()->getStorage(static::CONFIG_ENTITY_NAME);
+    $entity_query = $storage->getQuery();
 
     $blast_db = $entity_query->condition($condition['field'], $condition['value'])
       ->sort('name', 'ASC')
       ->execute();
 
     // Load multiples or single item load($id)
-    $db = $database_entity->loadMultiple($blast_db);
+    $db = $storage->loadMultiple($blast_db);
     return ($db) ? $db : NULL;
   }
 
@@ -56,7 +56,7 @@ class TripalBlastDatabaseService {
    *
    * @param $type
    *   n or p for Nucleotide and Protein BLAST database types, repectively.
-   * @return arra
+   * @return array
    *   Associative array where the key is the database id and value is the name
    *   associated to the id (database name).
    */
@@ -67,15 +67,15 @@ class TripalBlastDatabaseService {
       $type = ($type == 'nucleotide') ? 'n' : 'p';
     }
 
-    $database_entity = \Drupal::entityTypeManager()->getStorage(static::CONFIG_ENTITY_NAME);
-    $entity_query = $database_entity->getQuery();
+    $storage = \Drupal::entityTypeManager()->getStorage(static::CONFIG_ENTITY_NAME);
+    $entity_query = $storage->getQuery();
 
     $blast_db = $entity_query->condition('dbtype', $type)
     ->sort('name', 'ASC')
     ->execute();
 
     // Load multiples or single item load($id)
-    $all = $database_entity->loadMultiple($blast_db);
+    $all = $storage->loadMultiple($blast_db);
     $db = [];
     foreach($all as $id => $db_obj) {
       $db_id = $db_obj->getId();
