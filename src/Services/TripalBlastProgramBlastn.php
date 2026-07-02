@@ -163,8 +163,8 @@ class TripalBlastProgramBlastn {
     $gap_key = $advanced_field_values['gapCost'] ?? '';
 
     $gap = TripalBlastProgramHelper::programSetGap($gap_key);
-    $gap_open = $gap['gapOpen'];
-    $gap_extend = $gap['gapExtend'];
+    $gap_open = $gap['gapopen'];
+    $gap_extend = $gap['gapextend'];
 
     $mm = TripalBlastProgramHelper::programSetMatchMismatch($advanced_field_values['M&MScores'] ?? '');
     $penalty = $mm['penalty'] ?? '';
