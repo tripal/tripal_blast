@@ -346,7 +346,6 @@ class TripalBlastJobService {
       }
     }
 
-    dpm($job, 'job');
     return $job;
   }
 
