@@ -113,6 +113,8 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
   }
   /**
    * Tests that a blastjob record is saved and returned by the service.
+   *
+   * @dataProvider provideScenarios
    */
   #[DataProvider('provideScenarios')]
   public function testJobsSaveAndJobsGetJobByJobId(int $current_scenario_key, string $current_scenario_label): void {
@@ -133,6 +135,8 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
 
   /**
    * Tests encoding and decoding a blast job id secret.
+   *
+   * @dataProvider provideScenarios
    */
   #[DataProvider('provideScenarios')]
   public function testJobsBlastMakeSecretAndRevealSecret(int $current_scenario_key, string $current_scenario_label): void {
@@ -154,6 +158,8 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
 
   /**
    * Tests that recent blast jobs are rendered into a form table.
+   *
+   * @dataProvider provideScenarios
    */
   #[DataProvider('provideScenarios')]
   public function testJobsCreateTableReturnsExpectedRows(int $current_scenario_key, string $current_scenario_label): void {
