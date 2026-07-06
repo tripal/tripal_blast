@@ -377,7 +377,34 @@ class TripalBlastJobService {
         }
         else {
           // If the target_blastdb is set then we need to make sure the target_file is set to the path of the database.
-          $job_parameters['target_file'] = $database_config['path'];
+          $blastdb_with_path = $database_config['path'];
+          $blastdb_type = $database_config['dbtype'];
+          $blastdb_with_suffix = NULL;
+          if (is_readable($blastdb_with_path)) {
+            $blastdb_with_suffix = $blastdb_with_path;
+          }
+          elseif ($blastdb_type == 'n') {
+            // Suffix may be .nsq or .nal.
+            if (is_readable("$blastdb_with_path.nsq")) {
+              $blastdb_with_suffix = "$blastdb_with_path.nsq";
+            } elseif (is_readable("$blastdb_with_path.nal")) {
+              $blastdb_with_suffix = "$blastdb_with_path.nal";
+            }
+          } elseif ($blastdb_type == 'p') {
+            // Suffix may be .psq or .pal.
+            if (is_readable("$blastdb_with_path.psq")) {
+              $blastdb_with_suffix = "$blastdb_with_path.psq";
+            } elseif (is_readable("$blastdb_with_path.pal")) {
+              $blastdb_with_suffix = "$blastdb_with_path.pal";
+            }
+          }
+
+          if ($blastdb_with_suffix) {
+            $job_parameters['target_file'] = $blastdb_with_path;
+          }
+          else {
+            throw new \Exception("The BLAST database specified by parameter 'target_blastdb' does not exist or is not readable. The value supplied was: " . $job_parameters['target_blastdb']);
+          }
         }
       }
       else {
@@ -527,19 +554,19 @@ class TripalBlastJobService {
 
     // Check that the database exists before trying to execute the job.
     if (!(file_exists($database . '.nsq') or file_exists($database . '.psq'))) {
-      throw new \Exception("Unable to find the BLAST database (ie: @db). Please ensure you have supplied the absolute path not including the file format endings.", ['@db' => $database]);
+      throw new \Exception("Unable to find the BLAST database (ie: $database). Please ensure you have supplied the absolute path not including the file format endings.");
     }
 
     // The BLAST executeable.
     $program = $blast_path . $program;
     if (!file_exists($program)) {
-      throw new \Exception("Unable to find the BLAST executable (ie: /usr/bin/blastn). This can be changed in the admin settings; you supplied: @command", ['@command' => $program]);
+      throw new \Exception("Unable to find the BLAST executable (ie: /usr/bin/blastn). This can be changed in the admin settings; you supplied: $program");
     }
 
     // The blast db formatter executable.
     $blast_formatter_command = $blast_path . 'blast_formatter';
     if (!file_exists($blast_formatter_command)) {
-      throw new \Exception("Unable to find the BLAST Formatter executable (ie: /usr/bin/blast_formatter). This can be changed in the admin settings; you supplied: @command", ['@command' => $blast_formatter_command]);
+      throw new \Exception("Unable to find the BLAST Formatter executable (ie: /usr/bin/blast_formatter). This can be changed in the admin settings; you supplied: $blast_formatter_command");
     }
 
     // Note: all variables are escaped (adds single quotes around their values) for security reasons.
@@ -587,6 +614,11 @@ class TripalBlastJobService {
     $output_file['tsv'] = $output_filestub . '.tsv';
     $output_file['html'] = $output_filestub . '.html';
     $output_file['gff'] = $output_filestub . '.gff';
+
+    // If the options are a string then we need to unserialize them.
+    if (is_string($options)) {
+      $options = unserialize($options);
+    }
 
     try {
       $job_service = \Drupal::service('tripal_blast.job_service');
