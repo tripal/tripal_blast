@@ -1,7 +1,7 @@
 <?php
 /**
- * @file 
- * This is the controller for Tripal BLAST Configuration form. 
+ * @file
+ * This is the controller for Tripal BLAST Configuration form.
  */
 
 namespace Drupal\tripal_blast\Form;
@@ -42,7 +42,7 @@ class TripalBlastDatabaseForm extends EntityForm {
   public function form(array $form, FormStateInterface $form_state) {
     $form = parent::form($form, $form_state);
     $blast_db = $this->entity;
-    
+
     //
     // # BLAST DATABASE NAME:
     $form['fld_text_name'] = [
@@ -60,8 +60,9 @@ class TripalBlastDatabaseForm extends EntityForm {
       '#title' => $this->t('Database source path'),
       '#description' => $this->t('The full path and filename prefix of the BLAST database.'),
       '#required' => TRUE,
-      '#default_value' => $blast_db->getPath()
-    ];  
+      '#default_value' => $blast_db->getPath(),
+      '#maxlength' => 255,
+    ];
 
     //
     // # BLAST DATABASE TYPE:
@@ -80,7 +81,7 @@ class TripalBlastDatabaseForm extends EntityForm {
       '#title' => $this->t('Regular Expression Key and Database Reference'),
       '#open' => TRUE
     ];
-      
+
       //
       // # REGULAR EXPRESSION:
       $form['regular_expression']['fld_text_dbxref_id_regexp'] = [
@@ -88,7 +89,7 @@ class TripalBlastDatabaseForm extends EntityForm {
         '#title' => $this->t('Extract Regular Expression'),
         '#description' => $this->t('The Regular Expression to use to extract the id from the FASTA header of the BLAST database hit.'),
         '#required' => FALSE,
-        '#default_value' => $blast_db->getDbXrefRegExp()  
+        '#default_value' => $blast_db->getDbXrefRegExp()
       ];
 
       //
@@ -98,9 +99,9 @@ class TripalBlastDatabaseForm extends EntityForm {
         '#title' => $this->t('BLAST database reference'),
         '#description' => $this->t('The Database records from this BLAST Database reference.'),
         '#required' => FALSE,
-        '#default_value' => $blast_db->getDbXref()    
+        '#default_value' => $blast_db->getDbXref()
       ];
-    
+
       //
       // # BLAST DATABASE REFERENCE LINKOUT:
       $form['regular_expression']['fld_text_dbxref_linkout_type'] = [
@@ -108,9 +109,9 @@ class TripalBlastDatabaseForm extends EntityForm {
         '#title' => $this->t('BLAST database reference linkout type'),
         '#description' => $this->t('Type of linkout to be used for this database reference.'),
         '#required' => FALSE,
-        '#default_value' => $blast_db->getDbXrefLinkout()    
+        '#default_value' => $blast_db->getDbXrefLinkout()
       ];
-          
+
     return $form;
   }
 
