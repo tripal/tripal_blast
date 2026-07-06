@@ -350,12 +350,114 @@ class TripalBlastJobService {
   }
 
   /**
+   * Create a new BLAST Tripal job.
+   *
+   * @param $job_parameters
+   *   An array of parameters used to execute the blast.
+   *   The following keys are supported:
+   *   - blast_program: The BLAST program to execute (ie: blastn, tblastn, tblastx, blastp, blastx).
+   *   - target_blastdb: The tripal_blast_database id of the target database to search against.
+   *   - target_file: The full path to the file containing the target database.
+   *   - query_file: The full path to the file containing the query sequence.
+   *   - result_filestub: The full path to the file where the results will be written (without file type suffix).
+   *   - options: An array of additional options where the key is the name of the option used by BLAST (ie: 'num_alignments') and the value is relates to this particular BLAST job (ie: 250).
+   *
+   * @return int|null
+   *   The tripal job_id of the newly created BLAST job.
+   */
+  public function createBlastJob(array $job_parameters): ?int {
+
+    // Validate the blast_program parameter.
+    if (!array_key_exists('blast_program', $job_parameters)) {
+      throw new \Exception("Missing required parameter 'blast_program' when creating a new BLAST job.");
+    }
+    elseif (!in_array($job_parameters['blast_program'], ['blastn', 'tblastn', 'tblastx', 'blastp', 'blastx'])) {
+      throw new \Exception("Invalid value for parameter 'blast_program' when creating a new BLAST job. The value supplied was: " . $job_parameters['blast_program']);
+    }
+
+    // We need either the 'target_blastdb' or 'target_file' parameter to be set.
+    if (!array_key_exists('target_blastdb', $job_parameters) AND !array_key_exists('target_file', $job_parameters)) {
+      throw new \Exception("Missing required parameter 'target_blastdb' or 'target_file' when creating a new BLAST job.");
+    }
+    // If the target_blastdb is set then we need to make sure it exists and set
+    // the target_file to the path of the database.
+    elseif (array_key_exists('target_blastdb', $job_parameters)) {
+      if (is_numeric($job_parameters['target_blastdb'])) {
+        // If the target_blastdb is set then we need to make sure it exists.
+        $database_config = \Drupal::service('tripal_blast.database_service')
+          ->getDatabaseConfig($job_parameters['target_blastdb']);
+
+        if (!$database_config) {
+          throw new \Exception("The value supplied for parameter 'target_blastdb' does not exist. The value supplied was: " . $job_parameters['target_blastdb']);
+        }
+        else {
+          // If the target_blastdb is set then we need to make sure the target_file is set to the path of the database.
+          $job_parameters['target_file'] = $database_config['path'];
+        }
+      }
+      else {
+        throw new \Exception("Invalid value for parameter 'target_blastdb' when creating a new BLAST job. The value supplied was: " . $job_parameters['target_blastdb']);
+      }
+    }
+
+    // Now check the query file parameter.
+    if (!array_key_exists('query_file', $job_parameters)) {
+      throw new \Exception("Missing required parameter 'query_file' when creating a new BLAST job.");
+    }
+    elseif (!file_exists($job_parameters['query_file'])) {
+      throw new \Exception("The value supplied for parameter 'query_file' does not exist. The value supplied was: " . $job_parameters['query_file']);
+    }
+
+    // Set default for result_filestub parameter if not set.
+    if (!array_key_exists('result_filestub', $job_parameters)) {
+      // We want to save all result files (.asn, .xml, .tsv, .html) in the public files directory.
+      // Usually [drupal root]/sites/default/files.
+      $output_dir = tripal_get_files_dir('tripal_blast');
+      $job_parameters['result_filestub'] = $output_dir . date('YMd_His') . '.blast';
+    }
+
+    // If advanced options are not set, we will set it to an empty array.
+    if (!array_key_exists('options', $job_parameters)) {
+      $job_parameters['options'] = [];
+    }
+
+    // Create the tripal job.
+    $trpjob_args = [
+      $job_parameters['blast_program'],
+      $job_parameters['query_file'],
+      $job_parameters['target_file'],
+      $job_parameters['result_filestub'],
+      serialize($job_parameters['options'])
+    ];
+    $job_id = tripal_add_job(
+      t('BLAST (@program): @query', array('@program' => $job_parameters['blast_program'], '@query' => $job_parameters['query_file'])),
+      'blast_job',
+      ['Drupal\tripal_blast\Services\TripalBlastJobService', 'runJob'],
+      $trpjob_args,
+      \Drupal::currentUser()->id()
+    );
+
+    // Now save the tripal job_id into the params.
+    if (is_numeric($job_id)) {
+      $job_parameters['job_id'] = (int) $job_id;
+    }
+    else {
+      throw new \Exception("Unable to create a Tripal job for the BLAST request. The parameters were: " . print_r($job_parameters, true));
+    }
+
+    // Finally, use this helper method to save the job parameters into the
+    // blastjob table and return the job object.
+    $this->jobsSave($job_parameters);
+    return $job_parameters['job_id'];
+  }
+
+  /**
    * Save job information/parameters into blastjob table.
    *
    * @param $job_parameters
    *   Parameters used to execute the job.
    */
-  public function jobsSave($job_parameters) {
+  protected function jobsSave($job_parameters) {
     \Drupal::service('database')->insert('blastjob')
       ->fields([
         'job_id' => $job_parameters['job_id'],
@@ -364,7 +466,7 @@ class TripalBlastJobService {
         'target_file' => $job_parameters['target_file'],
         'query_file' => $job_parameters['query_file'],
         'result_filestub' => $job_parameters['result_filestub'],
-        'options' => $job_parameters['options']
+        'options' => is_array($job_parameters['options']) ? serialize($job_parameters['options']) : $job_parameters['options']
       ])
       ->execute();
   }
@@ -402,8 +504,12 @@ class TripalBlastJobService {
     // be passed in as separate options.
     if (array_key_exists('gapopen', $options)) {
       $gap_parts = TripalBlastProgramHelper::programSetGap($options['gapopen']);
-      unset($options['gapopen']);
-      $options = array_merge($options, $gap_parts);
+      if (array_key_exists('gapopen', $gap_parts)) {
+        $options['gapopen'] = $gap_parts['gapopen'];
+      }
+      if (array_key_exists('gapextend', $gap_parts)) {
+        $options['gapextend'] = $gap_parts['gapextend'];
+      }
     }
 
     // Allow administrators to use an absolute path for these commands.

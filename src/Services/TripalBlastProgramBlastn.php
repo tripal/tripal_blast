@@ -131,13 +131,12 @@ class TripalBlastProgramBlastn {
 
       //
       // # FIELD: GAP COST.
-      $mm_set = $defaults['matchmiss'];
-      $gap_cost_options = TripalBlastProgramHelper::programGetGapCost($blast, $mm_set);
+      $gap_cost_options = TripalBlastProgramHelper::programGetGapCost($blast, $defaults['matchmiss']);
       $form_alter[ $container ]['scoring_param']['gapCost'] = [
         '#type' => 'select',
         '#title' => t('Gap Costs:'),
         '#options' => $gap_cost_options,
-        '#default_value' => $mm_set,
+        '#default_value' => $defaults['gap'],
         '#description' => t('Cost to create and extend a gap in an alignment.'),
         '#id' => 'tripal-blast-fld-select-gap-cost',
         '#prefix' => '<div id="tripal-blast-wrapper-fld-select-gap-cost">',
