@@ -163,12 +163,34 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
     $service = \Drupal::service('tripal_blast.job_service');
     $this->assertInstanceOf(TripalBlastJobService::class, $service);
 
+    // Let's get the recent jobs and confirm that there are none.
+    $recent_jobs = $service->jobsGetRecentJobs([$current_scenario['job']['blast_program']]);
+    $this->assertIsArray($recent_jobs, "jobsGetRecentJobs should always return an array.");
+    $this->assertCount(0, $recent_jobs, "The recent jobs array is not empty when it should be.");
+    // Also check the count.
+    $recent_jobs_count = $service->jobsCountRecentJobs();
+    $this->assertSame(0, $recent_jobs_count, "The recent jobs count is not zero when it should be.");
+
+    // Now we create the job.
     $job_id = $service->createBlastJob($current_scenario['job']);
     $this->assertIsNumeric($job_id, "The job_id returned from createBlastJob is not numeric.");
 
+    // Test that we can create the display table for the recent jobs.
+    // We need to set the session variable that the service uses to determine
+    // which jobs to display.
     $secret = $service->jobsBlastMakeSecret($job_id);
     $previous_session = $_SESSION['blast_jobs'] ?? NULL;
     $_SESSION['blast_jobs'] = [$secret];
+
+    // Lets retrieve the recent jobs and confirm that the job we just created
+    // is in the list.
+    $recent_jobs = $service->jobsGetRecentJobs([$current_scenario['job']['blast_program']]);
+    $this->assertIsArray($recent_jobs, "The recent jobs returned from jobsGetRecentJobs is not an array.");
+    $this->assertCount(1, $recent_jobs, "The recent jobs array does not contain the expected number of jobs.");
+    $this->assertArrayHasKey($job_id, $recent_jobs, "The recent jobs array does not contain the job_id of the job we just created.");
+    // Also check the count.
+    $recent_jobs_count = $service->jobsCountRecentJobs();
+    $this->assertSame(1, $recent_jobs_count, "The recent jobs count is not one when it should be.");
 
     try {
       $jobs_table = $service->jobsCreateTable([ $current_scenario['job']['blast_program'] ]);
