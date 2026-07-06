@@ -1,0 +1,66 @@
+system-under-test:
+  databases:
+  - id: 123450
+    name: 'Chlamydomonas reinhardtii Nucleotide DB'
+    path: '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_reinhardtii_v5.6.nsq'
+    dbtype: 'n'
+    dbxref_id_regexp: '^>.*$'
+    dbxref_db_id: 1
+    dbxref_linkout_type: 'none'
+  - id: 67890
+    name: 'Chlamydomonas reinhardtii Protein DB'
+    path: '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_reinhardtii_v5.6_protein.nsq'
+    dbtype: 'p'
+    dbxref_id_regexp: '^>.*$'
+    dbxref_db_id: 2
+    dbxref_linkout_type: 'none'
+scenarios:
+- label: 'Simple blastn job'
+  job:
+    blast_program: 'blastn'
+    target_blastdb: 123450
+    query_file: '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_gene.fasta'
+    options:
+      maxTarget: 500
+      wordSize: 11
+      gapCost: 5_2
+      eVal: '1e-10'
+  expectations:
+    exception_caught: false
+    exception_message: 'NONE'
+    query:
+      fastaheader: 'Cre08.g358567.t1.1 pacid=30773354 polypeptide=Cre08.g358567.t1.1 locus=Cre08.g358567 ID=Cre08.g358567.t1.1.v5.5 annot-version=v5.5'
+      name: 'Cre08.g358567.t1.1'
+    job:
+      job_id: 1
+      program: blastn
+      options:
+        maxTarget: 500
+        wordSize: 11
+        gapCost: 52
+        eVal: 1e-10
+      blastdb:
+        db_name: Chlamydomonas reinhardtii Nucleotide DB
+        db_path: /var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_reinhardtii_v5.6.nsq
+        linkout:
+          none: none
+      db_dbtype: 'n'
+      files:
+        query: /var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_gene.fasta
+        target: /var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_reinhardtii_v5.6.nsq
+        result:
+          archive:
+            uri: public://tripal_blast2026Jul04_084618.blast.asn
+            label: Archive
+          xml:
+            uri: public://tripal_blast2026Jul04_084618.blast.xml
+            label: XML
+          tsv:
+            uri: public://tripal_blast2026Jul04_084618.blast.tsv
+            label: Tab-Delimited
+          html:
+            uri: public://tripal_blast2026Jul04_084618.blast.html
+            label: Alignment
+          gff:
+            uri: 'public://tripal_blast2026Jul04_084618.blast.gff'
+            label: 'GFF3'
