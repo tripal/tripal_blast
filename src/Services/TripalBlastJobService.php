@@ -514,7 +514,7 @@ class TripalBlastJobService {
     // Gap open and gap extend costs are required for blastn and blastp.
     // We are given them in integer pairs (ie: 5_2) but BLAST requires them to
     // be passed in as separate options.
-    if (array_key_exists('gapopen', $options)) {
+    if (array_key_exists('gapopen', $options) && strpos($options['gapopen'], '_') !== FALSE) {
       $gap_parts = TripalBlastProgramHelper::programSetGap($options['gapopen']);
       if (array_key_exists('gapopen', $gap_parts)) {
         $options['gapopen'] = $gap_parts['gapopen'];
