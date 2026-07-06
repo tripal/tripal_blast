@@ -82,7 +82,7 @@ class TripalBlastJobService {
 
           if ($add) {
             $job->query_summary = self::jobsFormatQueryHeaders($job->files->query);
-            $jobs[] = $job;
+            $jobs[$job_id] = $job;
           }
         }
       }
@@ -172,22 +172,7 @@ class TripalBlastJobService {
       }
     }
     else {
-      // Last ditch effort: maybe this job was encoded before the upgrade?
-      $job_id = base64_decode($secret);
-
-      if (is_numeric($job_id)) {
-        $exists = self::jobsGetJobByJobId($job_id);
-
-        if ($exists) {
-          return $job_id;
-        }
-        else {
-          $this->logger->error('Unable to decode the blast job_id from :id.', [':id' => $secret]);
-        }
-      }
-      else {
-        $this->logger->error('Unable to decode the blast job_id from :id.', [':id' => $secret]);
-      }
+      $this->logger->error('Unable to decode the blast job_id from :id.', [':id' => $secret]);
     }
 
     return FALSE;
