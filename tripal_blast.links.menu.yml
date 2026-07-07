@@ -6,8 +6,32 @@ tripal_blast.blast_ui:
   route_name: tripal_blast.blast_ui
   menu_name: main
 
-tripal_blast.blast_config:
-  title: Configure Tripal BLAST Module
-  description: 'Manage all Tripal BLAST-related configurations.'
-  parent: tripal.extension
-  route_name: tripal_blast.configuration
+# Menu - Configuring Tripal BLAST.
+# Group in admin/tripal/extension
+tripal_blast.menu:
+  title: 'Tripal BLAST Module'
+  description: 'Access all the Tripal BLAST related configuration pages.'
+  route_name: 'tripal_blast.dashboard'
+  parent: 'tripal.extension'
+  weight: 0
+
+tripal_blast.configuration:
+  title: 'Tripal Blast: Configuration'
+  description: 'Manage all the Tripal BLAST-related configurations.'
+  route_name: 'tripal_blast.configuration'
+  parent: 'tripal_blast.menu'
+  weight: 1
+
+tripal_blast.blast_databases:
+  title: 'Tripal BLAST UI'
+  description: 'Manage all Tripal BLAST database entities.'
+  parent: 'tripal_blast.menu'
+  route_name: 'entity.tripal_blast.blast_database'
+  weight: 2
+
+tripal_blast.help:
+  title: 'Tripal Blast: Help'
+  description: 'Contains the help content for the Tripal BLAST module.'
+  route_name: 'tripal_blast.help'
+  parent: 'tripal_blast.menu'
+  weight: 3
