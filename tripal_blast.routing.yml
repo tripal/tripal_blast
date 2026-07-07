@@ -48,7 +48,7 @@ tripal_blast.configuration:
     _permission: 'administer tripal'
 
 tripal_blast.help:
-  path: '/admin/tripal/extension/tripal_blast/configuration/help'
+  path: '/admin/tripal/extension/tripal_blast/help'
   defaults:
     _title: 'Tripal Blast: Help'
     _controller: '\Drupal\tripal_blast\Controller\TripalBlastHelpController::help'
@@ -89,4 +89,3 @@ entity.tripalblastdatabase.delete_form:
     _title: 'Tripal BLAST Delete Query Database'
   requirements:
     _permission: 'administer tripal'
-

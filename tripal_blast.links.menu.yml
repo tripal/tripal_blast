@@ -5,3 +5,9 @@ tripal_blast.blast_ui:
   parent: main
   route_name: tripal_blast.blast_ui
   menu_name: main
+
+tripal_blast.blast_ui_config:
+  title: Configure Tripal Cultivate Phenotypes Module
+  description: 'Queries to existing BLAST databases.'
+  parent: tripal.extension
+  route_name: entity.tripal_blast.blast_database
