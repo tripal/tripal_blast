@@ -22,7 +22,7 @@ jobs:
           git config user.name 'Lacey Sanderson'
           git config user.email 'laceyannesanderson@gmail.com'
           git config credential.helper 'store --file ~/.drupal-org-credentials'
-          git remote add drupal https://git.drupal.org/project/tripal.git
+          git remote add drupal https://git.drupal.org/project/tripal_blast.git
       - name: 'Authenticate and Push'
         run: |
           git fetch drupal
