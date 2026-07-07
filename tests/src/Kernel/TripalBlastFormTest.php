@@ -3,10 +3,11 @@
 namespace Drupal\Tests\tripal_blast\Kernel;
 
 use Drupal\Core\Form\FormState;
-use Drupal\Tests\tripal\Kernel\TripalTestKernelBase;
+use Drupal\Tests\tripal_chado\Kernel\ChadoTestKernelBase;
 use Drupal\tripal_blast\Form\TripalBlastForm;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+use Drupal\tripal_chado\Database\ChadoConnection;
 
 /**
  * Tests the Tripal BLAST form.
@@ -17,12 +18,12 @@ use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
  */
 #[Group('tripal-blast')]
 #[RunTestsInSeparateProcesses]
-class TripalBlastFormTest extends TripalTestKernelBase {
+class TripalBlastFormTest extends ChadoTestKernelBase {
 
   /**
    * {@inheritdoc}
    */
-  protected static $modules = ['system', 'user', 'file', 'tripal', 'tripal_blast'];
+  protected static $modules = ['system', 'user', 'file', 'tripal', 'tripal_chado','tripal_blast'];
 
   /**
    * Class instance of the Tripal Blast Form.
@@ -32,12 +33,24 @@ class TripalBlastFormTest extends TripalTestKernelBase {
   protected $blast_form;
 
   /**
+   * A Database query interface for querying Chado using Tripal DBX.
+   *
+   * @var \Drupal\tripal_chado\Database\ChadoConnection
+   */
+  protected ChadoConnection $chado_connection;
+
+  /**
    * {@inheritdoc}
    */
   protected function setUp(): void {
     parent::setUp();
     \Drupal::state()->set('is_a_test_environment', TRUE);
+
+    // Create a test chado instance as needed by our service.
+    $this->chado_connection = $this->createTestSchema(ChadoTestKernelBase::PREPARE_TEST_CHADO);
+
     $this->installConfig(['tripal_blast', 'system']);
+    $this->installSchema('tripal_blast', ['blastjob']);
 
     $this->blast_form = TripalBlastForm::create($this->container);
   }
@@ -141,4 +154,51 @@ class TripalBlastFormTest extends TripalTestKernelBase {
     $this->assertSame('seqQuery', $form_state->getValue('qFlag'));
     $this->assertSame('blastdb', $form_state->getValue('dbFlag'));
   }
+
+  /**
+   * Tests validation succeeds for all BLAST programs.
+   */
+  public function testValidateFormAcceptsAllBlastPrograms(): void {
+    $programs = [
+      ['query' => 'nucleotide', 'db' => 'nucleotide', 'program' => 'blastn'],
+      ['query' => 'nucleotide', 'db' => 'protein', 'program' => 'blastx'],
+      ['query' => 'protein', 'db' => 'nucleotide', 'program' => 'tblastn'],
+      ['query' => 'protein', 'db' => 'protein', 'program' => 'blastp'],
+    ];
+
+    foreach ($programs as $program) {
+      $form = [];
+      $form_state = new FormState();
+      if ($program['program'] == 'blastn') {
+        $form_state->setValues([
+          'blast_program' => $program['program'],
+          'query_type' => $program['query'],
+          'db_type' => $program['db'],
+          'FASTA' => ">seq\nACGT",
+          'SELECT_DB' => '1',
+          'maxTarget' => '500',
+          'eVal' => '1e-5',
+          'wordSize' => '11',
+          'M&MScores' => '1,-2',
+          'gapCost' => '5,2',
+        ]);
+      }
+      else {
+        $form_state->setValues([
+          'blast_program' => $program['program'],
+          'query_type' => $program['query'],
+          'db_type' => $program['db'],
+          'FASTA' => ">seq\nACGT",
+          'SELECT_DB' => '1',
+        ]);
+      }
+
+      $this->blast_form->validateForm($form, $form_state);
+
+      $this->assertSame([], $form_state->getErrors(), 'Unexpected validation errors for ' . $program['program']);
+      $this->assertSame('seqQuery', $form_state->getValue('qFlag'), 'Query flag was not set for ' . $program['program']);
+      $this->assertSame('blastdb', $form_state->getValue('dbFlag'), 'Database flag was not set for ' . $program['program']);
+    }
+  }
+
 }
