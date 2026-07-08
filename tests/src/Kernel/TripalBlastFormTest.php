@@ -4,10 +4,13 @@ namespace Drupal\Tests\tripal_blast\Kernel;
 
 use Drupal\Core\Form\FormState;
 use Drupal\Tests\tripal_chado\Kernel\ChadoTestKernelBase;
+use Drupal\Tests\tripal_blast\Traits\TripalBlastTestTrait;
 use Drupal\tripal_blast\Form\TripalBlastForm;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Drupal\tripal_chado\Database\ChadoConnection;
+use Drupal\Tests\tripal\Traits\TripalTestTrait;
+use Drupal\Tests\user\Traits\UserCreationTrait;
 
 /**
  * Tests the Tripal BLAST form.
@@ -19,11 +22,24 @@ use Drupal\tripal_chado\Database\ChadoConnection;
 #[Group('tripal-blast')]
 #[RunTestsInSeparateProcesses]
 class TripalBlastFormTest extends ChadoTestKernelBase {
+  use TripalBlastTestTrait;
+  use UserCreationTrait;
+  use TripalTestTrait;
 
   /**
    * {@inheritdoc}
    */
-  protected static $modules = ['system', 'user', 'file', 'tripal', 'tripal_chado','tripal_blast'];
+  protected static $modules = [
+    'system',
+    'user',
+    'path',
+    'path_alias',
+    'views',
+    'file',
+    'tripal',
+    'tripal_chado',
+    'tripal_blast',
+  ];
 
   /**
    * Class instance of the Tripal Blast Form.
@@ -31,6 +47,13 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
    * @var \Drupal\tripal_blast\Form\TripalBlastForm
    */
   protected $blast_form;
+
+  /**
+   * The path to tripal_blast module.
+   *
+   * @var string
+   */
+  private $module_path;
 
   /**
    * A Database query interface for querying Chado using Tripal DBX.
@@ -48,11 +71,25 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
 
     // Create a test chado instance as needed by our service.
     $this->chado_connection = $this->createTestSchema(ChadoTestKernelBase::PREPARE_TEST_CHADO);
+    $this->container->set('tripal_chado.database', $this->chado_connection);
 
-    $this->installConfig(['tripal_blast', 'system']);
+    $this->installConfig(['tripal_blast', 'system', 'tripal_chado']);
+    $this->installEntitySchema('path_alias');
+    $this->installSchema('tripal', ['tripal_jobs']);
     $this->installSchema('tripal_blast', ['blastjob']);
+    $this->installSchema('tripal_chado', ['tripal_custom_tables']);
+    $this->installEntitySchema('file');
+    $this->installSchema('file', ['file_usage']);
+    $this->installEntitySchema('user');
+
+    // Create and log-in a user.
+    $this->setUpCurrentUser();
 
     $this->blast_form = TripalBlastForm::create($this->container);
+
+    $this->module_path = $this->container->get('module_handler')
+      ->getModule('tripal_blast')
+      ->getPath();
   }
 
   /**
@@ -201,4 +238,80 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
     }
   }
 
+  /**
+   * Tests that form submission creates a BLAST job record for each program.
+   */
+  public function testSubmitFormCreatesJobRecordForAllBlastPrograms(): void {
+    $programs = [
+      ['query' => 'nucleotide', 'db' => 'nucleotide', 'program' => 'blastn'],
+      ['query' => 'nucleotide', 'db' => 'protein', 'program' => 'blastx'],
+      ['query' => 'protein', 'db' => 'nucleotide', 'program' => 'tblastn'],
+      ['query' => 'protein', 'db' => 'protein', 'program' => 'blastp'],
+    ];
+
+    $editable_config = \Drupal::service('config.factory')->getEditable('tripal_blast.settings');
+    $editable_config->set('tripal_blast_config_general.path', 'tmp/true');
+    $editable_config->save();
+
+    $fixture_dir = $this->module_path . '/tests/fixtures/Chlamydomonas_reinhardtii_v5.6';
+    $nucleotide_db = $this->createBlastDatabase([
+      'id' => 123450,
+      'name' => 'Fixture nucleotide BLAST DB',
+      'path' => $fixture_dir . '/Chlamydomonas_reinhardtii_v5.6.nin',
+      'dbtype' => 'n',
+    ]);
+    $protein_db = $this->createBlastDatabase([
+      'id' => 67890,
+      'name' => 'Fixture protein BLAST DB',
+      'path' => $fixture_dir . '/Chlamydomonas_reinhardtii_v5.6_protein.nin',
+      'dbtype' => 'p',
+    ]);
+
+    foreach ($programs as $program) {
+      $form = [];
+      $form_state = new FormState();
+      $selected_db_id = ($program['db'] === 'protein') ? $protein_db->getId() : $nucleotide_db->getId();
+
+      if ($program['program'] == 'blastn') {
+        $form_state->setValues([
+          'blast_program' => $program['program'],
+          'query_type' => $program['query'],
+          'db_type' => $program['db'],
+          'FASTA' => ">seq\nACGT",
+          'SELECT_DB' => (string) $selected_db_id,
+          'maxTarget' => '500',
+          'eVal' => '1e-5',
+          'wordSize' => '11',
+          'M&MScores' => '1,-2',
+          'gapCost' => '5,2',
+        ]);
+      } else {
+        $form_state->setValues([
+          'blast_program' => $program['program'],
+          'query_type' => $program['query'],
+          'db_type' => $program['db'],
+          'FASTA' => ">seq\nACGT",
+          'SELECT_DB' => (string) $selected_db_id,
+        ]);
+      }
+
+      $this->blast_form->validateForm($form, $form_state);
+
+      $before = (int) $this->chado_connection->select('blastjob')
+        ->condition('blast_program', $program['program'])
+        ->countQuery()
+        ->execute()
+        ->fetchField();
+
+      $this->blast_form->submitForm($form, $form_state);
+
+      $after = (int) \Drupal::database()->select('blastjob')
+        ->condition('blast_program', $program['program'])
+        ->countQuery()
+        ->execute()
+        ->fetchField();
+
+      $this->assertSame($before + 1, $after, 'Submission did not create a job record for ' . $program['program']);
+    }
+  }
 }
