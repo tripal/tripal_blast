@@ -12,10 +12,7 @@ use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\InvokeCommand;
 use Drupal\Core\Url;
 use Drupal\node\Entity\Node;
-use Symfony\Component\HttpFoundation\RedirectResponse;
-
 use Drupal\tripal\Services\TripalJob;
-
 use Drupal\tripal_blast\Services\TripalBlastProgramHelper;
 
 /**
@@ -434,7 +431,7 @@ class TripalBlastForm extends FormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $error = FALSE;
     $query_type = $form_state->getValue('query_type');
-    $db_type = $form_state->getValue('$db_type');
+    $db_type = $form_state->getValue('db_type');
     $mdb_type = ($db_type == 'nucleotide') ? 'nucl' : 'prot';
 
     // Let's start by collecting the information from the form submission.
@@ -551,10 +548,10 @@ class TripalBlastForm extends FormBase {
       // manually, look into setting up a cron job to launch the tripal jobs
       // on a specified schedule.
 
-      // Redirect to the BLAST results page
+      // Redirect to the BLAST results page using form redirection (no direct send).
       $go = '/blast/report/' . $job_encode_id;
-      $redirect = new RedirectResponse(Url::fromUserInput($go)->toString());
-      $redirect->send();
+      $url = Url::fromUserInput($go);
+      $form_state->setRedirectUrl($url);
     }
   }
 

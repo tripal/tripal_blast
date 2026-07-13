@@ -213,6 +213,10 @@ class TripalBlastProgramHelper {
    *   Match and mismatch value.
    */
   public static function programSetMatchMismatch($mm_score) {
+    // Defaults in case an unexpected value is passed.
+    $penalty = -2;
+    $reward = 1;
+
     switch ($mm_score) {
       case 0:
         $penalty = -2;
