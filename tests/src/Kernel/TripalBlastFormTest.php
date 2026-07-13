@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\tripal_blast\Kernel;
 
+use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Form\FormState;
 use Drupal\Tests\tripal_chado\Kernel\ChadoTestKernelBase;
 use Drupal\Tests\tripal_blast\Traits\TripalBlastTestTrait;
@@ -314,4 +315,43 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
       $this->assertSame($before + 1, $after, 'Submission did not create a job record for ' . $program['program']);
     }
   }
+
+  /**
+   * Tests buildForm covers warning, recent-job, and resubmit defaults.
+   */
+  public function testBuildFormCoversWarningsRecentJobsAndResubmitDefaults(): void {
+    $editable_config = \Drupal::service('config.factory')->getEditable('tripal_blast.settings');
+    $editable_config->set('tripal_blast_config_notification.warning_text', 'Temporary maintenance warning');
+    $editable_config->set('tripal_blast_config_sequence.nucleotide', '>example\nACGT');
+    $editable_config->save();
+
+    $query_file = $this->container->get('file_system')->getTempDirectory() . '/resubmit_query.fasta';
+    file_put_contents($query_file, ">query\nACGT");
+
+    $job_service = $this->getMockBuilder(\Drupal\tripal_blast\Services\TripalBlastJobService::class)
+      ->disableOriginalConstructor()
+      ->onlyMethods(['jobsCountRecentJobs', 'jobsCreateTable', 'jobsBlastRevealSecret', 'jobsGetJobByJobId'])
+      ->getMock();
+    $job_service->method('jobsCountRecentJobs')->willReturn(1);
+    $job_service->method('jobsCreateTable')->willReturn(['#type' => 'table']);
+    $job_service->method('jobsBlastRevealSecret')->willReturn(42);
+    $job_service->method('jobsGetJobByJobId')->willReturn((object) [
+      'blastdb' => (object) ['nid' => 99],
+      'files' => (object) ['query' => $query_file],
+    ]);
+    $this->container->set('tripal_blast.job_service', $job_service);
+
+    \Drupal::request()->query->set('resubmit', 'secret-id');
+
+    $form = [];
+    $form_state = new FormState();
+    $build = $this->blast_form->buildForm($form, $form_state, 'nucleotide', 'nucleotide');
+
+    $this->assertArrayHasKey('config_warning', $build);
+    $this->assertArrayHasKey('A', $build);
+    $this->assertSame('table', $build['A']['recent_job']['#type']);
+    $this->assertSame(99, $build['B']['db']['SELECT_DB']['#default_value']);
+    $this->assertSame(">query\nACGT", $build['B']['query']['FASTA']['#default_value']);
+  }
+
 }
