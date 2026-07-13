@@ -127,7 +127,7 @@ class TripalBlastForm extends FormBase {
       }
 
       // Finally save the previous blast details for use by the advanced option forms.
-      $form_state['prev_blast'] = $prev_blast;
+      $form_state->setValue('prev_blast', $prev_blast);
     }
 
 
