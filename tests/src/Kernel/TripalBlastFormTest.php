@@ -4,6 +4,7 @@ namespace Drupal\Tests\tripal_blast\Kernel;
 
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Form\FormState;
+use Drupal\file\Entity\File;
 use Drupal\Tests\tripal_chado\Kernel\ChadoTestKernelBase;
 use Drupal\Tests\tripal_blast\Traits\TripalBlastTestTrait;
 use Drupal\tripal_blast\Form\TripalBlastForm;
@@ -352,6 +353,202 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
     $this->assertSame('table', $build['A']['recent_job']['#type']);
     $this->assertSame(99, $build['B']['db']['SELECT_DB']['#default_value']);
     $this->assertSame(">query\nACGT", $build['B']['query']['FASTA']['#default_value']);
+  }
+
+  /**
+   * Tests validation handles uploaded files and invalid advanced values.
+   */
+  public function testValidateFormHandlesUploadedFilesAndInvalidAdvancedValues(): void {
+
+    $query = ">seq\nACGT";
+    $query_file_uri = 'temporary://tripal-blast-query.fasta';
+
+    file_put_contents(
+      \Drupal::service('file_system')->realpath($query_file_uri),
+      $query
+    );
+    $query_file = File::create([
+      'uri' => $query_file_uri,
+    ]);
+    $query_file->save();
+
+    $db_data = ">db\nACGT";
+    $db_file_uri = 'temporary://tripal-blast-db.fasta';
+
+    file_put_contents(
+      \Drupal::service('file_system')->realpath($db_file_uri),
+      $db_data
+    );
+    $db_file = File::create([
+      'uri' => $db_file_uri,
+    ]);
+    $db_file->save();
+
+    $query_file_id = $query_file->id();
+    $db_file_id = $db_file->id();
+
+    $form = [];
+    $form_state = new FormState();
+    $form_state->setValues([
+      'blast_program' => 'blastn',
+      'query_type' => 'nucleotide',
+      'db_type' => 'nucleotide',
+      'UPLOAD' => $query_file_id,
+      'DBUPLOAD' => $db_file_id,
+      'maxTarget' => '500',
+      'eVal' => 'not-a-number',
+      'wordSize' => '11',
+      'M&MScores' => '1,-2',
+      'gapCost' => '5,2',
+    ]);
+
+    $this->blast_form->validateForm($form, $form_state);
+
+    $this->assertSame('upQuery', $form_state->getValue('qFlag'));
+    $this->assertSame('upDB', $form_state->getValue('dbFlag'));
+    $this->assertNotEmpty($form_state->getErrors());
+    $this->assertArrayHasKey('eVal', $form_state->getErrors());
+  }
+
+  /**
+   * Tests submitForm reports a missing database selection.
+   */
+  public function testSubmitFormReportsMissingDatabaseSelection(): void {
+    $form = [];
+    $form_state = new FormState();
+    $form_state->setValues([
+      'blast_program' => 'blastn',
+      'query_type' => 'nucleotide',
+      'db_type' => 'nucleotide',
+      'qFlag' => 'seqQuery',
+      'FASTA' => ">seq\nACGT",
+      'maxTarget' => '500',
+      'eVal' => '1e-5',
+      'wordSize' => '11',
+      'M&MScores' => '1,-2',
+      'gapCost' => '5,2',
+    ]);
+
+    $this->blast_form->submitForm($form, $form_state);
+
+    $messages = \Drupal::messenger()->all();
+    $this->assertNotEmpty($messages['error']);
+  }
+
+  /**
+   * Tests submitForm uses an uploaded database and creates a job submission.
+   */
+  public function testSubmitFormUsesUploadedDatabaseAndCreatesJob(): void {
+    $temp_dir = $this->container->get('file_system')->getTempDirectory() . '/tripal-blast-makeblastdb';
+    if (!is_dir($temp_dir)) {
+      mkdir($temp_dir, 0777, TRUE);
+    }
+
+    $makeblastdb_path = $temp_dir . '/makeblastdb';
+    file_put_contents($makeblastdb_path, "#!/bin/sh\nexit 0\n");
+    chmod($makeblastdb_path, 0755);
+
+    $editable_config = \Drupal::service('config.factory')->getEditable('tripal_blast.settings');
+    $editable_config->set('tripal_blast_config_general.path', $temp_dir . '/');
+    $editable_config->save();
+
+    $job_service = $this->getMockBuilder(\Drupal\tripal_blast\Services\TripalBlastJobService::class)
+      ->disableOriginalConstructor()
+      ->onlyMethods(['createBlastJob', 'jobsBlastMakeSecret'])
+      ->getMock();
+    $job_service->expects($this->once())
+      ->method('createBlastJob')
+      ->willReturn(2024);
+    $job_service->method('jobsBlastMakeSecret')->willReturn('encoded-job');
+    $this->container->set('tripal_blast.job_service', $job_service);
+
+    $form = [];
+    $form_state = new FormState();
+    $form_state->setValues([
+      'blast_program' => 'blastn',
+      'query_type' => 'nucleotide',
+      'db_type' => 'nucleotide',
+      'qFlag' => 'seqQuery',
+      'FASTA' => ">seq\nACGT",
+      'dbFlag' => 'upDB',
+      'upDB_path' => $temp_dir . '/uploaded.fasta',
+      'maxTarget' => '500',
+      'eVal' => '1e-5',
+      'wordSize' => '11',
+      'M&MScores' => '1,-2',
+      'gapCost' => '5,2',
+    ]);
+
+    $this->blast_form->submitForm($form, $form_state);
+
+    $this->assertNotNull($form_state->getRedirect());
+  }
+
+  /**
+   * Tests submitForm catches job creation errors.
+   */
+  public function testSubmitFormCatchesJobCreationErrors(): void {
+    $job_service = $this->getMockBuilder(\Drupal\tripal_blast\Services\TripalBlastJobService::class)
+      ->disableOriginalConstructor()
+      ->onlyMethods(['createBlastJob'])
+      ->getMock();
+    $job_service->expects($this->once())
+      ->method('createBlastJob')
+      ->willThrowException(new \RuntimeException('boom'));
+    $this->container->set('tripal_blast.job_service', $job_service);
+
+    $form = [];
+    $form_state = new FormState();
+    $form_state->setValues([
+      'blast_program' => 'blastn',
+      'query_type' => 'nucleotide',
+      'db_type' => 'nucleotide',
+      'qFlag' => 'seqQuery',
+      'FASTA' => ">seq\nACGT",
+      'SELECT_DB' => '1',
+      'maxTarget' => '500',
+      'eVal' => '1e-5',
+      'wordSize' => '11',
+      'M&MScores' => '1,-2',
+      'gapCost' => '5,2',
+    ]);
+
+    $this->blast_form->submitForm($form, $form_state);
+
+    $messages = \Drupal::messenger()->all();
+    $this->assertNotEmpty($messages['error']);
+  }
+
+  /**
+   * Tests AJAX callbacks update the form state.
+   */
+  public function testAjaxCallbacksUpdateTheForm(): void {
+    $editable_config = \Drupal::service('config.factory')->getEditable('tripal_blast.settings');
+    $editable_config->set('tripal_blast_config_sequence.nucleotide', '>example\nACGT');
+    $editable_config->save();
+
+    $form = [
+      'B' => [
+        'query' => [
+          'FASTA' => ['#value' => ''],
+        ],
+      ],
+    ];
+    $form_state = new FormState();
+    $form_state->setValues([
+      'query_type' => 'nucleotide',
+      'example_sequence' => TRUE,
+      'blast_program' => 'blastn',
+      'M&MScores' => '1,-2',
+    ]);
+
+    $updated_form = $this->blast_form->ajaxShowExampleSequenceCallback($form, $form_state);
+    $this->assertSame('>example\nACGT', $updated_form['#value']);
+    $this->assertStringContainsString('tripal-blast-tip', $updated_form['#suffix']);
+
+    $response = $this->blast_form->ajaxFieldUpdateCallback($form, $form_state);
+    $this->assertInstanceOf(AjaxResponse::class, $response);
+    $this->assertNotEmpty($response->getCommands());
   }
 
 }
