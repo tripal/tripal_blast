@@ -10,7 +10,9 @@ use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\InvokeCommand;
+use Drupal\Core\Link;
 use Drupal\Core\Url;
+use Drupal\file\Entity\File;
 use Drupal\node\Entity\Node;
 use Drupal\tripal\Services\TripalJob;
 use Drupal\tripal_blast\Services\TripalBlastProgramHelper;
@@ -324,7 +326,7 @@ class TripalBlastForm extends FormBase {
     $fld_file_query_value = $form_state->getValue('UPLOAD');
 
     if($fld_file_query_value) {
-      $file = file_load($fld_file_query_value);
+      $file = File::load($fld_file_query_value);
     }
 
     $fld_fasta_value = $form_state->getValue('FASTA');
@@ -332,7 +334,7 @@ class TripalBlastForm extends FormBase {
       // If the $file is populated then this a newly uploaded, temporary file.
       $form_state->setValue('qFlag', 'upQuery');
 
-      $file_uri = \Drupal::service('file_system')->realpath($file->uri);
+      $file_uri = $file->getFileUri();
       $form_state->setValue('upQuery_path', $file_uri);
     }
     elseif (!empty($fld_fasta_value)) {
@@ -369,13 +371,13 @@ class TripalBlastForm extends FormBase {
     $fld_select_db_value = $form_state->getValue('SELECT_DB');
 
     if ($fld_file_db_value) {
-      $file = file_load($fld_file_db_value);
+      $file = File::load($fld_file_db_value);
 
       if (is_object($file)) {
         // If the $file is populated then this is a newly uploaded, temporary file.
         $form_state->setValue('dbFlag', 'upDB');
 
-        $file_uri = \Drupal::service('file_system')->realpath($file->uri);
+        $file_uri = $file->getFileUri();
         $form_state->setValue('upDB_path', $file_uri);
       }
       elseif (empty($fld_select_db_value)) {
@@ -517,6 +519,8 @@ class TripalBlastForm extends FormBase {
 
     $blast_submission['options'] = $advanced_options;
 
+    $job_id = NULL;
+
     // SUBMIT JOB TO TRIPAL
     //---------------------
     // If there is a blast target...
@@ -593,7 +597,7 @@ class TripalBlastForm extends FormBase {
       $fld_value = $sequence_example;
 
       // Add a note to user, default example may be replaced through the admin interface.
-      $l = \Drupal::l('administartive interface', Url::fromRoute('tripal_blast.configuration'));
+      $l = Link::fromTextAndUrl('administrative interface', Url::fromRoute('tripal_blast.configuration'))->toString();
       $fld_note = '<div class="tripal-blast-tip">'
         . $this->t('You can set the example sequence through the @note.', ['@note' => $l])
         . '</div>';
