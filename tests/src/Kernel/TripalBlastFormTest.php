@@ -646,7 +646,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
   /**
    * Tests that submitForm correctly handles the query flag.
    */
-  public function testSubmitFormQueryFlag() :void {
+  public function testSubmitFormQueryFlag(): void {
     $editable_config = \Drupal::service('config.factory')->getEditable('tripal_blast.settings');
     $editable_config->set('tripal_blast_config_general.path', 'tmp/true');
     $editable_config->save();
@@ -665,6 +665,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
       'query_type' => 'nucleotide',
       'db_type' => 'nucleotide',
       'qFlag' => 'upQuery',
+      'upQuery_path' => $nucleotide_db->getPath(),
       'FASTA' => ">seq\nACGT",
       'SELECT_DB' => (string) $nucleotide_db->getId(),
       'maxTarget' => '500',
