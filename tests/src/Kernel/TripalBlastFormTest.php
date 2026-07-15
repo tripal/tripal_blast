@@ -13,6 +13,7 @@ use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Drupal\tripal_chado\Database\ChadoConnection;
 use Drupal\Tests\tripal\Traits\TripalTestTrait;
 use Drupal\Tests\user\Traits\UserCreationTrait;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * Tests the Tripal BLAST form.
@@ -549,6 +550,130 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
     $response = $this->blast_form->ajaxFieldUpdateCallback($form, $form_state);
     $this->assertInstanceOf(AjaxResponse::class, $response);
     $this->assertNotEmpty($response->getCommands());
+  }
+
+  /**
+   * Provides data for testing validation errors for missing database and query.
+   *
+   * @return array
+   *   An array of test cases, each containing form values and the expected error key.
+   */
+  public static function provideDataForValidateDatabaseAndQueryErrors(): array {
+    return [
+      'invalid fasta' => [
+        [
+          'blast_program' => 'blastn',
+          'query_type' => 'nucleotide',
+          'db_type' => 'nucleotide',
+          'qFlag' => 'seqQuery',
+          'FASTA' => '1234',
+          'SELECT_DB' => '1',
+          'maxTarget' => '500',
+          'eVal' => '1e-5',
+          'wordSize' => '11',
+          'M&MScores' => '1,-2',
+          'gapCost' => '5,2',
+        ],
+        'query',
+      ],
+      'invalid DBUPLOAD and SELECT_DB' => [
+        [
+          'blast_program' => 'blastn',
+          'query_type' => 'nucleotide',
+          'db_type' => 'nucleotide',
+          'UPLOAD' => '1',
+          'DBUPLOAD' => '500',
+          'SELECT_DB' => '500',
+          'maxTarget' => '500',
+          'eVal' => '1e-5',
+          'wordSize' => '11',
+          'M&MScores' => '1,-2',
+          'gapCost' => '5,2',
+        ],
+        'db',
+      ],
+    ];
+  }
+
+  /**
+   * Tests validation fails for missing database and query.
+   *
+   * @param array $values
+   *  The form values to validate.
+   * @param string $key
+   *  The key of the expected error.
+   *
+   * @dataProvider provideDataForValidateDatabaseAndQueryErrors
+   */
+  #[DataProvider('provideDataForValidateDatabaseAndQueryErrors')]
+  public function testValidateDatabaseAndQueryErrors(array $values, string $key): void {
+    $form = [];
+    $form_state = new FormState();
+    $form_state->setValues($values);
+
+    $this->blast_form->validateForm($form, $form_state);
+
+    $this->assertArrayHasKey($key, $form_state->getErrors());
+  }
+
+  /**
+   * Tests validation fails for an invalid database upload selection.
+   */
+  public function testValidateFormInvalidDBUploadSelection(): void {
+    $form = [];
+    $form_state = new FormState();
+    $form_state->setValues([
+      'blast_program' => 'blastn',
+      'query_type' => 'nucleotide',
+      'db_type' => 'nucleotide',
+      'qFlag' => 'seqQuery',
+      'FASTA' => ">seq\nACGT",
+      'UPLOAD' => '1',
+      'DBUPLOAD' => '500',
+      'SELECT_DB' => '',
+      'maxTarget' => '500',
+      'eVal' => '1e-5',
+      'wordSize' => '11',
+      'M&MScores' => '1,-2',
+      'gapCost' => '5,2',
+    ]);
+
+    $this->blast_form->validateForm($form, $form_state);
+
+    $this->assertSame('blastdb', $form_state->getValue('dbFlag'));
+  }
+
+  /**
+   * Tests that submitForm correctly handles the query flag.
+   */
+  public function testSubmitFormQueryFlag() :void {
+    $editable_config = \Drupal::service('config.factory')->getEditable('tripal_blast.settings');
+    $editable_config->set('tripal_blast_config_general.path', 'tmp/true');
+    $editable_config->save();
+
+    $fixture_dir = $this->module_path . '/tests/fixtures/Chlamydomonas_reinhardtii_v5.6';
+    $nucleotide_db = $this->createBlastDatabase([
+      'id' => 123450,
+      'name' => 'Fixture nucleotide BLAST DB',
+      'path' => $fixture_dir . '/Chlamydomonas_reinhardtii_v5.6.nin',
+      'dbtype' => 'n',
+    ]);
+    $form = [];
+    $form_state = new FormState();
+    $form_state->setValues([
+      'blast_program' => 'blastn',
+      'query_type' => 'nucleotide',
+      'db_type' => 'nucleotide',
+      'qFlag' => 'upQuery',
+      'FASTA' => ">seq\nACGT",
+      'SELECT_DB' => (string) $nucleotide_db->getId(),
+      'maxTarget' => '500',
+      'eVal' => '1e-5',
+      'wordSize' => '11',
+      'M&MScores' => '1,-2',
+      'gapCost' => '5,2',
+    ]);
+    $this->blast_form->submitForm($form, $form_state);
   }
 
 }
