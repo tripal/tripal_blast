@@ -675,6 +675,8 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
       'gapCost' => '5,2',
     ]);
     $this->blast_form->submitForm($form, $form_state);
+
+    $this->assertNotNull($form_state->getRedirect());
   }
 
 }
