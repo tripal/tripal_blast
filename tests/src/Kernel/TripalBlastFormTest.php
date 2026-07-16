@@ -102,18 +102,57 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
     $this->assertSame('tripalblastform', $this->blast_form->getFormId());
   }
 
+  public static function provideDataForTestBuildForm(): array {
+    return [
+      'nucleotide blastn' => [
+        [
+          'query_type' => 'nucleotide',
+          'db_type' => 'nucleotide',
+          'expected_program' => 'blastn',
+        ],
+      ],
+      'nucleotide blastx' => [
+        [
+        'query_type' => 'nucleotide',
+        'db_type' => 'protein',
+        'expected_program' => 'blastx',
+        ],
+      ],
+      'protein tblastn' => [
+        [
+          'query_type' => 'protein',
+          'db_type' => 'nucleotide',
+          'expected_program' => 'tblastn',
+        ],
+      ],
+      'protein blastp' => [
+        [
+          'query_type' => 'protein',
+          'db_type' => 'protein',
+          'expected_program' => 'blastp',
+        ],
+      ],
+    ];
+  }
+
   /**
    * Tests that the build form contains the expected BLAST fields.
+   *
+   * @param array $scenario
+   *  The scenario data containing query type, database type, and expected program.
+   *
+   * @dataProvider provideDataForTestBuildForm
    */
-  public function testBuildFormContainsExpectedFields(): void {
+  #[DataProvider('provideDataForTestBuildForm')]
+  public function testBuildForm(array $scenario): void {
     $form = [];
     $form_state = new FormState();
 
-    $build = $this->blast_form->buildForm($form, $form_state, 'nucleotide', 'nucleotide');
+    $build = $this->blast_form->buildForm($form, $form_state, $scenario['query_type'], $scenario['db_type']);
 
-    $this->assertSame('nucleotide', $build['query_type']['#value'], 'We expect the query type to be nucleotide but it is not.');
-    $this->assertSame('nucleotide', $build['db_type']['#value'], 'We expect the database type to be nucleotide but it is not.');
-    $this->assertSame('blastn', $build['blast_program']['#value'], 'We expect the BLAST program to be blastn but it is not.');
+    $this->assertSame($scenario['query_type'], $build['query_type']['#value'], 'We expect the query type to be ' . $scenario['query_type'] . ' but it is not.');
+    $this->assertSame($scenario['db_type'], $build['db_type']['#value'], 'We expect the database type to be ' . $scenario['db_type'] . ' but it is not.');
+    $this->assertSame($scenario['expected_program'], $build['blast_program']['#value'], 'We expect the BLAST program to be ' . $scenario['expected_program'] . ' but it is not.');
     $this->assertSame('details', $build['B']['#type'], 'We expect the main container to be a details element but it is not.');
     $this->assertSame('details', $build['B']['query']['#type'], 'We expect the query container to be a details element but it is not.');
     $this->assertSame('textarea', $build['B']['query']['FASTA']['#type'], 'We expect the FASTA input to be a textarea but it is not.');
@@ -121,99 +160,29 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
     $this->assertSame('submit', $build['B']['submit']['#type'], 'We expect the submit button to be a submit element but it is not.');
   }
 
-  /**
-   * Tests that each BLAST program builds the expected hidden values.
-   */
-  public function testBuildFormGeneratesAllBlastPrograms(): void {
-    $programs = [
-      ['query' => 'nucleotide', 'db' => 'nucleotide', 'expected' => 'blastn'],
-      ['query' => 'nucleotide', 'db' => 'protein', 'expected' => 'blastx'],
-      ['query' => 'protein', 'db' => 'nucleotide', 'expected' => 'tblastn'],
-      ['query' => 'protein', 'db' => 'protein', 'expected' => 'blastp'],
-    ];
-
-    foreach ($programs as $program) {
-      $form = [];
-      $form_state = new FormState();
-      $build = $this->blast_form->buildForm($form, $form_state, $program['query'], $program['db']);
-
-      $this->assertSame($program['query'], $build['query_type']['#value'], 'Unexpected query type for ' . $program['expected']);
-      $this->assertSame($program['db'], $build['db_type']['#value'], 'Unexpected database type for ' . $program['expected']);
-      $this->assertSame($program['expected'], $build['blast_program']['#value'], 'Unexpected BLAST program for ' . $program['expected']);
-      $this->assertArrayHasKey('B', $build, 'The main details container is missing for ' . $program['expected']);
-      $this->assertArrayHasKey('submit', $build['B'], 'The submit button is missing for ' . $program['expected']);
-    }
-  }
-
-  /**
-   * Tests validation fails when the query and database are missing.
-   */
-  public function testValidateFormRejectsMissingQueryAndDatabase(): void {
-    $form = [];
-    $form_state = new FormState();
-    $form_state->setValues([
-      'blast_program' => 'blastn',
-      'query_type' => 'nucleotide',
-      'db_type' => 'nucleotide',
-      'maxTarget' => '50',
-      'eVal' => '1e-5',
-      'wordSize' => '11',
-      'M&MScores' => '1,-2',
-      'gapCost' => '5,2',
-    ]);
-
-    $this->blast_form->validateForm($form, $form_state);
-
-    $errors = $form_state->getErrors();
-    $this->assertArrayHasKey('query', $errors, 'Expected an error for missing query but it was not found.');
-    $this->assertArrayHasKey('db', $errors, 'Expected an error for missing database but it was not found.');
-  }
-
-  /**
-   * Tests validation accepts a valid FASTA sequence and database selection.
-   */
-  public function testValidateFormAcceptsValidFastaAndDatabaseSelection(): void {
-    $form = [];
-    $form_state = new FormState();
-    $form_state->setValues([
-      'blast_program' => 'blastn',
-      'query_type' => 'nucleotide',
-      'db_type' => 'nucleotide',
-      'FASTA' => ">seq\nACGT",
-      'SELECT_DB' => '1',
-      'maxTarget' => '500',
-      'eVal' => '1e-5',
-      'wordSize' => '11',
-      'M&MScores' => '1,-2',
-      'gapCost' => '5,2',
-    ]);
-
-    $this->blast_form->validateForm($form, $form_state);
-
-    $this->assertSame([], $form_state->getErrors(), 'Unexpected validation errors found.');
-    $this->assertSame('seqQuery', $form_state->getValue('qFlag'), 'Query flag was not set correctly.');
-    $this->assertSame('blastdb', $form_state->getValue('dbFlag'), 'Database flag was not set correctly.');
-  }
-
-  /**
-   * Tests validation succeeds for all BLAST programs.
-   */
-  public function testValidateFormAcceptsAllBlastPrograms(): void {
-    $programs = [
-      ['query' => 'nucleotide', 'db' => 'nucleotide', 'program' => 'blastn'],
-      ['query' => 'nucleotide', 'db' => 'protein', 'program' => 'blastx'],
-      ['query' => 'protein', 'db' => 'nucleotide', 'program' => 'tblastn'],
-      ['query' => 'protein', 'db' => 'protein', 'program' => 'blastp'],
-    ];
-
-    foreach ($programs as $program) {
-      $form = [];
-      $form_state = new FormState();
-      if ($program['program'] == 'blastn') {
-        $form_state->setValues([
-          'blast_program' => $program['program'],
-          'query_type' => $program['query'],
-          'db_type' => $program['db'],
+  public static function provideDataForTestValidateForm(): array {
+    return [
+      'missing query and database' => [
+        [
+          'blast_program' => 'blastn',
+          'query_type' => 'nucleotide',
+          'db_type' => 'nucleotide',
+          'maxTarget' => '50',
+          'eVal' => '1e-5',
+          'wordSize' => '11',
+          'M&MScores' => '1,-2',
+          'gapCost' => '5,2',
+        ],
+        [
+          'expected_error_keys' => ['query', 'db'],
+          'expected_values' => [],
+        ],
+      ],
+      'valid blastn' => [
+        [
+          'blast_program' => 'blastn',
+          'query_type' => 'nucleotide',
+          'db_type' => 'nucleotide',
           'FASTA' => ">seq\nACGT",
           'SELECT_DB' => '1',
           'maxTarget' => '500',
@@ -221,40 +190,313 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
           'wordSize' => '11',
           'M&MScores' => '1,-2',
           'gapCost' => '5,2',
-        ]);
-      }
-      else {
-        $form_state->setValues([
-          'blast_program' => $program['program'],
-          'query_type' => $program['query'],
-          'db_type' => $program['db'],
+        ],
+        [
+          'expected_error_keys' => [],
+          'expected_values' => [
+            'qFlag' => 'seqQuery',
+            'dbFlag' => 'blastdb',
+          ],
+        ],
+      ],
+      'valid blastx' => [
+        [
+          'blast_program' => 'blastx',
+          'query_type' => 'nucleotide',
+          'db_type' => 'protein',
           'FASTA' => ">seq\nACGT",
           'SELECT_DB' => '1',
-        ]);
-      }
+        ],
+        [
+          'expected_error_keys' => [],
+          'expected_values' => [
+            'qFlag' => 'seqQuery',
+            'dbFlag' => 'blastdb',
+          ],
+        ],
+      ],
+      'valid tblastn' => [
+        [
+          'blast_program' => 'tblastn',
+          'query_type' => 'protein',
+          'db_type' => 'nucleotide',
+          'FASTA' => ">seq\nACGT",
+          'SELECT_DB' => '1',
+        ],
+        [
+          'expected_error_keys' => [],
+          'expected_values' => [
+            'qFlag' => 'seqQuery',
+            'dbFlag' => 'blastdb',
+          ],
+        ],
+      ],
+      'valid blastp' => [
+        [
+          'blast_program' => 'blastp',
+          'query_type' => 'protein',
+          'db_type' => 'protein',
+          'FASTA' => ">seq\nACGT",
+          'SELECT_DB' => '1',
+        ],
+        [
+          'expected_error_keys' => [],
+          'expected_values' => [
+            'qFlag' => 'seqQuery',
+            'dbFlag' => 'blastdb',
+          ],
+        ],
+      ],
+      'invalid fasta' => [
+        [
+          'blast_program' => 'blastn',
+          'query_type' => 'nucleotide',
+          'db_type' => 'nucleotide',
+          'qFlag' => 'seqQuery',
+          'FASTA' => '1234',
+          'SELECT_DB' => '1',
+          'maxTarget' => '500',
+          'eVal' => '1e-5',
+          'wordSize' => '11',
+          'M&MScores' => '1,-2',
+          'gapCost' => '5,2',
+        ],
+        [
+          'expected_error_keys' => ['query'],
+          'expected_values' => [],
+        ],
+      ],
+      'valid uploaded query and database' => [
+        [
+          'blast_program' => 'blastn',
+          'query_type' => 'nucleotide',
+          'db_type' => 'nucleotide',
+          'UPLOAD' => '1',
+          'DBUPLOAD' => '2',
+          'maxTarget' => '500',
+          'eVal' => '1e-5',
+          'wordSize' => '11',
+          'M&MScores' => '1,-2',
+          'gapCost' => '5,2',
+        ],
+        [
+          'expected_error_keys' => [],
+          'expected_values' => [
+            'qFlag' => 'upQuery',
+            'dbFlag' => 'upDB',
+          ],
+        ],
+      ],
+      'invalid DBUPLOAD and SELECT_DB' => [
+        [
+          'blast_program' => 'blastn',
+          'query_type' => 'nucleotide',
+          'db_type' => 'nucleotide',
+          'UPLOAD' => '1',
+          'DBUPLOAD' => '500',
+          'SELECT_DB' => '500',
+          'maxTarget' => '500',
+          'eVal' => '1e-5',
+          'wordSize' => '11',
+          'M&MScores' => '1,-2',
+          'gapCost' => '5,2',
+        ],
+        [
+          'expected_error_keys' => ['db'],
+          'expected_values' => [],
+        ],
+      ],
+      'invalid DBUPLOAD and missing SELECT_DB' => [
+        [
+          'blast_program' => 'blastn',
+          'query_type' => 'nucleotide',
+          'db_type' => 'nucleotide',
+          'qFlag' => 'seqQuery',
+          'FASTA' => ">seq\nACGT",
+          'UPLOAD' => '1',
+          'DBUPLOAD' => '500',
+          'SELECT_DB' => '',
+          'maxTarget' => '500',
+          'eVal' => '1e-5',
+          'wordSize' => '11',
+          'M&MScores' => '1,-2',
+          'gapCost' => '5,2',
+        ],
+        [
+          'expected_error_keys' => [],
+          'expected_values' => [
+            'dbFlag' => 'blastdb',
+          ],
+        ],
+      ],
+      'invalid eVal' => [
+        [
+          'blast_program' => 'blastn',
+          'query_type' => 'nucleotide',
+          'db_type' => 'nucleotide',
+          'FASTA' => ">seq\nACGT",
+          'SELECT_DB' => '1',
+          'maxTarget' => '500',
+          'eVal' => 'not-a-number',
+          'wordSize' => '11',
+          'M&MScores' => '1,-2',
+          'gapCost' => '5,2',
+        ],
+        [
+          'expected_error_keys' => ['eVal'],
+          'expected_values' => [],
+        ],
+      ],
+    ];
+  }
 
-      $this->blast_form->validateForm($form, $form_state);
+  /**
+   * Tests that the form validation correctly identifies missing query and database.
+   *
+   * @param array $values
+   *  The form values to validate.
+   * @param array $expected
+   *  The expected results, including expected error keys.
+   *
+   * @dataProvider provideDataForTestValidateForm
+   */
+  #[DataProvider('provideDataForTestValidateForm')]
+  public function testValidateForm(array $values, array $expected): void {
+    $query = ">seq\nACGT";
+    $query_file_uri = 'temporary://tripal-blast-query.fasta';
 
-      $this->assertSame([], $form_state->getErrors(), 'Unexpected validation errors for ' . $program['program']);
-      $this->assertSame('seqQuery', $form_state->getValue('qFlag'), 'Query flag was not set for ' . $program['program']);
-      $this->assertSame('blastdb', $form_state->getValue('dbFlag'), 'Database flag was not set for ' . $program['program']);
+    file_put_contents(
+      \Drupal::service('file_system')->realpath($query_file_uri),
+      $query
+    );
+    $query_file = File::create([
+      'uri' => $query_file_uri,
+    ]);
+    $query_file->save();
+
+    $db_data = ">db\nACGT";
+    $db_file_uri = 'temporary://tripal-blast-db.fasta';
+
+    file_put_contents(
+      \Drupal::service('file_system')->realpath($db_file_uri),
+      $db_data
+    );
+    $db_file = File::create([
+      'uri' => $db_file_uri,
+    ]);
+    $db_file->save();
+    $form = [];
+    $form_state = new FormState();
+    $form_state->setValues($values);
+
+    $this->blast_form->validateForm($form, $form_state);
+
+    $errors = $form_state->getErrors();
+    foreach ($expected['expected_error_keys'] as $key) {
+      $this->assertArrayHasKey($key, $errors, 'Expected an error for missing ' . $key . ' but it was not found.');
     }
+    foreach ($expected['expected_values'] as $key => $expected_value) {
+      $this->assertSame($expected_value, $form_state->getValue($key), 'Expected the value for ' . $key . ' to be ' . $expected_value . ' but it is not.');
+    }
+  }
+
+  public static function provideDataForTestSubmitForm(): array {
+    return [
+      'valid blastn' => [
+        [
+          'blast_program' => 'blastn',
+          'query_type' => 'nucleotide',
+          'db_type' => 'nucleotide',
+          'FASTA' => ">seq\nACGT",
+          'SELECT_DB' => '123450',
+          'maxTarget' => '500',
+          'eVal' => '1e-5',
+          'wordSize' => '11',
+          'M&MScores' => '1,-2',
+          'gapCost' => '5,2',
+        ],
+      ],
+      'valid blastx' => [
+        [
+          'blast_program' => 'blastx',
+          'query_type' => 'nucleotide',
+          'db_type' => 'protein',
+          'FASTA' => ">seq\nACGT",
+          'SELECT_DB' => '67890',
+        ],
+      ],
+      'valid tblastn' => [
+        [
+          'blast_program' => 'tblastn',
+          'query_type' => 'protein',
+          'db_type' => 'nucleotide',
+          'FASTA' => ">seq\nACGT",
+          'SELECT_DB' => '123450',
+        ],
+      ],
+      'valid blastp' => [
+        [
+          'blast_program' => 'blastp',
+          'query_type' => 'protein',
+          'db_type' => 'protein',
+          'FASTA' => ">seq\nACGT",
+          'SELECT_DB' => '67890',
+        ],
+      ],
+      'valid blastn with uploaded query' => [
+        [
+          'blast_program' => 'blastn',
+          'query_type' => 'nucleotide',
+          'db_type' => 'nucleotide',
+          'UPLOAD' => '1',
+          'SELECT_DB' => '123450',
+          'maxTarget' => '500',
+          'eVal' => '1e-5',
+          'wordSize' => '11',
+          'M&MScores' => '1,-2',
+          'gapCost' => '5,2',
+        ],
+      ],
+    ];
   }
 
   /**
    * Tests that form submission creates a BLAST job record for each program.
+   *
+   * @param array $values
+   *  The form values to submit.
+   *
+   * @dataProvider provideDataForTestSubmitForm
    */
-  public function testSubmitFormCreatesJobRecordForAllBlastPrograms(): void {
-    $programs = [
-      ['query' => 'nucleotide', 'db' => 'nucleotide', 'program' => 'blastn'],
-      ['query' => 'nucleotide', 'db' => 'protein', 'program' => 'blastx'],
-      ['query' => 'protein', 'db' => 'nucleotide', 'program' => 'tblastn'],
-      ['query' => 'protein', 'db' => 'protein', 'program' => 'blastp'],
-    ];
-
+  #[DataProvider('provideDataForTestSubmitForm')]
+  public function testSubmitForm(array $values): void {
     $editable_config = \Drupal::service('config.factory')->getEditable('tripal_blast.settings');
     $editable_config->set('tripal_blast_config_general.path', 'tmp/true');
     $editable_config->save();
+
+    $query = ">seq\nACGT";
+    $query_file_uri = 'temporary://tripal-blast-query.fasta';
+
+    file_put_contents(
+      \Drupal::service('file_system')->realpath($query_file_uri),
+      $query
+    );
+    $query_file = File::create([
+      'uri' => $query_file_uri,
+    ]);
+    $query_file->save();
+
+    $db_data = ">db\nACGT";
+    $db_file_uri = 'temporary://tripal-blast-db.fasta';
+
+    file_put_contents(
+      \Drupal::service('file_system')->realpath($db_file_uri),
+      $db_data
+    );
+    $db_file = File::create([
+      'uri' => $db_file_uri,
+    ]);
+    $db_file->save();
 
     $fixture_dir = $this->module_path . '/tests/fixtures/Chlamydomonas_reinhardtii_v5.6';
     $nucleotide_db = $this->createBlastDatabase([
@@ -269,53 +511,28 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
       'path' => $fixture_dir . '/Chlamydomonas_reinhardtii_v5.6_protein.nin',
       'dbtype' => 'p',
     ]);
+    $form = [];
+    $form_state = new FormState();
+    $form_state->setValues($values);
 
-    foreach ($programs as $program) {
-      $form = [];
-      $form_state = new FormState();
-      $selected_db_id = ($program['db'] === 'protein') ? $protein_db->getId() : $nucleotide_db->getId();
+    $this->blast_form->validateForm($form, $form_state);
 
-      if ($program['program'] == 'blastn') {
-        $form_state->setValues([
-          'blast_program' => $program['program'],
-          'query_type' => $program['query'],
-          'db_type' => $program['db'],
-          'FASTA' => ">seq\nACGT",
-          'SELECT_DB' => (string) $selected_db_id,
-          'maxTarget' => '500',
-          'eVal' => '1e-5',
-          'wordSize' => '11',
-          'M&MScores' => '1,-2',
-          'gapCost' => '5,2',
-        ]);
-      } else {
-        $form_state->setValues([
-          'blast_program' => $program['program'],
-          'query_type' => $program['query'],
-          'db_type' => $program['db'],
-          'FASTA' => ">seq\nACGT",
-          'SELECT_DB' => (string) $selected_db_id,
-        ]);
-      }
+    $before = (int) $this->chado_connection->select('blastjob')
+      ->condition('blast_program', $values['blast_program'])
+      ->countQuery()
+      ->execute()
+      ->fetchField();
 
-      $this->blast_form->validateForm($form, $form_state);
+    $this->blast_form->submitForm($form, $form_state);
 
-      $before = (int) $this->chado_connection->select('blastjob')
-        ->condition('blast_program', $program['program'])
-        ->countQuery()
-        ->execute()
-        ->fetchField();
+    $after = (int) \Drupal::database()->select('blastjob')
+      ->condition('blast_program', $values['blast_program'])
+      ->countQuery()
+      ->execute()
+      ->fetchField();
 
-      $this->blast_form->submitForm($form, $form_state);
-
-      $after = (int) \Drupal::database()->select('blastjob')
-        ->condition('blast_program', $program['program'])
-        ->countQuery()
-        ->execute()
-        ->fetchField();
-
-      $this->assertSame($before + 1, $after, 'Submission did not create a job record for ' . $program['program']);
-    }
+    $this->assertSame($before + 1, $after, 'Submission did not create a job record for ' . $values['blast_program']);
+    $this->assertNotNull($form_state->getRedirect(), 'Expected a redirect after form submission but none was found.');
   }
 
   /**
@@ -357,61 +574,6 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
   }
 
   /**
-   * Tests validation handles uploaded files and invalid advanced values.
-   */
-  public function testValidateFormHandlesUploadedFilesAndInvalidAdvancedValues(): void {
-
-    $query = ">seq\nACGT";
-    $query_file_uri = 'temporary://tripal-blast-query.fasta';
-
-    file_put_contents(
-      \Drupal::service('file_system')->realpath($query_file_uri),
-      $query
-    );
-    $query_file = File::create([
-      'uri' => $query_file_uri,
-    ]);
-    $query_file->save();
-
-    $db_data = ">db\nACGT";
-    $db_file_uri = 'temporary://tripal-blast-db.fasta';
-
-    file_put_contents(
-      \Drupal::service('file_system')->realpath($db_file_uri),
-      $db_data
-    );
-    $db_file = File::create([
-      'uri' => $db_file_uri,
-    ]);
-    $db_file->save();
-
-    $query_file_id = $query_file->id();
-    $db_file_id = $db_file->id();
-
-    $form = [];
-    $form_state = new FormState();
-    $form_state->setValues([
-      'blast_program' => 'blastn',
-      'query_type' => 'nucleotide',
-      'db_type' => 'nucleotide',
-      'UPLOAD' => $query_file_id,
-      'DBUPLOAD' => $db_file_id,
-      'maxTarget' => '500',
-      'eVal' => 'not-a-number',
-      'wordSize' => '11',
-      'M&MScores' => '1,-2',
-      'gapCost' => '5,2',
-    ]);
-
-    $this->blast_form->validateForm($form, $form_state);
-
-    $this->assertSame('upQuery', $form_state->getValue('qFlag'), 'Expected the query flag to be set to upQuery but it is not.');
-    $this->assertSame('upDB', $form_state->getValue('dbFlag'), 'Expected the database flag to be set to upDB but it is not.');
-    $this->assertNotEmpty($form_state->getErrors(), 'Expected validation errors but none were found.');
-    $this->assertArrayHasKey('eVal', $form_state->getErrors(), 'Expected an error for invalid eVal but it was not found.');
-  }
-
-  /**
    * Tests submitForm reports a missing database selection.
    */
   public function testSubmitFormReportsMissingDatabaseSelection(): void {
@@ -434,6 +596,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
 
     $messages = \Drupal::messenger()->all();
     $this->assertNotEmpty($messages['error'], 'Expected an error message but none were found.');
+    $this->assertStringContainsString("No BLAST database selected.", reset($messages['error']), 'Expected error message about missing database selection but it was not found.');
   }
 
   /**
@@ -479,9 +642,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
       'M&MScores' => '1,-2',
       'gapCost' => '5,2',
     ]);
-
     $this->blast_form->submitForm($form, $form_state);
-
     $this->assertNotNull($form_state->getRedirect());
   }
 
@@ -518,6 +679,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
 
     $messages = \Drupal::messenger()->all();
     $this->assertNotEmpty($messages['error'], 'Expected an error message but none were found.');
+    $this->assertStringContainsString("Unable to submit the BLAST job. The error was: boom", reset($messages['error']), 'Expected error message about job creation but it was not found.');
   }
 
   /**
@@ -550,133 +712,6 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
     $response = $this->blast_form->ajaxFieldUpdateCallback($form, $form_state);
     $this->assertInstanceOf(AjaxResponse::class, $response);
     $this->assertNotEmpty($response->getCommands(), 'Expected the AJAX response to contain commands but it does not.');
-  }
-
-  /**
-   * Provides data for testing validation errors for missing database and query.
-   *
-   * @return array
-   *   An array of test cases, each containing form values and the expected error key.
-   */
-  public static function provideDataForValidateDatabaseAndQueryErrors(): array {
-    return [
-      'invalid fasta' => [
-        [
-          'blast_program' => 'blastn',
-          'query_type' => 'nucleotide',
-          'db_type' => 'nucleotide',
-          'qFlag' => 'seqQuery',
-          'FASTA' => '1234',
-          'SELECT_DB' => '1',
-          'maxTarget' => '500',
-          'eVal' => '1e-5',
-          'wordSize' => '11',
-          'M&MScores' => '1,-2',
-          'gapCost' => '5,2',
-        ],
-        'query',
-      ],
-      'invalid DBUPLOAD and SELECT_DB' => [
-        [
-          'blast_program' => 'blastn',
-          'query_type' => 'nucleotide',
-          'db_type' => 'nucleotide',
-          'UPLOAD' => '1',
-          'DBUPLOAD' => '500',
-          'SELECT_DB' => '500',
-          'maxTarget' => '500',
-          'eVal' => '1e-5',
-          'wordSize' => '11',
-          'M&MScores' => '1,-2',
-          'gapCost' => '5,2',
-        ],
-        'db',
-      ],
-    ];
-  }
-
-  /**
-   * Tests validation fails for missing database and query.
-   *
-   * @param array $values
-   *  The form values to validate.
-   * @param string $key
-   *  The key of the expected error.
-   *
-   * @dataProvider provideDataForValidateDatabaseAndQueryErrors
-   */
-  #[DataProvider('provideDataForValidateDatabaseAndQueryErrors')]
-  public function testValidateDatabaseAndQueryErrors(array $values, string $key): void {
-    $form = [];
-    $form_state = new FormState();
-    $form_state->setValues($values);
-
-    $this->blast_form->validateForm($form, $form_state);
-
-    $this->assertArrayHasKey($key, $form_state->getErrors(), 'Expected an error for invalid ' . $key . ' but it was not found.');
-  }
-
-  /**
-   * Tests validation fails for an invalid database upload selection.
-   */
-  public function testValidateFormInvalidDBUploadSelection(): void {
-    $form = [];
-    $form_state = new FormState();
-    $form_state->setValues([
-      'blast_program' => 'blastn',
-      'query_type' => 'nucleotide',
-      'db_type' => 'nucleotide',
-      'qFlag' => 'seqQuery',
-      'FASTA' => ">seq\nACGT",
-      'UPLOAD' => '1',
-      'DBUPLOAD' => '500',
-      'SELECT_DB' => '',
-      'maxTarget' => '500',
-      'eVal' => '1e-5',
-      'wordSize' => '11',
-      'M&MScores' => '1,-2',
-      'gapCost' => '5,2',
-    ]);
-
-    $this->blast_form->validateForm($form, $form_state);
-
-    $this->assertSame('blastdb', $form_state->getValue('dbFlag'), 'Expected the database flag to be set to blastdb but it is not.');
-  }
-
-  /**
-   * Tests that submitForm correctly handles the query flag.
-   */
-  public function testSubmitFormQueryFlag(): void {
-    $editable_config = \Drupal::service('config.factory')->getEditable('tripal_blast.settings');
-    $editable_config->set('tripal_blast_config_general.path', 'tmp/true');
-    $editable_config->save();
-
-    $fixture_dir = $this->module_path . '/tests/fixtures/Chlamydomonas_reinhardtii_v5.6';
-    $nucleotide_db = $this->createBlastDatabase([
-      'id' => 123450,
-      'name' => 'Fixture nucleotide BLAST DB',
-      'path' => $fixture_dir . '/Chlamydomonas_reinhardtii_v5.6.nin',
-      'dbtype' => 'n',
-    ]);
-    $form = [];
-    $form_state = new FormState();
-    $form_state->setValues([
-      'blast_program' => 'blastn',
-      'query_type' => 'nucleotide',
-      'db_type' => 'nucleotide',
-      'qFlag' => 'upQuery',
-      'upQuery_path' => $nucleotide_db->getPath(),
-      'FASTA' => ">seq\nACGT",
-      'SELECT_DB' => (string) $nucleotide_db->getId(),
-      'maxTarget' => '500',
-      'eVal' => '1e-5',
-      'wordSize' => '11',
-      'M&MScores' => '1,-2',
-      'gapCost' => '5,2',
-    ]);
-    $this->blast_form->submitForm($form, $form_state);
-
-    $this->assertNotNull($form_state->getRedirect(), 'Expected a redirect after form submission but none was found.');
   }
 
 }
