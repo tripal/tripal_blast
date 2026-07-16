@@ -102,6 +102,12 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
     $this->assertSame('tripalblastform', $this->blast_form->getFormId());
   }
 
+  /**
+   * Provides data for testBuildForm.
+   *
+   * @return array
+   *   An array of test scenarios, each containing query type, database type, and expected program.
+   */
   public static function provideDataForTestBuildForm(): array {
     return [
       'nucleotide blastn' => [
@@ -160,6 +166,12 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
     $this->assertSame('submit', $build['B']['submit']['#type'], 'We expect the submit button to be a submit element but it is not.');
   }
 
+  /**
+   * Provides data for testValidateForm.
+   *
+   * @return array
+   *   An array of test scenarios, each containing form values and expected results.
+   */
   public static function provideDataForTestValidateForm(): array {
     return [
       'missing query and database' => [
@@ -400,6 +412,12 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
     }
   }
 
+  /**
+   * Provides data for testSubmitForm.
+   *
+   * @return array
+   *   An array of test scenarios, each containing form values to submit.
+   */
   public static function provideDataForTestSubmitForm(): array {
     return [
       'valid blastn' => [
