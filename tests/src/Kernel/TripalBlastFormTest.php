@@ -111,14 +111,14 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
 
     $build = $this->blast_form->buildForm($form, $form_state, 'nucleotide', 'nucleotide');
 
-    $this->assertSame('nucleotide', $build['query_type']['#value']);
-    $this->assertSame('nucleotide', $build['db_type']['#value']);
-    $this->assertSame('blastn', $build['blast_program']['#value']);
-    $this->assertSame('details', $build['B']['#type']);
-    $this->assertSame('details', $build['B']['query']['#type']);
-    $this->assertSame('textarea', $build['B']['query']['FASTA']['#type']);
-    $this->assertSame('select', $build['B']['db']['SELECT_DB']['#type']);
-    $this->assertSame('submit', $build['B']['submit']['#type']);
+    $this->assertSame('nucleotide', $build['query_type']['#value'], 'We expect the query type to be nucleotide but it is not.');
+    $this->assertSame('nucleotide', $build['db_type']['#value'], 'We expect the database type to be nucleotide but it is not.');
+    $this->assertSame('blastn', $build['blast_program']['#value'], 'We expect the BLAST program to be blastn but it is not.');
+    $this->assertSame('details', $build['B']['#type'], 'We expect the main container to be a details element but it is not.');
+    $this->assertSame('details', $build['B']['query']['#type'], 'We expect the query container to be a details element but it is not.');
+    $this->assertSame('textarea', $build['B']['query']['FASTA']['#type'], 'We expect the FASTA input to be a textarea but it is not.');
+    $this->assertSame('select', $build['B']['db']['SELECT_DB']['#type'], 'We expect the database selection to be a select element but it is not.');
+    $this->assertSame('submit', $build['B']['submit']['#type'], 'We expect the submit button to be a submit element but it is not.');
   }
 
   /**
@@ -165,8 +165,8 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
     $this->blast_form->validateForm($form, $form_state);
 
     $errors = $form_state->getErrors();
-    $this->assertArrayHasKey('query', $errors);
-    $this->assertArrayHasKey('db', $errors);
+    $this->assertArrayHasKey('query', $errors, 'Expected an error for missing query but it was not found.');
+    $this->assertArrayHasKey('db', $errors, 'Expected an error for missing database but it was not found.');
   }
 
   /**
@@ -190,9 +190,9 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
 
     $this->blast_form->validateForm($form, $form_state);
 
-    $this->assertSame([], $form_state->getErrors());
-    $this->assertSame('seqQuery', $form_state->getValue('qFlag'));
-    $this->assertSame('blastdb', $form_state->getValue('dbFlag'));
+    $this->assertSame([], $form_state->getErrors(), 'Unexpected validation errors found.');
+    $this->assertSame('seqQuery', $form_state->getValue('qFlag'), 'Query flag was not set correctly.');
+    $this->assertSame('blastdb', $form_state->getValue('dbFlag'), 'Database flag was not set correctly.');
   }
 
   /**
@@ -349,11 +349,11 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
     $form_state = new FormState();
     $build = $this->blast_form->buildForm($form, $form_state, 'nucleotide', 'nucleotide');
 
-    $this->assertArrayHasKey('config_warning', $build);
-    $this->assertArrayHasKey('A', $build);
-    $this->assertSame('table', $build['A']['recent_job']['#type']);
-    $this->assertSame(99, $build['B']['db']['SELECT_DB']['#default_value']);
-    $this->assertSame(">query\nACGT", $build['B']['query']['FASTA']['#default_value']);
+    $this->assertArrayHasKey('config_warning', $build, 'Expected a warning message in the form build but it was not found.');
+    $this->assertArrayHasKey('A', $build, 'Expected a recent job container in the form build but it was not found.');
+    $this->assertSame('table', $build['A']['recent_job']['#type'], 'Expected the recent job container to be a table but it is not.');
+    $this->assertSame(99, $build['B']['db']['SELECT_DB']['#default_value'], 'Expected the default database value to be 99 but it is not.');
+    $this->assertSame(">query\nACGT", $build['B']['query']['FASTA']['#default_value'], 'Expected the default query value to be the correct sequence but it is not.');
   }
 
   /**
@@ -405,10 +405,10 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
 
     $this->blast_form->validateForm($form, $form_state);
 
-    $this->assertSame('upQuery', $form_state->getValue('qFlag'));
-    $this->assertSame('upDB', $form_state->getValue('dbFlag'));
-    $this->assertNotEmpty($form_state->getErrors());
-    $this->assertArrayHasKey('eVal', $form_state->getErrors());
+    $this->assertSame('upQuery', $form_state->getValue('qFlag'), 'Expected the query flag to be set to upQuery but it is not.');
+    $this->assertSame('upDB', $form_state->getValue('dbFlag'), 'Expected the database flag to be set to upDB but it is not.');
+    $this->assertNotEmpty($form_state->getErrors(), 'Expected validation errors but none were found.');
+    $this->assertArrayHasKey('eVal', $form_state->getErrors(), 'Expected an error for invalid eVal but it was not found.');
   }
 
   /**
@@ -433,7 +433,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
     $this->blast_form->submitForm($form, $form_state);
 
     $messages = \Drupal::messenger()->all();
-    $this->assertNotEmpty($messages['error']);
+    $this->assertNotEmpty($messages['error'], 'Expected an error message but none were found.');
   }
 
   /**
@@ -517,7 +517,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
     $this->blast_form->submitForm($form, $form_state);
 
     $messages = \Drupal::messenger()->all();
-    $this->assertNotEmpty($messages['error']);
+    $this->assertNotEmpty($messages['error'], 'Expected an error message but none were found.');
   }
 
   /**
@@ -544,12 +544,12 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
     ]);
 
     $updated_form = $this->blast_form->ajaxShowExampleSequenceCallback($form, $form_state);
-    $this->assertSame('>example\nACGT', $updated_form['#value']);
-    $this->assertStringContainsString('tripal-blast-tip', $updated_form['#suffix']);
+    $this->assertSame('>example\nACGT', $updated_form['#value'], 'Expected the FASTA field to be updated with the example sequence but it was not.');
+    $this->assertStringContainsString('tripal-blast-tip', $updated_form['#suffix'], 'Expected the FASTA field to have a tip suffix but it does not.');
 
     $response = $this->blast_form->ajaxFieldUpdateCallback($form, $form_state);
     $this->assertInstanceOf(AjaxResponse::class, $response);
-    $this->assertNotEmpty($response->getCommands());
+    $this->assertNotEmpty($response->getCommands(), 'Expected the AJAX response to contain commands but it does not.');
   }
 
   /**
@@ -613,7 +613,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
 
     $this->blast_form->validateForm($form, $form_state);
 
-    $this->assertArrayHasKey($key, $form_state->getErrors());
+    $this->assertArrayHasKey($key, $form_state->getErrors(), 'Expected an error for invalid ' . $key . ' but it was not found.');
   }
 
   /**
@@ -640,7 +640,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
 
     $this->blast_form->validateForm($form, $form_state);
 
-    $this->assertSame('blastdb', $form_state->getValue('dbFlag'));
+    $this->assertSame('blastdb', $form_state->getValue('dbFlag'), 'Expected the database flag to be set to blastdb but it is not.');
   }
 
   /**
@@ -676,7 +676,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
     ]);
     $this->blast_form->submitForm($form, $form_state);
 
-    $this->assertNotNull($form_state->getRedirect());
+    $this->assertNotNull($form_state->getRedirect(), 'Expected a redirect after form submission but none was found.');
   }
 
 }
