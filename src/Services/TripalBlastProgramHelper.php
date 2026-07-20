@@ -214,8 +214,8 @@ class TripalBlastProgramHelper {
    */
   public static function programSetMatchMismatch($mm_score) {
     // Defaults in case an unexpected value is passed.
-    $penalty = -2;
-    $reward = 1;
+    $penalty = '';
+    $reward = '';
 
     switch ($mm_score) {
       case 0:
