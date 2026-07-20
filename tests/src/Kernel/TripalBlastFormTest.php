@@ -182,7 +182,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
           'maxTarget' => '50',
           'eVal' => '1e-5',
           'wordSize' => '11',
-          'M&MScores' => '1,-2',
+          'M&MScores' => 0,
           'gapCost' => '5,2',
         ],
         [
@@ -200,7 +200,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
           'maxTarget' => '500',
           'eVal' => '1e-5',
           'wordSize' => '11',
-          'M&MScores' => '1,-2',
+          'M&MScores' => 0,
           'gapCost' => '5,2',
         ],
         [
@@ -270,7 +270,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
           'maxTarget' => '500',
           'eVal' => '1e-5',
           'wordSize' => '11',
-          'M&MScores' => '1,-2',
+          'M&MScores' => 0,
           'gapCost' => '5,2',
         ],
         [
@@ -288,7 +288,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
           'maxTarget' => '500',
           'eVal' => '1e-5',
           'wordSize' => '11',
-          'M&MScores' => '1,-2',
+          'M&MScores' => 0,
           'gapCost' => '5,2',
         ],
         [
@@ -310,7 +310,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
           'maxTarget' => '500',
           'eVal' => '1e-5',
           'wordSize' => '11',
-          'M&MScores' => '1,-2',
+          'M&MScores' => 0,
           'gapCost' => '5,2',
         ],
         [
@@ -331,7 +331,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
           'maxTarget' => '500',
           'eVal' => '1e-5',
           'wordSize' => '11',
-          'M&MScores' => '1,-2',
+          'M&MScores' => 0,
           'gapCost' => '5,2',
         ],
         [
@@ -351,7 +351,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
           'maxTarget' => '500',
           'eVal' => 'not-a-number',
           'wordSize' => '11',
-          'M&MScores' => '1,-2',
+          'M&MScores' => 0,
           'gapCost' => '5,2',
         ],
         [
@@ -430,7 +430,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
           'maxTarget' => '500',
           'eVal' => '1e-5',
           'wordSize' => '11',
-          'M&MScores' => '1,-2',
+          'M&MScores' => 0,
           'gapCost' => '5,2',
         ],
       ],
@@ -471,7 +471,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
           'maxTarget' => '500',
           'eVal' => '1e-5',
           'wordSize' => '11',
-          'M&MScores' => '1,-2',
+          'M&MScores' => 1,
           'gapCost' => '5,2',
         ],
       ],
@@ -606,7 +606,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
       'maxTarget' => '500',
       'eVal' => '1e-5',
       'wordSize' => '11',
-      'M&MScores' => '1,-2',
+      'M&MScores' => 0,
       'gapCost' => '5,2',
     ]);
 
@@ -657,7 +657,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
       'maxTarget' => '500',
       'eVal' => '1e-5',
       'wordSize' => '11',
-      'M&MScores' => '1,-2',
+      'M&MScores' => 0,
       'gapCost' => '5,2',
     ]);
     $this->blast_form->submitForm($form, $form_state);
@@ -689,7 +689,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
       'maxTarget' => '500',
       'eVal' => '1e-5',
       'wordSize' => '11',
-      'M&MScores' => '1,-2',
+      'M&MScores' => 0,
       'gapCost' => '5,2',
     ]);
 
@@ -720,7 +720,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
       'query_type' => 'nucleotide',
       'example_sequence' => TRUE,
       'blast_program' => 'blastn',
-      'M&MScores' => '1,-2',
+      'M&MScores' => 0,
     ]);
 
     $updated_form = $this->blast_form->ajaxShowExampleSequenceCallback($form, $form_state);
@@ -730,6 +730,249 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
     $response = $this->blast_form->ajaxFieldUpdateCallback($form, $form_state);
     $this->assertInstanceOf(AjaxResponse::class, $response);
     $this->assertNotEmpty($response->getCommands(), 'Expected the AJAX response to contain commands but it does not.');
+  }
+
+  /**
+   * Provides data for testing the gap cost retrieval in the AJAX callback.
+   *
+   * @return array
+   */
+  public static function provideDataForTestProgamGetGapCostInAjaxCallback(): array {
+    return [
+      'blastn with m&m score 0' => [
+        [
+          'blast_program' => 'blastn',
+          'query_type' => 'nucleotide',
+          'db_type' => 'nucleotide',
+          'M&MScores' => 0,
+        ],
+        [
+          'gap_keys' => ['5_2', '2_2', '1_2', '0_2', '3_1', '2_1', '1_1'],
+        ],
+      ],
+      'blastn with m&m score 1' => [
+        [
+          'blast_program' => 'blastn',
+          'query_type' => 'nucleotide',
+          'db_type' => 'nucleotide',
+          'M&MScores' => 1,
+        ],
+        [
+          'gap_keys' => ['5_2', '2_2', '1_2', '1_2', '0_2', '2_1', '1_1'],
+        ],
+      ],
+      'blastn with m&m score 2' => [
+        [
+          'blast_program' => 'blastn',
+          'query_type' => 'nucleotide',
+          'db_type' => 'nucleotide',
+          'M&MScores' => 2,
+        ],
+        [
+          'gap_keys' => ['5_2', '1_2', '0_2', '2_1', '1_1'],
+        ],
+      ],
+      'blastn with m&m score 3' => [
+        [
+          'blast_program' => 'blastn',
+          'query_type' => 'nucleotide',
+          'db_type' => 'nucleotide',
+          'M&MScores' => 3,
+        ],
+        [
+          'gap_keys' => ['4_4', '2_4', '0_4', '3_3', '6_2', '5_2', '4_2', '2_2'],
+        ],
+      ],
+      'blastn with m&m score 4' => [
+        [
+          'blast_program' => 'blastn',
+          'query_type' => 'nucleotide',
+          'db_type' => 'nucleotide',
+          'M&MScores' => 4,
+        ],
+        [
+          'gap_keys' => ['12_8', '6_5', '5_5', '4_5', '3_5'],
+        ],
+      ],
+      'blastn with m&m score 5' => [
+        [
+          'blast_program' => 'blastn',
+          'query_type' => 'nucleotide',
+          'db_type' => 'nucleotide',
+          'M&MScores' => 5,
+        ],
+        [
+          'gap_keys' => ['5_2', '3_2', '2_2', '1_2', '0_2', '4_1', '3_1', '2_1']
+        ],
+      ],
+    ];
+  }
+
+  /**
+   * Tests that the AJAX callback correctly retrieves the gap cost based on the program and M&M score.
+   *
+   * @param array $data
+   *   The form values to test the AJAX callback with.
+   *
+   * @dataProvider provideDataForTestProgamGetGapCostInAjaxCallback
+   */
+  #[DataProvider('provideDataForTestProgamGetGapCostInAjaxCallback')]
+  public function testProgamGetGapCostInAjaxCallback(array $data, array $result): void {
+    $form = [];
+    $form_state = new FormState();
+    $form_state->setValues($data);
+
+    $response = $this->blast_form->ajaxFieldUpdateCallback($form, $form_state);
+
+    $this->assertInstanceOf(AjaxResponse::class, $response);
+    $this->assertNotEmpty($response->getCommands(), 'Expected the AJAX response to contain commands but it does not.');
+
+    $gaps = $response->getCommands()[0]['args'][0];
+
+    foreach ($result['gap_keys'] as $expected_gap) {
+      $this->assertArrayHasKey($expected_gap, $gaps, 'Expected gap cost ' . $expected_gap . ' to be present in the AJAX response but it is not.');
+    }
+  }
+
+  public static function provideDataForTestBlastProgramHelperProgramSetMatchMiss(): array {
+    return [
+      'blastn with m&m score 0' => [
+        [
+          'blast_program' => 'blastn',
+          'query_type' => 'nucleotide',
+          'db_type' => 'nucleotide',
+          'FASTA' => ">seq\nACGT",
+          'SELECT_DB' => '123450',
+          'maxTarget' => '500',
+          'eVal' => '1e-5',
+          'wordSize' => '11',
+          'M&MScores' => 0,
+        ],
+        [
+          'match_miss' => [1, -2],
+        ],
+      ],
+      'blastn with m&m score 1' => [
+        [
+          'blast_program' => 'blastn',
+          'query_type' => 'nucleotide',
+          'db_type' => 'nucleotide',
+          'FASTA' => ">seq\nACGT",
+          'SELECT_DB' => '123450',
+          'maxTarget' => '500',
+          'eVal' => '1e-5',
+          'wordSize' => '11',
+          'M&MScores' => 1,
+        ],
+        [
+          'match_miss' => [1, -3],
+        ],
+      ],
+      'blastn with m&m score 2' => [
+        [
+          'blast_program' => 'blastn',
+          'query_type' => 'nucleotide',
+          'db_type' => 'nucleotide',
+          'FASTA' => ">seq\nACGT",
+          'SELECT_DB' => '123450',
+          'maxTarget' => '500',
+          'eVal' => '1e-5',
+          'wordSize' => '11',
+          'M&MScores' => 2,
+        ],
+        [
+          'match_miss' => [1, -4],
+        ],
+      ],
+      'blastn with m&m score 3' => [
+        [
+          'blast_program' => 'blastn',
+          'query_type' => 'nucleotide',
+          'db_type' => 'nucleotide',
+          'FASTA' => ">seq\nACGT",
+          'SELECT_DB' => '123450',
+          'maxTarget' => '500',
+          'eVal' => '1e-5',
+          'wordSize' => '11',
+          'M&MScores' => 3,
+        ],
+        [
+          'match_miss' => [2, -3],
+        ],
+      ],
+      'blastn with m&m score 4' => [
+        [
+          'blast_program' => 'blastn',
+          'query_type' => 'nucleotide',
+          'db_type' => 'nucleotide',
+          'FASTA' => ">seq\nACGT",
+          'SELECT_DB' => '123450',
+          'maxTarget' => '500',
+          'eVal' => '1e-5',
+          'wordSize' => '11',
+          'M&MScores' => 4,
+        ],
+        [
+          'match_miss' => [4, -5],
+        ],
+      ],
+      'blastn with m&m score 5' => [
+        [
+          'blast_program' => 'blastn',
+          'query_type' => 'nucleotide',
+          'db_type' => 'nucleotide',
+          'FASTA' => ">seq\nACGT",
+          'SELECT_DB' => '123450',
+          'maxTarget' => '500',
+          'eVal' => '1e-5',
+          'wordSize' => '11',
+          'M&MScores' => 5,
+        ],
+        [
+          'match_miss' => [1, -1],
+        ],
+      ],
+    ];
+  }
+
+  /**
+   * Tests that the BLAST program helper correctly sets match and mismatch scores based on the M&M score.
+   *
+   * @param array $data
+   *   The form values to test the BLAST program helper with.
+   * @param array $result
+   *   The expected match and mismatch scores.
+   *
+   * @dataProvider provideDataForTestBlastProgramHelperProgramSetMatchMiss
+   */
+  #[DataProvider('provideDataForTestBlastProgramHelperProgramSetMatchMiss')]
+  public function testBlastProgramHelperProgramSetMatchMiss(array $data, array $result): void {
+    $captured_submission = NULL;
+
+    $job_service = $this->getMockBuilder(\Drupal\tripal_blast\Services\TripalBlastJobService::class)
+      ->disableOriginalConstructor()
+      ->onlyMethods(['createBlastJob', 'jobsBlastMakeSecret'])
+      ->getMock();
+
+    $job_service->expects($this->once())
+      ->method('createBlastJob')
+      ->willReturnCallback(function (array $submission) use (&$captured_submission): int {
+        $captured_submission = $submission;
+        return 2024;
+      });
+
+    $job_service->method('jobsBlastMakeSecret')->willReturn('encoded-job');
+    $this->container->set('tripal_blast.job_service', $job_service);
+
+    $form = [];
+    $form_state = new FormState();
+    $form_state->setValues($data);
+
+    $this->blast_form->submitForm($form, $form_state);
+
+    $this->assertIsArray($captured_submission['options']);
+    $this->assertSame($result['match_miss'][1], $captured_submission['options']['penalty'], "The penalty should be {$result['match_miss'][1]} but it was {$captured_submission['options']['penalty']}");
+    $this->assertSame($result['match_miss'][0], $captured_submission['options']['reward'], "The penalty should be {$result['match_miss'][0]} but it was {$captured_submission['options']['reward']}");
   }
 
 }
