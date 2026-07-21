@@ -433,28 +433,13 @@ class TripalBlastForm extends FormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $error = FALSE;
-
-    $blast_program = $form_state->getValue('blast_program');
     $query_type = $form_state->getValue('query_type');
     $db_type = $form_state->getValue('$db_type');
-
     $mdb_type = ($db_type == 'nucleotide') ? 'nucl' : 'prot';
 
-    $fld_select_db_value = $form_state->getValue('SELECT_DB');
-    $db = $fld_select_db_value ?? NULL;
-
-    // We want to save information about the blast job to the database for recent jobs &
-    // edit and resubmit functionality.
-    // First set defaults.
-    $blastjob = [
-      'job_id' => NULL,
-      'blast_program' => $blast_program,
-      'target_blastdb' => $db,
-      'target_file' => NULL,
-      'query_file' => NULL,
-      'result_filestub' => NULL,
-      'options' => serialize([])
-    ];
+    // Let's start by collecting the information from the form submission.
+    $blast_submission = [];
+    $blast_submission['blast_program'] = $blast_program = $form_state->getValue('blast_program');
 
     // QUERY
     // -----
@@ -467,20 +452,25 @@ class TripalBlastForm extends FormBase {
         $seq_content = $form_state->getValue('FASTA');
 
         $query_file = \Drupal::service('file_system')->getTempDirectory() . '/' . date('YMd_His') . '_query.fasta';
-        $blastjob['query_file'] = $query_file;
+        $blast_submission['query_file'] = $query_file;
 
-        file_put_contents ($blastjob['query_file'], $seq_content);
+        file_put_contents($blast_submission['query_file'], trim($seq_content));
       }
       elseif ($var_qflag_value == 'upQuery') {
-        $blastjob['query_file'] = $form_state->getValue('upQuery_path');
+        $blast_submission['query_file'] = $form_state->getValue('upQuery_path');
       }
     }
 
     // TARGET
     // ------
-    $var_dbflag_value = $form_state->getValue('dbFlag');
-    if ($var_dbflag_value == 'upDB') {
-      // If the BLAST database was uploaded then we need to format it to make it compatible with blast.
+    // If the user selected an existing BLAST database then supply that.
+    $target_blastdb = $form_state->getValue('SELECT_DB');
+    if (!empty($target_blastdb)) {
+      $blast_submission['target_blastdb'] = $target_blastdb;
+    }
+    // If the BLAST database was uploaded then we need to format it to make
+    // it compatible with blast.
+    elseif ($form_state->getValue('dbFlag') == 'upDB') {
 
       // Since we only support using the -db flag (not -subject) we need to create a
       // blast database for the FASTA uploaded.
@@ -505,57 +495,12 @@ class TripalBlastForm extends FormBase {
         $error = TRUE;
       }
     }
-    elseif ($var_dbflag_value == 'blastdb') {
-      // Otherwise, we are using one of the website provided BLAST databases so form the
-      // BLAST command accordingly.
-      $database_service = \Drupal::service('tripal_blast.database_service');
-      $selected_db = $form_state->getValue('SELECT_DB');
-      $db_config = $database_service->getDatabaseConfig($selected_db);
+    else {
+      // Otherwise, the user didn't select a database and didn't upload one either.
+      \Drupal::messenger()->addError($this->t('No BLAST database selected. Either choose a database
+        from the list or upload one of your own.'));
 
-      $blastdb_name = $db_config['name'];
-      $blastdb_with_path = $db_config['path'];
-    }
-
-    $blastjob['target_file'] = $blastdb_with_path;
-    // Determine the path to the blast database with extension.
-    $blastdb_with_suffix = $blastdb_with_path;
-
-    if ($mdb_type == 'nucl') {
-      // Suffix may be .nsq or .nal.
-      if (is_readable("$blastdb_with_path.nsq")) {
-        $blastdb_with_suffix = "$blastdb_with_path.nsq";
-      }
-      elseif (is_readable("$blastdb_with_path.nal")) {
-        $blastdb_with_suffix = "$blastdb_with_path.nal";
-      }
-    }
-    elseif ($mdb_type == 'prot') {
-      // Suffix may be .psq or .pal.
-      if (is_readable("$blastdb_with_path.psq")) {
-        $blastdb_with_suffix = "$blastdb_with_path.psq";
-      }
-      else if (is_readable("$blastdb_with_path.pal")) {
-        $blastdb_with_suffix = "$blastdb_with_path.pal";
-      }
-    }
-
-    if (!is_readable($blastdb_with_suffix)) {
-      //$error = TRUE;
-      /*
-      $dbfile_uploaded_msg = ($form_state->getValue('dbFlag') == 'upDB')
-          ? 'The BLAST database was submitted via user upload.'
-          : 'Existing BLAST Database was chosen.';
-
-      tripal_report_error(
-        'blast_ui',
-        TRIPAL_ERROR,
-        "BLAST database %db unaccessible. %msg",
-        ['%db' => $blastdb_with_path, '%msg' => $dbfile_uploaded_msg]
-      );
-
-      $msg = "$dbfile_uploaded_msg BLAST database '$blastdb_with_path' is unaccessible. ";
-      $msg .= "Please contact the site administrator.";
-      \Drupal::messenger()->addError($this->t($msg)); */
+      $error = TRUE;
     }
 
     // ADVANCED OPTIONS
@@ -573,59 +518,38 @@ class TripalBlastForm extends FormBase {
     $field_value_blast_key = $programs_service->formFieldBlastKey($advanced_field_values);
     $advanced_options = ($field_value_blast_key) ? $field_value_blast_key : ['none' => 0];
 
-    $blastjob['options'] = serialize($advanced_options);
+    $blast_submission['options'] = $advanced_options;
 
     // SUBMIT JOB TO TRIPAL
     //---------------------
-    // Actually submit the BLAST Tripal Job
+    // If there is a blast target...
     if (!$error) {
-      // BLAST target exists.
 
-      // We want to save all result files (.asn, .xml, .tsv, .html) in the public files directory.
-      // Usually [drupal root]/sites/default/files.
-      $output_dir = tripal_get_files_dir('tripal_blast');
-      $output_filestub = $output_dir . DIRECTORY_SEPARATOR . date('YMd_His') . '.blast';
+      // Actually submit the job.
+      try {
+        $job_service = \Drupal::service('tripal_blast.job_service');
+        $job_id = $job_service->createBlastJob($blast_submission);
+      }
+      catch (\Exception $e) {
+        \Drupal::messenger()->addError($this->t('Unable to submit the BLAST job. The error was: @error', ['@error' => $e->getMessage()]));
+      }
+    }
 
-      $job_args = array(
-        $blast_program,
-        $blastjob['query_file'],
-        $blastdb_with_path,
-        $output_filestub,
-        $advanced_options
-      );
-
-      $job_id = tripal_add_job(
-        t('BLAST (@program): @query', array('@program' => $blast_program, '@query' => $blastjob['query_file'])),
-        'blast_job',
-        ['Drupal\tripal_blast\Services\TripalBlastJobService', 'runJob'],
-        $job_args,
-        \Drupal::currentUser()->id()
-      );
-
-      $blastjob['result_filestub'] = $output_filestub;
-      $blastjob['job_id'] = $job_id;
-
-      // SAVE JOB INFO
-      //--------------
-      $job_service = \Drupal::service('tripal_blast.job_service');
-      $job_service->jobsSave($blastjob);
-
+    if ($job_id) {
       //Encode the job_id.
       $job_encode_id = $job_service->jobsBlastMakeSecret($job_id);
 
-      // RECENT JOBS
-      //------------
+      // Add it to the recent jobs list.
       if (!isset($_SESSION['blast_jobs'])) {
         $_SESSION['blast_jobs'] = [];
       }
-
       $_SESSION['blast_jobs'][] = $job_encode_id;
 
-      // NOTE: Originally there was a call to tripal_launch_jobs() here. That should
-      // NEVER be done since it runs possibly long jobs in the page load causing time-out
-      // issues. If you do not want to run tripal jobs manually, look into installing
-      // Tripal daemon which will run jobs as they're submitted or set up a cron job to
-      // launch the tripal jobs on a specified schedule.
+      // NOTE: Originally there was a call to tripal_launch_jobs() here.
+      // That should NEVER be done since it runs possibly long jobs in the page
+      // load causing time-out issues. If you do not want to run tripal jobs
+      // manually, look into setting up a cron job to launch the tripal jobs
+      // on a specified schedule.
 
       // Redirect to the BLAST results page
       $go = '/blast/report/' . $job_encode_id;
