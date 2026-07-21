@@ -834,6 +834,11 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
     }
   }
 
+  /**
+   * Provides data for testBlastProgramHelperProgramSetMatchMiss.
+   *
+   * @return array
+   */
   public static function provideDataForTestBlastProgramHelperProgramSetMatchMiss(): array {
     return [
       'blastn with m&m score 0' => [
@@ -973,6 +978,80 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
     $this->assertIsArray($captured_submission['options']);
     $this->assertSame($result['match_miss'][1], $captured_submission['options']['penalty'], "The penalty should be {$result['match_miss'][1]} but it was {$captured_submission['options']['penalty']}");
     $this->assertSame($result['match_miss'][0], $captured_submission['options']['reward'], "The penalty should be {$result['match_miss'][0]} but it was {$captured_submission['options']['reward']}");
+  }
+
+  /**
+   * Provide data for testProgramValidateFastaSequence method.
+   *
+   * @return array
+   */
+  public static function provideDataForTestProgramValidateFastaSequence() {
+    return [
+      'not a definition line' => [
+        [
+          'blast_program' => 'blastn',
+          'query_type' => 'nucleotide',
+          'db_type' => 'nucleotide',
+          'FASTA' => "> seq\nACGT",
+          'SELECT_DB' => '1',
+          'maxTarget' => '500',
+          'eVal' => 'not-a-number',
+          'wordSize' => '11',
+          'M&MScores' => 0,
+          'gapCost' => '5,2',
+        ],
+      ],
+      'not a sequence line' => [
+        [
+          'blast_program' => 'blastn',
+          'query_type' => 'nucleotide',
+          'db_type' => 'nucleotide',
+          'FASTA' => "seq",
+          'SELECT_DB' => '1',
+          'maxTarget' => '500',
+          'eVal' => 'not-a-number',
+          'wordSize' => '11',
+          'M&MScores' => 0,
+          'gapCost' => '5,2',
+        ],
+      ],
+    ];
+  }
+
+  /**
+   * Tests the programValidateFastaSequence method in the Helper.
+   *
+   * @param array $values
+   *   Values to be set in the form state.
+   *
+   * @dataProvider provideDataForTestProgramValidateFastaSequence
+   */
+  #[DataProvider('provideDataForTestProgramValidateFastaSequence')]
+  public function testProgramValidateFastaSequence(array $values): void {
+    $db_data = ">db\nACGT";
+    $db_file_uri = 'temporary://tripal-blast-db.fasta';
+
+    file_put_contents(
+      \Drupal::service('file_system')->realpath($db_file_uri),
+      $db_data
+    );
+    $db_file = File::create([
+      'uri' => $db_file_uri,
+    ]);
+    $db_file->save();
+    $form = [];
+    $form_state = new FormState();
+    $form_state->setValues($values);
+
+    $this->blast_form->validateForm($form, $form_state);
+
+    $errors = $form_state->getErrors();
+    $this->assertNotEmpty($errors, 'Expected an error message but none were found.');
+    $this->assertArrayHasKey('query', $errors, 'Expected an error for query but it was not found.');
+    $this->assertStringContainsString("The file should be a plain-text FASTA
+          (.fasta, .fna, .fa, .fas) file. In other words, it cannot have formatting as is the
+          case with MS Word (.doc, .docx) or Rich Text Format (.rtf). It cannot be greater
+          than %max_size in size.", $errors['query'], 'Expected error message about job creation but it was not found.');
   }
 
 }
