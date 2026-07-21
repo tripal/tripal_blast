@@ -169,10 +169,8 @@ class TripalBlastForm extends FormBase {
         '#type' => 'details',
         '#title' => $this->t('Enter %type Query Sequence', ['%type' => $query]),
         '#open' => TRUE,
-        '#description' => $this->t('Enter one or more queries in the top text box or
-          use the browse button to upload a file from your local disk. The file
-          may contain a single sequence or a list of sequences. In both cases,
-          the data must be in <a href="@formaturl">FASTA format</a>.',
+        '#description' => $this->t('Enter one or more queries in the top text box. It
+          may contain a single sequence or a list of sequences and the data must be in <a href="@formaturl">FASTA format</a>.',
           ['@formaturl' => 'http://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml']),
       ];
 
