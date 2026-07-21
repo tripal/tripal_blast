@@ -1,0 +1,22 @@
+{
+    "name": "tripal/tripal_blast",
+    "type": "drupal-module",
+    "description": "Tripal BLAST module provides a BLAST interface for Tripal sites.",
+    "keywords": [
+        "tripal",
+        "tripal_blast",
+        "drupal"
+    ],
+    "homepage": "https://www.drupal.org/project/tripal_blast",
+    "support": {
+        "issues": "https://github.com/tripal/tripal_blast/issues"
+    },
+    "license": "GPL-2.0-or-later",
+    "minimum-stability": "dev",
+    "require": {
+        "php": "^8.2",
+        "drupal/core": "^10.6 | ^11.3",
+        "tripal/tripal": "^4.0-alpha1"
+    },
+    "lock": false
+}
