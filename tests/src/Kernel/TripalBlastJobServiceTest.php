@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\tripal_blast\Kernel;
 
+use Drupal\file\Entity\File;
 use Drupal\Tests\tripal\Kernel\TripalTestKernelBase;
 use Drupal\Tests\tripal_blast\Traits\TripalBlastTestTrait;
 use Drupal\Tests\user\Traits\UserCreationTrait;
@@ -21,6 +22,13 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
 
   use TripalBlastTestTrait;
   use UserCreationTrait;
+
+  /**
+   * The path to tripal_blast module.
+   *
+   * @var string
+   */
+  private $module_path;
 
   /**
    * {@inheritdoc}
@@ -94,6 +102,10 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
 
     $user = $this->createUser(['access content']);
     $this->setCurrentUser($user);
+
+    $this->module_path = $this->container->get('module_handler')
+      ->getModule('tripal_blast')
+      ->getPath();
   }
 
   /**
@@ -217,6 +229,41 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
         $_SESSION['blast_jobs'] = $previous_session;
       }
     }
+  }
+
+  /**
+   * Tests the successful cases of runJob() method.
+   *
+   * @return void
+   */
+  public function testValidRunJob(): void {
+    $fixture_dir = $this->module_path . '/tests/fixtures/Chlamydomonas_reinhardtii_v5.6';
+
+    $query_file = $fixture_dir . '/Chlamydomonas_gene.fasta';
+    $database_prefix = $fixture_dir . '/Chlamydomonas_reinhardtii_v5.6';
+
+    $temp_dir = sys_get_temp_dir() . '/tripal_blast_runjob_' . uniqid();
+    mkdir($temp_dir, 0755, TRUE);
+
+    $config = \Drupal::configFactory()->getEditable('tripal_blast.settings');
+    $config->set('tripal_blast_config_general.path',  '/usr/local/bin/')
+      ->set('tripal_blast_config_general.threads', 1)
+      ->save();
+
+    $blast_path = \Drupal::config('tripal_blast.settings')
+      ->get('tripal_blast_config_general.path');
+
+    $output_stub = $temp_dir . '/tripal_blast_test_job';
+    ob_start();
+    $result = TripalBlastJobService::runJob('blastn', $query_file, $database_prefix, $output_stub, ['evalue' => '1e-5']);
+    ob_end_clean();
+
+    $this->assertNull($result, 'runJob should complete successfully and return null.');
+    $this->assertFileExists($output_stub . '.asn');
+    $this->assertFileExists($output_stub . '.xml');
+    $this->assertFileExists($output_stub . '.tsv');
+    $this->assertFileExists($output_stub . '.gff');
+    $this->assertFileExists($output_stub . '.html');
   }
 
 }
