@@ -31,7 +31,7 @@ tripal_blast.blast_databases:
 
 tripal_blast.help:
   title: 'Tripal Blast: Help'
-  description: 'Contains the help content for the Tripal BLAST module.'
+  description: 'Support for setting up NCBI BLAST+ and more.'
   route_name: 'tripal_blast.help'
   parent: 'tripal_blast.menu'
   weight: 3
