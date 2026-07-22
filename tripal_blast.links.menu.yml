@@ -24,7 +24,7 @@ tripal_blast.configuration:
 
 tripal_blast.blast_databases:
   title: 'Tripal BLAST UI'
-  description: 'Manage all Tripal BLAST database entities.'
+  description: 'Management of Tripal BLAST query databases.'
   parent: 'tripal_blast.menu'
   route_name: 'entity.tripal_blast.blast_database'
   weight: 2
