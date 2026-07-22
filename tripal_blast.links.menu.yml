@@ -10,7 +10,7 @@ tripal_blast.blast_ui:
 # Group in admin/tripal/extension
 tripal_blast.menu:
   title: 'Tripal BLAST Module'
-  description: 'Access all the Tripal BLAST related configuration pages.'
+  description: 'Access all Tripal BLAST-related configuration.'
   route_name: 'tripal_blast.dashboard'
   parent: 'tripal.extension'
   weight: 0
