@@ -17,7 +17,7 @@ tripal_blast.menu:
 
 tripal_blast.configuration:
   title: 'Tripal Blast: Configuration'
-  description: 'Manage all the Tripal BLAST-related configurations.'
+  description: 'Configuration settings for all Tripal BLAST forms.'
   route_name: 'tripal_blast.configuration'
   parent: 'tripal_blast.menu'
   weight: 1
