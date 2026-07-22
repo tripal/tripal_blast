@@ -5,3 +5,33 @@ tripal_blast.blast_ui:
   parent: main
   route_name: tripal_blast.blast_ui
   menu_name: main
+
+# Menu - Configuring Tripal BLAST.
+# Group in admin/tripal/extension
+tripal_blast.menu:
+  title: 'Tripal BLAST Module'
+  description: 'Access all Tripal BLAST-related configuration.'
+  route_name: 'tripal_blast.dashboard'
+  parent: 'tripal.extension'
+  weight: 0
+
+tripal_blast.configuration:
+  title: 'Tripal Blast: Configuration'
+  description: 'Configuration settings for all Tripal BLAST forms.'
+  route_name: 'tripal_blast.configuration'
+  parent: 'tripal_blast.menu'
+  weight: 1
+
+tripal_blast.blast_databases:
+  title: 'Tripal BLAST Databases'
+  description: 'Management of Tripal BLAST query databases.'
+  parent: 'tripal_blast.menu'
+  route_name: 'entity.tripal_blast.blast_database'
+  weight: 2
+
+tripal_blast.help:
+  title: 'Tripal Blast: Help'
+  description: 'Support for setting up NCBI BLAST+ and more.'
+  route_name: 'tripal_blast.help'
+  parent: 'tripal_blast.menu'
+  weight: 3
