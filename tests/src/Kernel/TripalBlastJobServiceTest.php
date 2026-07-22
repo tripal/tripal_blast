@@ -7,6 +7,7 @@ use Drupal\Tests\tripal\Kernel\TripalTestKernelBase;
 use Drupal\Tests\tripal_blast\Traits\TripalBlastTestTrait;
 use Drupal\Tests\user\Traits\UserCreationTrait;
 use Drupal\tripal\Services\TripalJob;
+use Drupal\tripal\Services\TripalLogger;
 use Drupal\tripal_blast\Services\TripalBlastJobService;
 use Drupal\user\Entity\User;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -106,6 +107,23 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
     $this->module_path = $this->container->get('module_handler')
       ->getModule('tripal_blast')
       ->getPath();
+
+    // We need to mock the logger to test the progress reporting.
+    $mock_logger = $this->getMockBuilder(TripalLogger::class)
+      ->onlyMethods(['error', 'warning'])
+      ->getMock();
+
+    $mock_logger->method('error')
+      ->willReturnCallback(function ($message, $context, $options) {
+        print str_replace(array_keys($context), $context, $message);
+        return NULL;
+      });
+    $mock_logger->method('warning')
+      ->willReturnCallback(function ($message, $context, $options) {
+        print str_replace(array_keys($context), $context, $message);
+        return NULL;
+      });
+    $this->container->set('tripal.logger', $mock_logger);
   }
 
   /**
@@ -246,7 +264,7 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
     mkdir($temp_dir, 0755, TRUE);
 
     $config = \Drupal::configFactory()->getEditable('tripal_blast.settings');
-    $config->set('tripal_blast_config_general.path',  '/usr/local/bin/')
+    $config->set('tripal_blast_config_general.path', '/usr/local/bin/')
       ->set('tripal_blast_config_general.threads', 1)
       ->save();
 
@@ -264,6 +282,120 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
     $this->assertFileExists($output_stub . '.tsv');
     $this->assertFileExists($output_stub . '.gff');
     $this->assertFileExists($output_stub . '.html');
+  }
+
+  /**
+   * Tests the runJob() error messages when different file formats are missing.
+   */
+  public function testRunJobHandlesMissingFormatterOutputs(): void {
+    $fixture_dir = $this->module_path . '/tests/fixtures/Chlamydomonas_reinhardtii_v5.6';
+
+    $query_file = $fixture_dir . '/Chlamydomonas_gene.fasta';
+    $database_prefix = $fixture_dir . '/Chlamydomonas_reinhardtii_v5.6';
+
+    $temp_dir = sys_get_temp_dir() . '/tripal_blast_runjob_missing_' . uniqid();
+    mkdir($temp_dir, 0755, TRUE);
+
+    $output_stub = $temp_dir . '/tripal_blast_test_job';
+    touch($output_stub . '.asn');
+
+    $mock_job_service = $this->getMockBuilder(TripalBlastJobService::class)
+      ->disableOriginalConstructor()
+      ->onlyMethods(['getBlastCommand', 'jobsConvertTSVtoGFF3'])
+      ->getMock();
+    $mock_job_service->method('getBlastCommand')
+      ->willReturn(['/bin/true', '/bin/true']);
+    $mock_job_service->expects($this->once())
+      ->method('jobsConvertTSVtoGFF3')
+      ->willReturn(NULL);
+
+    $this->container->set('tripal_blast.job_service', $mock_job_service);
+
+    ob_start();
+    $result = TripalBlastJobService::runJob('blastn', $query_file, $database_prefix, $output_stub, ['evalue' => '1e-5']);
+    $printed_output = ob_get_contents();
+    ob_end_clean();
+
+    $this->assertNull($result, 'runJob should complete and return null when formatter outputs are missing.');
+    $this->assertFileExists($output_stub . '.asn', 'We expected an .asn file to be present, but it is missing.');
+    $this->assertStringContainsString('Unable to convert BLAST ASN.1 archive to XML', $printed_output, 'The expected logger error did not occur when generating the XML file.');
+    $this->assertStringContainsString('Unable to convert BLAST ASN.1 archive to Tabular Output', $printed_output, 'The expected logger error did not occur when generating the tabular file.');
+    $this->assertStringContainsString('Unable to convert BLAST Tabular Output to GFF Output', $printed_output, 'The expected logger error did not occur when generating the GFF file.');
+    $this->assertStringContainsString('Unable to convert BLAST ASN.1 archive to HTML Output', $printed_output, 'The expected logger error did not occur when generating the HTML file.');
+  }
+
+  /**
+   * Tests runJob() method's missing archive error message.
+   *
+   * @return void
+   */
+  public function testRunJobHandlesMissingArchiveOutput(): void {
+    $fixture_dir = $this->module_path . '/tests/fixtures/Chlamydomonas_reinhardtii_v5.6';
+
+    $query_file = $fixture_dir . '/Chlamydomonas_gene.fasta';
+    $database_prefix = $fixture_dir . '/Chlamydomonas_reinhardtii_v5.6';
+
+    $temp_dir = sys_get_temp_dir() . '/tripal_blast_runjob_noarchive_' . uniqid();
+    mkdir($temp_dir, 0755, TRUE);
+
+    $output_stub = $temp_dir . '/tripal_blast_test_job';
+
+    $mock_job_service = $this->getMockBuilder(TripalBlastJobService::class)
+      ->disableOriginalConstructor()
+      ->onlyMethods(['getBlastCommand', 'jobsConvertTSVtoGFF3'])
+      ->getMock();
+    $mock_job_service->method('getBlastCommand')
+      ->willReturn(['/bin/true', '/bin/true']);
+    $mock_job_service->expects($this->never())
+      ->method('jobsConvertTSVtoGFF3');
+
+    $this->container->set('tripal_blast.job_service', $mock_job_service);
+
+    ob_start();
+    $result = TripalBlastJobService::runJob('blastn', $query_file, $database_prefix, $output_stub, ['evalue' => '1e-5']);
+    $printed_output = ob_get_contents();
+    ob_end_clean();
+
+    $this->assertFalse($result, 'runJob should return FALSE when the BLAST archive file is not produced.');
+    $this->assertFalse(file_exists($output_stub . '.asn'), 'The archive file should not exist.');
+    $this->assertStringContainsString('BLAST did not complete successfully as is implied by the lack of output file', $printed_output, 'The expected error message for missing archive was not logged.');
+  }
+
+  /**
+   * Tests the logger error in rubJob related to BLAST command generation.
+   *
+   * @return void
+   */
+  public function testRunJobErrors() {
+    $fixture_dir = $this->module_path . '/tests/fixtures/Chlamydomonas_reinhardtii_v5.6';
+
+    $query_file = $fixture_dir . '/Chlamydomonas_gene.fasta';
+    $database_prefix = $fixture_dir . '/Chlamydomonas_reinhardtii_v5.6';
+
+    $temp_dir = sys_get_temp_dir() . '/tripal_blast_runjob_' . uniqid();
+    mkdir($temp_dir, 0755, TRUE);
+
+    $config = \Drupal::configFactory()->getEditable('tripal_blast.settings');
+    $config->set('tripal_blast_config_general.path', '/usr/local/bin/')
+      ->set('tripal_blast_config_general.threads', 1)
+      ->save();
+
+    $blast_path = \Drupal::config('tripal_blast.settings')
+      ->get('tripal_blast_config_general.path');
+
+    $output_stub = $temp_dir . '/tripal_blast_test_job';
+
+    ob_start();
+    TripalBlastJobService::runJob('blastn', $query_file, 'tmp/usr/blastn', $output_stub, ['evalue' => '1e-5']);
+    $printed_output = ob_get_contents();
+    ob_end_clean();
+
+    $this->assertStringContainsString(
+      "Unable to generate the BLAST command for execution. The error was:",
+      $printed_output,
+      "The exception thrown does not have the message we expected when calling runJob() method."
+    );
+
   }
 
 }
