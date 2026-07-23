@@ -395,6 +395,90 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
       $printed_output,
       "The exception thrown does not have the message we expected when calling runJob() method."
     );
+  }
+
+  public static function provideDataForTestCreateBlastJobErrors() {
+    return [
+      'missing program' => [
+        [
+          'target_blastdb' => 123450,
+          'target_file' => '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_reinhardtii_v5.6.nsq',
+          'query_file' => '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_gene.fasta',
+          'result_filestub' => '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_reinhardtii_v5.6',
+        ],
+        [
+          'expected_exception' => "Missing required parameter 'blast_program' when creating a new BLAST job.",
+        ],
+      ],
+      'invalid program' => [
+        [
+          'blast_program' => 'tpblastn',
+          'target_blastdb' => 123450,
+          'target_file' => '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_reinhardtii_v5.6.nsq',
+          'query_file' => '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_gene.fasta',
+          'result_filestub' => '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_reinhardtii_v5.6',
+        ],
+        [
+          'expected_exception' => "Invalid value for parameter 'blast_program' when creating a new BLAST job. The value supplied was: tpblastn",
+        ],
+      ],
+      'missing target database' => [
+        [
+          'blast_program' => 'blastn',
+          'query_file' => '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_gene.fasta',
+          'result_filestub' => '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_reinhardtii_v5.6',
+        ],
+        [
+          'expected_exception' => "Missing required parameter 'target_blastdb' or 'target_file' when creating a new BLAST job.",
+        ],
+      ],
+      'missing query file' => [
+        [
+          'blast_program' => 'blastn',
+          'target_blastdb' => 123450,
+          'target_file' => '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_reinhardtii_v5.6.nsq',
+          'result_filestub' => '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_reinhardtii_v5.6',
+        ],
+        [
+          'expected_exception' => "Missing required parameter 'query_file' when creating a new BLAST job."
+        ],
+      ],
+      'query file does not exist' => [
+        [
+          'blast_program' => 'blastn',
+          'target_blastdb' => 123450,
+          'target_file' => '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_reinhardtii_v5.6.nsq',
+          'query_file' => '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas.fasta',
+          'result_filestub' => '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_reinhardtii_v5.6',
+        ],
+        [
+          'expected_exception' => "The value supplied for parameter 'query_file' does not exist. The value supplied was: /var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas.fasta"
+        ],
+      ],
+    ];
+  }
+
+  #[DataProvider('provideDataForTestCreateBlastJobErrors')]
+  public function testCreateBlastJobErrors(array $job_parameters, array $results) {
+    $service = \Drupal::service('tripal_blast.job_service');
+    $this->assertInstanceOf(TripalBlastJobService::class, $service);
+    $expection_message = 'NONE';
+    $exception_caught = FALSE;
+
+    try {
+      $blast_job = $service->createBlastJob($job_parameters);
+    }
+    catch (\Exception $e) {
+      $exception_caught = TRUE;
+      $expection_message = $e->getMessage();
+    }
+
+    $this->assertTrue($exception_caught, "We expected an exception message when trying to create a blast job.");
+    $this->assertSame(
+      $results['expected_exception'],
+      $expection_message,
+      "We expected the excpetion to be {$results['expected_exception']}, but it was $expection_message."
+    );
 
   }
 
