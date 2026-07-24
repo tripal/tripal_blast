@@ -397,6 +397,11 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
     );
   }
 
+  /**
+   * Provides data for testCreateBlastJobErrors() method.
+   *
+   * @return void
+   */
   public static function provideDataForTestCreateBlastJobErrors() {
     return [
       'missing program' => [
@@ -432,6 +437,17 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
           'expected_exception' => "Missing required parameter 'target_blastdb' or 'target_file' when creating a new BLAST job.",
         ],
       ],
+      'invalid target database' => [
+        [
+          'blast_program' => 'blastn',
+          'target_blastdb' => 'A123450',
+          'query_file' => '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_gene.fasta',
+          'result_filestub' => '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_reinhardtii_v5.6',
+        ],
+        [
+          'expected_exception' => "Invalid value for parameter 'target_blastdb' when creating a new BLAST job. The value supplied was: A123450",
+        ],
+      ],
       'missing query file' => [
         [
           'blast_program' => 'blastn',
@@ -458,6 +474,17 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
     ];
   }
 
+  /**
+   * Tests the errors thrown by createBlastJob() method.
+   *
+   * @param array $job_parameters
+   *   An array containing the parameters for createBlastJob.
+   * @param array $results
+   *   An array containig the expected results.
+   * @return void
+   *
+   * @dataProvider provideDataForTestCreateBlastJobErrors
+   */
   #[DataProvider('provideDataForTestCreateBlastJobErrors')]
   public function testCreateBlastJobErrors(array $job_parameters, array $results) {
     $service = \Drupal::service('tripal_blast.job_service');
@@ -479,7 +506,186 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
       $expection_message,
       "We expected the excpetion to be {$results['expected_exception']}, but it was $expection_message."
     );
+  }
 
+  /**
+   * Provides data for testCreateBlastJobBlastDB() method.
+   *
+   * @return void
+   */
+  public static function provideDataForTestCreateBlastJobBlastDB() {
+    return [
+      'target blastdb does not exist -> NULL' => [
+        NULL,
+        [
+          'blast_program' => 'blastn',
+          'target_blastdb' => 123450,
+          'query_file' => '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_gene.fasta',
+          'result_filestub' => '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_reinhardtii_v5.6',
+        ],
+        "The value supplied for parameter 'target_blastdb' does not exist. The value supplied was: 123450"
+      ],
+      'target blastdb does not exist -> invalid' => [
+        [
+          'id'  => 67890,
+          'name' => 'Chlamydomonas reinhardtii Protein DB',
+          'path'  => '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_reinhardtii_v5.6_protein',
+          'dbtype' => 'p',
+          'dbxref_id_regexp' => '^>.*$',
+          'dbxref_db_id' => 2,
+          'dbxref_linkout_type' => 'none',
+        ],
+        [
+          'blast_program' => 'blastn',
+          'target_blastdb' => 67890,
+          'query_file' => '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_gene.fasta',
+          'result_filestub' => '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_reinhardtii_v5.6',
+        ],
+        "The BLAST database specified by parameter 'target_blastdb' does not exist or is not readable. The value supplied was: 67890"
+      ],
+    ];
+  }
+
+  /**
+   * Tests the BlastDB related errors thrown when createBlastJob() is called.
+   *
+   * @param mixed $value
+   *   - Value expected to return by getDatabaseConfig method.
+   * @param array $job_parameters
+   *   - An array containing the parameters for createBlastJob.
+   * @param string $expected_exception
+   *   - Expected exception message.
+   * @return void
+   *
+   * @dataProvider provideDataForTestCreateBlastJobBlastDB
+   */
+  #[DataProvider('provideDataForTestCreateBlastJobBlastDB')]
+  public function testCreateBlastJobBlastDB(mixed $value, array $job_parameters, string $expected_exception) {
+    $job_service = $this->getMockBuilder(\Drupal\tripal_blast\Services\TripalBlastDatabaseService::class)
+      ->disableOriginalConstructor()
+      ->onlyMethods(['getDatabaseConfig'])
+      ->getMock();
+    $job_service->method('getDatabaseConfig')->willReturn($value);
+    $this->container->set('tripal_blast.database_service', $job_service);
+
+    $service = \Drupal::service('tripal_blast.job_service');
+    $this->assertInstanceOf(TripalBlastJobService::class, $service);
+    $expection_message = 'NONE';
+    $exception_caught = FALSE;
+
+    try {
+      $blast_job = $service->createBlastJob($job_parameters);
+    } catch (\Exception $e) {
+      $exception_caught = TRUE;
+      $expection_message = $e->getMessage();
+    }
+
+    $this->assertTrue($exception_caught, "We expected an exception message when trying to create a blast job.");
+    $this->assertSame(
+      $expected_exception,
+      $expection_message,
+      "We expected the excpetion to be $expected_exception, but it was $expection_message."
+    );
+  }
+
+  /**
+   * Provides data for testCreateBlastJobWithDifferentFileTypes().
+   *
+   * @return void
+   */
+  public static function provideDataForTestCreateBlastJobWithDifferentFileTypes() {
+    return [
+      'blast type n' => [
+        [
+          'id'  => 123450,
+          'name' => 'Chlamydomonas reinhardtii Nucleotide DB',
+          'path'  => '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_reinhardtii_v5.6',
+          'dbtype' => 'n',
+          'dbxref_id_regexp' => '^>.*$',
+          'dbxref_db_id' => 1,
+          'dbxref_linkout_type' => 'none',
+        ],
+        [
+          'blast_program' => 'blastn',
+          'target_blastdb' => 123450,
+          'query_file' => '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_gene.fasta',
+          'result_filestub' => '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_reinhardtii_v5.6',
+        ],
+      ],
+    ];
+  }
+
+  /**
+   * Tests the createBlastJob method across different file types.
+   *
+   * @param array $config_vals
+   *   - An array containing the values expected to return by getDatabaseConfig.
+   * @param array $job_parameters
+   *   - An array containing the parameters for createBlastJob.
+   * @return void
+   *
+   * @dataProvider provideDataForTestCreateBlastJobWithDifferentFileTypes
+   */
+  #[DataProvider('provideDataForTestCreateBlastJobWithDifferentFileTypes')]
+  public function testCreateBlastJobWithDifferentFileTypes(array $config_vals, array $job_parameters) {
+    $job_service = $this->getMockBuilder(\Drupal\tripal_blast\Services\TripalBlastDatabaseService::class)
+      ->disableOriginalConstructor()
+      ->onlyMethods(['getDatabaseConfig'])
+      ->getMock();
+    $job_service->method('getDatabaseConfig')->willReturn($config_vals);
+    $this->container->set('tripal_blast.database_service', $job_service);
+
+    $service = \Drupal::service('tripal_blast.job_service');
+    $this->assertInstanceOf(TripalBlastJobService::class, $service);
+    $blast_job = $service->createBlastJob($job_parameters);
+  }
+
+  /**
+   * Tests the executable errors  thrown by getBlastCommand().
+   *
+   * @return void
+   */
+  public function testExecutableErrorsInGetBlastCommand() {
+    $fixture_dir = $this->module_path . '/tests/fixtures/Chlamydomonas_reinhardtii_v5.6';
+
+    $query_file = $fixture_dir . '/Chlamydomonas_gene.fasta';
+    $database_prefix = $fixture_dir . '/Chlamydomonas_reinhardtii_v5.6';
+
+    $temp_dir = sys_get_temp_dir() . '/tripal_blast_runjob_' . uniqid();
+    mkdir($temp_dir, 0755, TRUE);
+
+    $config = \Drupal::configFactory()->getEditable('tripal_blast.settings');
+    $config->set('tripal_blast_config_general.path', '/usr/bin/')
+      ->set('tripal_blast_config_general.threads', 1)
+      ->save();
+
+    $blast_path = \Drupal::config('tripal_blast.settings')
+      ->get('tripal_blast_config_general.path');
+
+    $output_filestub = $temp_dir . '/tripal_blast_test_job';
+
+    $output_file['archive'] = $output_filestub . '.asn';
+    $output_file['xml'] = $output_filestub . '.xml';
+    $output_file['tsv'] = $output_filestub . '.tsv';
+    $output_file['html'] = $output_filestub . '.html';
+    $output_file['gff'] = $output_filestub . '.gff';
+
+    $service = \Drupal::service('tripal_blast.job_service');
+    $this->assertInstanceOf(TripalBlastJobService::class, $service);
+    $options = ['evalue' => '1e-5'];
+
+    $expection_message = 'NONE';
+    $exception_caught = FALSE;
+
+    try {
+      $service->getBlastCommand('blastn', $query_file, $database_prefix, $output_file, $options);
+    } catch (\Exception $e) {
+      $exception_caught = TRUE;
+      $expection_message = $e->getMessage();
+    }
+
+    $this->assertTrue($exception_caught, "We expected an exception message when trying to get the blast command.");
+    $this->assertSame("Unable to find the BLAST executable (ie: /usr/bin/blastn). This can be changed in the admin settings; you supplied: /usr/bin/blastn", $expection_message, "We expected the excpetion to start with 'Unable to find the BLAST executable (ie: /usr/bin/blastn).', but it was $expection_message.");
   }
 
 }
