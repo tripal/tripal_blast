@@ -164,6 +164,60 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
   }
 
   /**
+   * Tests that a user-uploaded BLAST database returns the expected job metadata.
+   */
+  public function testUploadedBlastdbForNucleotideTarget(): void {
+    $service = \Drupal::service('tripal_blast.job_service');
+    $this->assertInstanceOf(TripalBlastJobService::class, $service);
+
+    $query_file = $this->module_path . '/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_gene.fasta';
+    $target_file = $this->module_path . '/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_reinhardtii_v5.6.nsq';
+
+    $job_id = $service->createBlastJob([
+      'blast_program' => 'blastn',
+      'target_file' => $target_file,
+      'query_file' => $query_file,
+      'options' => ['eVal' => '1e-10'],
+    ]);
+
+    $this->assertIsNumeric($job_id, "The job_id returned from createBlastJob is not numeric.");
+
+    $job = $service->jobsGetJobByJobId($job_id, ['skip_file_check' => TRUE]);
+    $this->assertIsObject($job, "Did not return a valid job Id.");
+    $this->assertSame('User Uploaded', $job->blastdb->db_name, "The User Uploaded DB is not set correctly.");
+    $this->assertSame($target_file, $job->blastdb->db_path, "The User Uploaded DB path is not set correctly.");
+    $this->assertTrue($job->blastdb->linkout->none, "The linkout type is not set correctly.");
+    $this->assertSame('nucleotide', $job->blastdb->db_dbtype, "The database type is not set correctly.");
+  }
+
+  /**
+   * Tests that a user-uploaded protein BLAST database returns protein db_dbtype.
+   */
+  public function testUploadedBlastdbForProteinTarget(): void {
+    $service = \Drupal::service('tripal_blast.job_service');
+    $this->assertInstanceOf(TripalBlastJobService::class, $service);
+
+    $query_file = $this->module_path . '/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_gene.fasta';
+    $target_file = $this->module_path . '/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_reinhardtii_v5.6_protein.nsq';
+
+    $job_id = $service->createBlastJob([
+      'blast_program' => 'blastp',
+      'target_file' => $target_file,
+      'query_file' => $query_file,
+      'options' => ['eVal' => '1e-10'],
+    ]);
+
+    $this->assertIsNumeric($job_id, "The job_id returned from createBlastJob is not numeric.");
+
+    $job = $service->jobsGetJobByJobId($job_id, ['skip_file_check' => TRUE]);
+    $this->assertIsObject($job, "Did not return a valid job Id.");
+    $this->assertSame('User Uploaded', $job->blastdb->db_name, "The User Uploaded DB is not set correctly.");
+    $this->assertSame($target_file, $job->blastdb->db_path, "The User Uploaded DB path is not set correctly.");
+    $this->assertTrue($job->blastdb->linkout->none, "The linkout type is not set correctly.");
+    $this->assertSame('protein', $job->blastdb->db_dbtype, "The database type is not set correctly.");
+  }
+
+  /**
    * Tests encoding and decoding a blast job id secret.
    *
    * @dataProvider provideScenarios
@@ -686,6 +740,54 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
 
     $this->assertTrue($exception_caught, "We expected an exception message when trying to get the blast command.");
     $this->assertSame("Unable to find the BLAST executable (ie: /usr/bin/blastn). This can be changed in the admin settings; you supplied: /usr/bin/blastn", $expection_message, "We expected the excpetion to start with 'Unable to find the BLAST executable (ie: /usr/bin/blastn).', but it was $expection_message.");
+  }
+
+  /**
+   * Tests the executable errors  thrown by getBlastCommand() for the formatter.
+   *
+   * @return void
+   */
+  public function testExecutableFormatterError() {
+    $fixture_dir = $this->module_path . '/tests/fixtures/Chlamydomonas_reinhardtii_v5.6';
+
+    $query_file = $fixture_dir . '/Chlamydomonas_gene.fasta';
+    $database_prefix = $fixture_dir . '/Chlamydomonas_reinhardtii_v5.6';
+
+    $temp_dir = sys_get_temp_dir() . '/tripal_blast_runjob_' . uniqid();
+    mkdir($temp_dir, 0755, TRUE);
+
+    $config = \Drupal::configFactory()->getEditable('tripal_blast.settings');
+    $config->set('tripal_blast_config_general.path', '/usr/local/')
+      ->set('tripal_blast_config_general.threads', 1)
+      ->save();
+
+    $blast_path = \Drupal::config('tripal_blast.settings')
+      ->get('tripal_blast_config_general.path');
+
+    $output_filestub = $temp_dir . '/tripal_blast_test_job';
+
+    $output_file['archive'] = $output_filestub . '.asn';
+    $output_file['xml'] = $output_filestub . '.xml';
+    $output_file['tsv'] = $output_filestub . '.tsv';
+    $output_file['html'] = $output_filestub . '.html';
+    $output_file['gff'] = $output_filestub . '.gff';
+
+    $service = \Drupal::service('tripal_blast.job_service');
+    $this->assertInstanceOf(TripalBlastJobService::class, $service);
+    $options = ['evalue' => '1e-5'];
+
+    $expection_message = 'NONE';
+    $exception_caught = FALSE;
+
+    try {
+      $service->getBlastCommand('bin/blastn', $query_file, $database_prefix, $output_file, $options);
+    } catch (\Exception $e) {
+      $exception_caught = TRUE;
+      $expection_message = $e->getMessage();
+    }
+
+    $this->assertTrue($exception_caught, "We expected an exception message when trying to get the blast command.");
+    $this->assertSame("Unable to find the BLAST Formatter executable (ie: /usr/bin/blast_formatter). This can be changed in the admin settings; you supplied: /usr/local/blast_formatter", $expection_message, "We expected the excpetion to start with 'Unable to find the BLAST executable (ie: /usr/bin/blastn).', but it was $expection_message.");
   }
 
 }
