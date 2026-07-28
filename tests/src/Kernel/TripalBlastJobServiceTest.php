@@ -454,7 +454,16 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
   /**
    * Provides data for testCreateBlastJobErrors() method.
    *
-   * @return void
+   * @return array
+   *   An array of contains the following sub arrays:
+   *   - An array containin the inputs containing the following keys:
+   *     - blast_program: The BLAST program to execute (ie: blastn, tblastn, tblastx, blastp, blastx).
+   *     - target_blastdb: The tripal_blast_database id of the target database to search against.
+   *     - target_file: The full path to the file containing the target database.
+   *     - query_file: The full path to the file containing the query sequence.
+   *     - result_filestub: The full path to the file where the results will be written (without file type suffix).
+   *   - An array containg the expected exception messages thrown for each case:
+   *     - 'expected_exception': Expected exception message.
    */
   public static function provideDataForTestCreateBlastJobErrors() {
     return [
@@ -645,7 +654,10 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
   /**
    * Provides data for testCreateBlastJobWithDifferentFileTypes().
    *
-   * @return void
+   * @return array
+   *   An array containing the following arrays:
+   *   - An array containing the inputs for different case scenarios.
+   *   - An array containg the expected results.
    */
   public static function provideDataForTestCreateBlastJobWithDifferentFileTypes() {
     return [
