@@ -106,7 +106,11 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
    * Provides data for testBuildForm.
    *
    * @return array
-   *   An array of test scenarios, each containing query type, database type, and expected program.
+   *   An array of test scenarios, each containing query type, database type, expected program and expected title.
+   *   - query_type: The type of the query (nucleotide or protein).
+   *   - db_type: The type of the database (nucleotide or protein).
+   *   - expected_program: The expected BLAST program based on the query and database types.
+   *   - expected_title: The expected title of the current BLAST program based on the query and database types.
    */
   public static function provideDataForTestBuildForm(): array {
     return [
@@ -115,13 +119,15 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
           'query_type' => 'nucleotide',
           'db_type' => 'nucleotide',
           'expected_program' => 'blastn',
+          'expected_title' => 'Nucleotide to Nucleotide BLAST (blastn)',
         ],
       ],
       'nucleotide blastx' => [
         [
-        'query_type' => 'nucleotide',
-        'db_type' => 'protein',
-        'expected_program' => 'blastx',
+          'query_type' => 'nucleotide',
+          'db_type' => 'protein',
+          'expected_program' => 'blastx',
+          'expected_title' => 'Nucleotide to Protein BLAST (blastx)',
         ],
       ],
       'protein tblastn' => [
@@ -129,6 +135,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
           'query_type' => 'protein',
           'db_type' => 'nucleotide',
           'expected_program' => 'tblastn',
+          'expected_title' => 'Protein to Nucleotide BLAST (tblastn)',
         ],
       ],
       'protein blastp' => [
@@ -136,6 +143,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
           'query_type' => 'protein',
           'db_type' => 'protein',
           'expected_program' => 'blastp',
+          'expected_title' => 'Protein to Protein BLAST (blastp)',
         ],
       ],
     ];
@@ -156,9 +164,21 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
 
     $build = $this->blast_form->buildForm($form, $form_state, $scenario['query_type'], $scenario['db_type']);
 
+    // Test if the correct title is created.
+    $page_title = [
+      '@query' => ucfirst($scenario['query_type']),
+      '@program' => ucfirst($scenario['db_type']),
+      '@name' => $scenario['expected_program'],
+    ];
+    $title = $this->container->get('string_translation')->translate('@query to @program BLAST (@name)', $page_title);
+    $this->assertEquals($scenario['expected_title'],(string) $title);
+
+    // Test if correct hidden elements are present.
     $this->assertSame($scenario['query_type'], $build['query_type']['#value'], 'We expect the query type to be ' . $scenario['query_type'] . ' but it is not.');
     $this->assertSame($scenario['db_type'], $build['db_type']['#value'], 'We expect the database type to be ' . $scenario['db_type'] . ' but it is not.');
     $this->assertSame($scenario['expected_program'], $build['blast_program']['#value'], 'We expect the BLAST program to be ' . $scenario['expected_program'] . ' but it is not.');
+
+    // Test if the expected form elements are present.
     $this->assertSame('details', $build['B']['#type'], 'We expect the main container to be a details element but it is not.');
     $this->assertSame('details', $build['B']['query']['#type'], 'We expect the query container to be a details element but it is not.');
     $this->assertSame('textarea', $build['B']['query']['FASTA']['#type'], 'We expect the FASTA input to be a textarea but it is not.');
@@ -543,7 +563,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
 
     $this->blast_form->submitForm($form, $form_state);
 
-    $after = (int) \Drupal::database()->select('blastjob')
+    $after = (int) $this->chado_connection->select('blastjob')
       ->condition('blast_program', $values['blast_program'])
       ->countQuery()
       ->execute()
@@ -551,26 +571,58 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
 
     $this->assertSame($before + 1, $after, 'Submission did not create a job record for ' . $values['blast_program']);
     $this->assertNotNull($form_state->getRedirect(), 'Expected a redirect after form submission but none was found.');
+    $this->assertNotEmpty($_SESSION['blast_jobs'], "Expected a session variable for blast_jobs to be set after form submission but it was not found.");
   }
 
   /**
-   * Tests buildForm covers warning, recent-job, and resubmit defaults.
+   * Tests the buildForm related warning messages.
    */
-  public function testBuildFormCoversWarningsRecentJobsAndResubmitDefaults(): void {
-    $editable_config = \Drupal::service('config.factory')->getEditable('tripal_blast.settings');
-    $editable_config->set('tripal_blast_config_notification.warning_text', 'Temporary maintenance warning');
-    $editable_config->set('tripal_blast_config_sequence.nucleotide', '>example\nACGT');
-    $editable_config->save();
+  public function testBuildFormDisplaysWarningMessage(): void {
+    $editable_config = $this->config('tripal_blast.settings');
+    $editable_config
+      ->set(
+        'tripal_blast_config_notification.warning_text',
+        'Temporary maintenance warning'
+      )
+      ->save();
 
+    $build = $this->blast_form->buildForm([], new FormState(), 'nucleotide', 'nucleotide');
+
+    $this->assertArrayHasKey('config_warning', $build, 'Expected a warning message in the form build but it was not found.');
+  }
+
+  /**
+   * Tests buildForm recent job display.
+   */
+  public function testBuildFormDisplaysRecentJobs(): void {
+    $job_service = $this->getMockBuilder(\Drupal\tripal_blast\Services\TripalBlastJobService::class)
+      ->disableOriginalConstructor()
+      ->onlyMethods(['jobsCountRecentJobs', 'jobsCreateTable'])
+      ->getMock();
+
+    $job_service->method('jobsCountRecentJobs')->willReturn(1);
+    $job_service->method('jobsCreateTable')->willReturn(['#type' => 'table']);
+
+    $this->container->set('tripal_blast.job_service', $job_service);
+
+    $build = $this->blast_form->buildForm([], new FormState(), 'nucleotide', 'nucleotide');
+
+    $this->assertArrayHasKey('A', $build, 'Expected a recent job container in the form build but it was not found.');
+    $this->assertSame('table', $build['A']['recent_job']['#type'], 'Expected the recent job container to be a table but it is not.');
+  }
+
+  /**
+   * Tests if the buildForm resubmits correct defaults.
+   */
+  public function testBuildFormResubmitPopulatesDefaultValues(): void {
     $query_file = $this->container->get('file_system')->getTempDirectory() . '/resubmit_query.fasta';
     file_put_contents($query_file, ">query\nACGT");
 
     $job_service = $this->getMockBuilder(\Drupal\tripal_blast\Services\TripalBlastJobService::class)
       ->disableOriginalConstructor()
-      ->onlyMethods(['jobsCountRecentJobs', 'jobsCreateTable', 'jobsBlastRevealSecret', 'jobsGetJobByJobId'])
+      ->onlyMethods(['jobsBlastRevealSecret', 'jobsGetJobByJobId'])
       ->getMock();
-    $job_service->method('jobsCountRecentJobs')->willReturn(1);
-    $job_service->method('jobsCreateTable')->willReturn(['#type' => 'table']);
+
     $job_service->method('jobsBlastRevealSecret')->willReturn(42);
     $job_service->method('jobsGetJobByJobId')->willReturn((object) [
       'blastdb' => (object) ['nid' => 99],
@@ -580,13 +632,8 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
 
     \Drupal::request()->query->set('resubmit', 'secret-id');
 
-    $form = [];
-    $form_state = new FormState();
-    $build = $this->blast_form->buildForm($form, $form_state, 'nucleotide', 'nucleotide');
+    $build = $this->blast_form->buildForm([], new FormState(), 'nucleotide', 'nucleotide');
 
-    $this->assertArrayHasKey('config_warning', $build, 'Expected a warning message in the form build but it was not found.');
-    $this->assertArrayHasKey('A', $build, 'Expected a recent job container in the form build but it was not found.');
-    $this->assertSame('table', $build['A']['recent_job']['#type'], 'Expected the recent job container to be a table but it is not.');
     $this->assertSame(99, $build['B']['db']['SELECT_DB']['#default_value'], 'Expected the default database value to be 99 but it is not.');
     $this->assertSame(">query\nACGT", $build['B']['query']['FASTA']['#default_value'], 'Expected the default query value to be the correct sequence but it is not.');
   }
@@ -661,7 +708,13 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
       'gapCost' => '5,2',
     ]);
     $this->blast_form->submitForm($form, $form_state);
-    $this->assertNotNull($form_state->getRedirect());
+    $this->assertNotNull($form_state->getRedirect(), "Expeccted a redirect object, but it was NULL.");
+    $redirect_path = $form_state->getRedirect()->getInternalPath();
+    $this->assertSame(
+      'blast/report/encoded-job',
+      $redirect_path,
+      "We expected the redirect route to be 'blast/report/encoded-job' but it was $redirect_path."
+    );
   }
 
   /**
@@ -674,7 +727,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
       ->getMock();
     $job_service->expects($this->once())
       ->method('createBlastJob')
-      ->willThrowException(new \RuntimeException('boom'));
+      ->willThrowException(new \RuntimeException('Unable to create tripal job'));
     $this->container->set('tripal_blast.job_service', $job_service);
 
     $form = [];
@@ -697,7 +750,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
 
     $messages = \Drupal::messenger()->all();
     $this->assertNotEmpty($messages['error'], 'Expected an error message but none were found.');
-    $this->assertStringContainsString("Unable to submit the BLAST job. The error was: boom", reset($messages['error']), 'Expected error message about job creation but it was not found.');
+    $this->assertStringContainsString("Unable to submit the BLAST job. The error was: Unable to create tripal job", reset($messages['error']), 'Expected error message about job creation but it was not found.');
   }
 
   /**
@@ -737,7 +790,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
    *
    * @return array
    */
-  public static function provideDataForTestProgamGetGapCostInAjaxCallback(): array {
+  public static function provideDataForTestProgramGetGapCostInAjaxCallback(): array {
     return [
       'blastn with m&m score 0' => [
         [
@@ -814,10 +867,10 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
    * @param array $data
    *   The form values to test the AJAX callback with.
    *
-   * @dataProvider provideDataForTestProgamGetGapCostInAjaxCallback
+   * @dataProvider provideDataForTestProgramGetGapCostInAjaxCallback
    */
-  #[DataProvider('provideDataForTestProgamGetGapCostInAjaxCallback')]
-  public function testProgamGetGapCostInAjaxCallback(array $data, array $result): void {
+  #[DataProvider('provideDataForTestProgramGetGapCostInAjaxCallback')]
+  public function testProgramGetGapCostInAjaxCallback(array $data, array $result): void {
     $form = [];
     $form_state = new FormState();
     $form_state->setValues($data);
@@ -1050,8 +1103,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
     $this->assertArrayHasKey('query', $errors, 'Expected an error for query but it was not found.');
     $this->assertStringContainsString("The file should be a plain-text FASTA
           (.fasta, .fna, .fa, .fas) file. In other words, it cannot have formatting as is the
-          case with MS Word (.doc, .docx) or Rich Text Format (.rtf). It cannot be greater
-          than %max_size in size.", $errors['query'], 'Expected error message about job creation but it was not found.');
+          case with MS Word (.doc, .docx) or Rich Text Format (.rtf).", $errors['query'], 'Expected error message about job creation but it was not found.');
   }
 
 }

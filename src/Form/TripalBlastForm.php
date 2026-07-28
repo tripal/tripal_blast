@@ -6,15 +6,13 @@
 
 namespace Drupal\tripal_blast\Form;
 
-use Drupal\Core\Form\FormBase;
-use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\InvokeCommand;
+use Drupal\Core\Form\FormBase;
+use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Link;
 use Drupal\Core\Url;
 use Drupal\file\Entity\File;
-use Drupal\node\Entity\Node;
-use Drupal\tripal\Services\TripalJob;
 use Drupal\tripal_blast\Services\TripalBlastProgramHelper;
 
 /**
