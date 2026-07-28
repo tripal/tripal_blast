@@ -348,7 +348,7 @@ class TripalBlastForm extends FormBase {
           (.fasta, .fna, .fa, .fas) file. In other words, it cannot have formatting as is the
           case with MS Word (.doc, .docx) or Rich Text Format (.rtf). It cannot be greater
           than %max_size in size. <strong>Don\'t forget to press the Upload button before
-          attempting to submit your BLAST.</strong>', ['@max_size' => round($file_upload_max_size / 1024 / 1024,1) . 'MB']));
+          attempting to submit your BLAST.</strong>', ['%max_size' => round($file_upload_max_size / 1024 / 1024,1) . 'MB']));
       }
     }
     else {
