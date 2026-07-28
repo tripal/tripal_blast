@@ -240,6 +240,33 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
     $this->assertSame((string) $job_id, $revealed);
   }
 
+  public static function provideDataForTestJobsBlastRevealSecretInvalid() {
+    return [
+      "Invalid numeric secret" => [
+        'secret' => 323435,
+        'expected_error' => 'Unable to decode the blast job_id from 323435',
+      ],
+      "Invalid non-numeric secret" => [
+        'secret' => 'invalid-secret',
+        'expected_error' => 'Unable to decode the blast job_id from invalid-secret',
+      ],
+    ];
+  }
+
+  #[DataProvider('provideDataForTestJobsBlastRevealSecretInvalid')]
+  public function testJobsBlastRevealSecretInvalid(mixed $secret, string $expected_error): void {
+    $service = \Drupal::service('tripal_blast.job_service');
+    $this->assertInstanceOf(TripalBlastJobService::class, $service);
+
+    ob_start();
+    $revealed = $service->jobsBlastRevealSecret($secret);
+    $printed_output = ob_get_contents();
+    ob_end_clean();
+
+    $this->assertFalse($revealed, "The revealed job_id should be NULL for an invalid secret.");
+    $this->assertStringContainsString($expected_error, $printed_output, 'The expected logger error did not occur when invalid secret is provided.');
+  }
+
   /**
    * Tests that recent blast jobs are rendered into a form table.
    *
@@ -301,6 +328,37 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
         $_SESSION['blast_jobs'] = $previous_session;
       }
     }
+  }
+
+  /**
+   * Tests jobsGetRecentJobs() methods for the cases when the type of the recent
+   * job was not in the array.
+   *
+   * @return void
+   */
+  public function testGetRecentJobsIncorrectProgram() {
+    $service = \Drupal::service('tripal_blast.job_service');
+    $this->assertInstanceOf(TripalBlastJobService::class, $service);
+
+    $job_parameters = [
+      'blast_program' => 'blastn',
+      'target_blastdb' => 123450,
+      'target_file' => '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_reinhardtii_v5.6.nsq',
+      'query_file' => '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_gene.fasta',
+      'result_filestub' => '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_reinhardtii_v5.6',
+    ];
+
+    $job_id = $service->createBlastJob($job_parameters);
+
+    $secret = $service->jobsBlastMakeSecret($job_id);
+    $previous_session = $_SESSION['blast_jobs'] ?? NULL;
+    $_SESSION['blast_jobs'] = [$secret];
+
+    $recent_jobs = $service->jobsGetRecentJobs(['blastp']);
+
+    $this->assertIsArray($recent_jobs, "The recent jobs returned from jobsGetRecentJobs is not an array.");
+    $this->assertCount(0, $recent_jobs, "The recent jobs array does not contain the expected number of jobs.");
+    $this->assertTrue(!in_array($job_id, $recent_jobs), "The recent jobs array does not contain the job_id of the job we just created.");
   }
 
   /**
