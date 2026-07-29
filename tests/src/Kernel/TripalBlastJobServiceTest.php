@@ -240,6 +240,11 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
     $this->assertSame((string) $job_id, $revealed);
   }
 
+  /**
+   * Provides data for testJobsBlastRevealSecretInvalid() method.
+   *
+   * @return array
+   */
   public static function provideDataForTestJobsBlastRevealSecretInvalid() {
     return [
       "Invalid numeric secret" => [
@@ -253,6 +258,15 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
     ];
   }
 
+  /**
+   * Tests jobsBlastRevealSecret() with invalid secret.
+   *
+   * @param mixed $secret
+   *   A string or an integer containing the secret.
+   * @param string $expected_error
+   *   A string containing the expected error.
+   * @return void
+   */
   #[DataProvider('provideDataForTestJobsBlastRevealSecretInvalid')]
   public function testJobsBlastRevealSecretInvalid(mixed $secret, string $expected_error): void {
     $service = \Drupal::service('tripal_blast.job_service');
@@ -423,8 +437,14 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
 
     $this->container->set('tripal_blast.job_service', $mock_job_service);
 
+    $options = serialize([
+      'gapopen' => '5_2',
+      'evalue' => '1e-5',
+    ]);
+
+
     ob_start();
-    $result = TripalBlastJobService::runJob('blastn', $query_file, $database_prefix, $output_stub, ['evalue' => '1e-5']);
+    $result = TripalBlastJobService::runJob('blastn', $query_file, $database_prefix, $output_stub, $options);
     $printed_output = ob_get_contents();
     ob_end_clean();
 
@@ -765,6 +785,79 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
   }
 
   /**
+   * Provides data for testGetBlastCommandSimple() method.
+   *
+   * @return array
+   */
+  public static function provideDataForTestGetBlastCommandSimple() {
+    return [
+      'without options' => [
+        'options' => [
+          'evalue' => '1e-5',
+        ],
+      ],
+      'with options' => [
+        'options' => [
+          'gapopen' => '5_2',
+          'evalue' => '1e-5',
+        ],
+      ],
+    ];
+  }
+
+  /**
+   * Test the getBlastCommand() method with simple inputs.
+   *
+   * @param array $options
+   *   An array containing the options given to the getBlastCommand() method as a parameter.
+   * @return void
+   *
+   * @dataProvider provideDataForTestGetBlastCommandSimple
+   */
+  #[DataProvider('provideDataForTestGetBlastCommandSimple')]
+  public function testGetBlastCommandSimple(array $options) {
+    $fixture_dir = $this->module_path . '/tests/fixtures/Chlamydomonas_reinhardtii_v5.6';
+
+    $query_file = $fixture_dir . '/Chlamydomonas_gene.fasta';
+    $database_prefix = $fixture_dir . '/Chlamydomonas_reinhardtii_v5.6';
+
+    $temp_dir = sys_get_temp_dir() . '/tripal_blast_runjob_' . uniqid();
+    mkdir($temp_dir, 0755, TRUE);
+
+    $config = \Drupal::configFactory()->getEditable('tripal_blast.settings');
+    $config->set('tripal_blast_config_general.path', '/usr/local/bin/')
+      ->set('tripal_blast_config_general.threads', 1)
+      ->save();
+
+    $blast_path = \Drupal::config('tripal_blast.settings')
+      ->get('tripal_blast_config_general.path');
+
+    $output_filestub = $temp_dir . '/tripal_blast_test_job';
+
+    $output_file['archive'] = $output_filestub . '.asn';
+    $output_file['xml'] = $output_filestub . '.xml';
+    $output_file['tsv'] = $output_filestub . '.tsv';
+    $output_file['html'] = $output_filestub . '.html';
+    $output_file['gff'] = $output_filestub . '.gff';
+
+    $service = \Drupal::service('tripal_blast.job_service');
+    $this->assertInstanceOf(TripalBlastJobService::class, $service);
+
+    $expection_message = 'NONE';
+    $exception_caught = FALSE;
+
+    [$blast_cmd, $blast_formatter_command] = $service->getBlastCommand('blastn', $query_file, $database_prefix, $output_file, $options);
+
+    $this->assertNotNull($blast_cmd, "We expected a valid blast command but it was null.");
+    $this->assertNotNull($blast_formatter_command, "We expected a valid blast formatter command but it was null.");
+    $this->assertStringContainsString("$blast_path" . "blastn", $blast_cmd, "The expected executable path is not in the blast command.");
+    $this->assertStringContainsString("$blast_path" . "blast_formatter", $blast_formatter_command, "The expected executable formatter path is not in the blast command.");
+    $this->assertStringContainsString("-query", $blast_cmd, "The expected -query flag is not in the blast command.");
+    $this->assertStringContainsString("-db", $blast_cmd, "The -db flag is not in the blast command.");
+    $this->assertStringContainsString("-out", $blast_cmd, "The expected -out flag is not in the blast command.");
+  }
+
+  /**
    * Tests the executable errors  thrown by getBlastCommand().
    *
    * @return void
@@ -858,6 +951,50 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
 
     $this->assertTrue($exception_caught, "We expected an exception message when trying to get the blast command.");
     $this->assertSame("Unable to find the BLAST Formatter executable (ie: /usr/bin/blast_formatter). This can be changed in the admin settings; you supplied: /usr/local/blast_formatter", $expection_message, "We expected the excpetion to start with 'Unable to find the BLAST executable (ie: /usr/bin/blastn).', but it was $expection_message.");
+  }
+
+  /**
+   * Provides data for testJobsFormatQueryHeaders() method.
+   *
+   * @return array
+   */
+  public static function provideDataForTestJobsFormatQueryHeaders() {
+    return [
+      'file with one header' => [
+        'file' => '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_gene.fasta',
+        'expected_result' => 'Cre08.g358567.t1.1 pacid=30773354 polypeptide=Cre08.g358567.t1.1 locus=Cre08.g358567 ID=Cre08.g358567.t1.1.v5.5 annot-version=v5.5',
+      ],
+      'empty file' => [
+        'file' => '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_gene_empty.fasta',
+        'expected_result' => 'Unnamed Query',
+      ],
+      'file with more than one header' => [
+        'file' => '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_gene_multiple_headers.fasta',
+        'expected_result' => '2 queries including "Cre08.g358567.t1.1 pacid=30773354 polypeptide=Cre08.g358567.t1.1 locus=Cre08.g358567 ID=Cre08.g358567.t1.1.v5.5 annot-version=v5.5"'
+      ],
+    ];
+  }
+
+  /**
+   * Tests the jobsFormatQueryHeaders() method with the FASTA files with
+   * different number of headers.
+   *
+   * @param string $file
+   *   A string containing the input file name.
+   * @param string $expected_result
+   *   A string containing the expected result.
+   * @return void
+   *
+   * @dataProvider provideDataForTestJobsFormatQueryHeaders
+   */
+  #[DataProvider('provideDataForTestJobsFormatQueryHeaders')]
+  public function testJobsFormatQueryHeaders(string $file, string $expected_result) {
+    $service = \Drupal::service('tripal_blast.job_service');
+    $this->assertInstanceOf(TripalBlastJobService::class, $service);
+
+    $result = $service->jobsFormatQueryHeaders($file);
+
+    $this->assertSame($expected_result, $result);
   }
 
 }
