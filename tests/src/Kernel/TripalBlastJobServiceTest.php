@@ -535,8 +535,8 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
    * Provides data for testCreateBlastJobErrors() method.
    *
    * @return array
-   *   An array of contains the following sub arrays:
-   *   - An array containin the inputs containing the following keys:
+   *   Each scenario contains an array containing the following sub arrays:
+   *   - An array containing the inputs with the following keys:
    *     - blast_program: The BLAST program to execute (ie: blastn, tblastn, tblastx, blastp, blastx).
    *     - target_blastdb: The tripal_blast_database id of the target database to search against.
    *     - target_file: The full path to the file containing the target database.
@@ -654,7 +654,12 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
   /**
    * Provides data for testCreateBlastJobBlastDB() method.
    *
-   * @return void
+   * @return array
+   *   Each scenario contains an array with the following:
+   *   - The value that's expected to be returned by the getDatabaseConfig().
+   *   - An array containg the job parameter that are used as input for
+   *     createBlastJob() method.
+   *   - A string containing the expected exception.
    */
   public static function provideDataForTestCreateBlastJobBlastDB() {
     return [
@@ -735,7 +740,7 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
    * Provides data for testCreateBlastJobWithDifferentFileTypes().
    *
    * @return array
-   *   An array containing the following arrays:
+   *   Each scenario is an array containing the following sub-arrays:
    *   - An array containing the inputs for different case scenarios.
    *   - An array containg the expected results.
    */
@@ -790,16 +795,19 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
    * Provides data for testGetBlastCommandSimple() method.
    *
    * @return array
+   *   Each scenario contains an array with the following:
+   *   - options array containg the options provided as an input to
+   *     getBlastCommand() method call.
    */
   public static function provideDataForTestGetBlastCommandSimple() {
     return [
       'without options' => [
-        'options' => [
+        [
           'evalue' => '1e-5',
         ],
       ],
       'with options' => [
-        'options' => [
+        [
           'gapopen' => '5_2',
           'evalue' => '1e-5',
         ],
@@ -959,6 +967,9 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
    * Provides data for testJobsFormatQueryHeaders() method.
    *
    * @return array
+   *   Each scenario is an array containing the following:
+   *   - A string containing the file name to be used as input.
+   *   - A string containing the expected result string.
    */
   public static function provideDataForTestJobsFormatQueryHeaders() {
     return [
