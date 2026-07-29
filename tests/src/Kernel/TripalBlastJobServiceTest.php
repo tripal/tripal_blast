@@ -266,6 +266,8 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
    * @param string $expected_error
    *   A string containing the expected error.
    * @return void
+   *
+   * @dataProvider provideDataForTestJobsBlastRevealSecretInvalid
    */
   #[DataProvider('provideDataForTestJobsBlastRevealSecretInvalid')]
   public function testJobsBlastRevealSecretInvalid(mixed $secret, string $expected_error): void {
