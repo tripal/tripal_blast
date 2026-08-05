@@ -142,6 +142,34 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
   }
 
   /**
+   * Prepares the output files for a blast job.
+   *
+   * @return array
+   */
+  public function prepareOutputFile(): array {
+    // Prepare temp directory storage.
+    $temp_dir = sys_get_temp_dir() . '/tripal_blast_runjob_' . uniqid();
+    mkdir($temp_dir, 0755, TRUE);
+    $output_filestub = $temp_dir . '/tripal_blast_test_job';
+
+    // Construct output files.
+    $output_file = [];
+
+    $file_types = [
+      'archive' => 'asn',
+      'xml' => 'xml',
+      'tsv' => 'tsv',
+      'html' => 'html',
+      'gff' => 'gff',
+    ];
+    foreach ($file_types as $type => $extension) {
+      $output_file[$type] = $output_filestub . '.' . $extension;
+    }
+
+    return $output_file;
+  }
+
+  /**
    * Get the list of scenarios to test.
    *
    * @return array
@@ -818,8 +846,7 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
     $query_file = $fixture_dir . '/Chlamydomonas_gene.fasta';
     $database_prefix = $fixture_dir . '/Chlamydomonas_reinhardtii_v5.6';
 
-    $temp_dir = sys_get_temp_dir() . '/tripal_blast_runjob_' . uniqid();
-    mkdir($temp_dir, 0755, TRUE);
+    $output_file = $this->prepareOutputFile();
 
     $config = \Drupal::configFactory()->getEditable('tripal_blast.settings');
     $config->set('tripal_blast_config_general.path', '/usr/local/bin/')
@@ -828,14 +855,6 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
 
     $blast_path = \Drupal::config('tripal_blast.settings')
       ->get('tripal_blast_config_general.path');
-
-    $output_filestub = $temp_dir . '/tripal_blast_test_job';
-
-    $output_file['archive'] = $output_filestub . '.asn';
-    $output_file['xml'] = $output_filestub . '.xml';
-    $output_file['tsv'] = $output_filestub . '.tsv';
-    $output_file['html'] = $output_filestub . '.html';
-    $output_file['gff'] = $output_filestub . '.gff';
 
     [$blast_cmd, $blast_formatter_command] = $this->blast_job_service->getBlastCommand('blastn', $query_file, $database_prefix, $output_file, $options);
 
@@ -868,14 +887,7 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
     $blast_path = \Drupal::config('tripal_blast.settings')
       ->get('tripal_blast_config_general.path');
 
-    $output_filestub = $temp_dir . '/tripal_blast_test_job';
-
-    $output_file['archive'] = $output_filestub . '.asn';
-    $output_file['xml'] = $output_filestub . '.xml';
-    $output_file['tsv'] = $output_filestub . '.tsv';
-    $output_file['html'] = $output_filestub . '.html';
-    $output_file['gff'] = $output_filestub . '.gff';
-
+    $output_file = $this->prepareOutputFile();
     $options = ['evalue' => '1e-5'];
 
     $exception_message = 'NONE';
@@ -894,26 +906,16 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
 
   /**
    * Tests the executable errors  thrown by getBlastCommand() for the formatter.
-   *
    */
   public function testExecutableFormatterError() {
     $query_file = $this->fixture_dir . '/Chlamydomonas_gene.fasta';
     $database_prefix = $this->fixture_dir . '/Chlamydomonas_reinhardtii_v5.6';
 
-    $temp_dir = sys_get_temp_dir() . '/tripal_blast_runjob_' . uniqid();
-    mkdir($temp_dir, 0755, TRUE);
-
     $config = \Drupal::configFactory()->getEditable('tripal_blast.settings');
     $config->set('tripal_blast_config_general.path', '/usr/local/')
       ->set('tripal_blast_config_general.threads', 1)
       ->save();
-    $output_filestub = $temp_dir . '/tripal_blast_test_job';
-
-    $output_file['archive'] = $output_filestub . '.asn';
-    $output_file['xml'] = $output_filestub . '.xml';
-    $output_file['tsv'] = $output_filestub . '.tsv';
-    $output_file['html'] = $output_filestub . '.html';
-    $output_file['gff'] = $output_filestub . '.gff';
+    $output_file = $this->prepareOutputFile();
 
     $options = ['evalue' => '1e-5'];
 
