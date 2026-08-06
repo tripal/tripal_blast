@@ -474,7 +474,7 @@ class TripalBlastJobService {
       ->fields([
         'job_id' => $job_parameters['job_id'],
         'blast_program' => $job_parameters['blast_program'],
-        'target_blastdb' => $job_parameters['target_blastdb'],
+        'target_blastdb' => $job_parameters['target_blastdb'] ?? NULL,
         'target_file' => $job_parameters['target_file'],
         'query_file' => $job_parameters['query_file'],
         'result_filestub' => $job_parameters['result_filestub'],
