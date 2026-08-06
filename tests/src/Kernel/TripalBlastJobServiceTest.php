@@ -88,6 +88,7 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
   protected TripalBlastJobService $blast_job_service;
 
   /**
+   * The directory containing test fixtures.
    *
    * @var string
    */
@@ -145,6 +146,12 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
    * Prepares the output files for a blast job.
    *
    * @return array
+   *   An associative array of output file paths with the following keys:
+   *   - archive
+   *   - xml
+   *   - tsv
+   *   - html
+   *   - gff
    */
   public function prepareOutputFile(): array {
     // Prepare temp directory storage.
