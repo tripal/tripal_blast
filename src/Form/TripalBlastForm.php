@@ -10,6 +10,7 @@ use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\InvokeCommand;
+use Drupal\Core\Link;
 use Drupal\Core\Url;
 use Drupal\node\Entity\Node;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -186,10 +187,6 @@ class TripalBlastForm extends FormBase {
           '#ajax' => [
             'callback' => '::ajaxShowExampleSequenceCallback',
             'wrapper'  => 'tripal-blast-wrapper-ajax-fasta-textarea',
-            'method'   => 'replace',
-            'effect'   => 'fade',
-            'progress' => 'throbber',
-            'message'  => ''
           ],
           '#prefix' => '<div id="tripal-blast-wrapper-checkbox-example-sequence">',
           '#suffix' => '</div>',
@@ -589,6 +586,8 @@ class TripalBlastForm extends FormBase {
 
     // FASTA FIELD:
     $fld_name_fasta = 'FASTA';
+    $fld_value = '';
+    $fld_note = '';
 
     // Checkbox - TRUE or FALSE.
     if ($fld_value_show_example) {
@@ -596,19 +595,21 @@ class TripalBlastForm extends FormBase {
       $fld_value = $sequence_example;
 
       // Add a note to user, default example may be replaced through the admin interface.
-      $l = \Drupal::l('administartive interface', Url::fromRoute('tripal_blast.configuration'));
-      $fld_note = '<div class="tripal-blast-tip">'
-        . $this->t('You can set the example sequence through the @note.', ['@note' => $l])
-        . '</div>';
-    }
-    else {
-      $fld_value = '';
-      $fld_note  = '';
+      $link = Link::fromTextAndUrl(
+        $this->t('administrative interface'),
+        Url::fromRoute('tripal_blast.configuration')
+      )->toString();
+      $current_user = \Drupal::currentUser();
+      if ($current_user->hasRole('administrator') || $current_user->hasRole('administer tripal')) {
+        $fld_note = '<div class="tripal-blast-tip">'
+          . $this->t('You can set the example sequence through the @note.', ['@note' => $link])
+          . '</div>';
+      }
     }
 
     // Update field value and suffix (add a note/tip).
     $form['B']['query'][$fld_name_fasta]['#value']  = $fld_value;
-    $form['B']['query'][$fld_name_fasta]['#suffix'] = $fld_note;
+    $form['B']['query'][$fld_name_fasta]['#description'] = $fld_note;
 
     return $form['B']['query']['FASTA'];
   }
