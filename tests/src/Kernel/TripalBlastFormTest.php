@@ -778,7 +778,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
 
     $this->blast_form->ajaxShowExampleSequenceCallback($form, $form_state);
     $this->assertSame('>example\nACGT', $form['B']['query']['FASTA']['#value'], 'Expected the FASTA field to be updated with the example sequence but it was not.');
-    $this->assertStringContainsString('tripal-blast-tip', $form['B']['query']['FASTA']['#description'], 'Expected the FASTA field to have a tip description but it does not.');
+    $this->assertStringContainsString('Enter query sequence(s) in the text area', $form['B']['query']['FASTA']['#description'], 'Expected the FASTA field to have a description but it does not.');
 
     $response = $this->blast_form->ajaxFieldUpdateCallback($form, $form_state);
     $this->assertInstanceOf(AjaxResponse::class, $response);
