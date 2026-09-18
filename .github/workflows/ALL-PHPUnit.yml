@@ -55,7 +55,7 @@ jobs:
         uses: actions/checkout@v6
       # Here we pull the development tripaldocker image for this combo in our matrix
       - name: Run Automated testing
-        uses: tripal/test-tripal-action@v1.8
+        uses: tripal/test-tripal-action@issue14-update-qltycloud-version
         with:
           directory-name: $PKG_NAME
           modules: $MODULES
