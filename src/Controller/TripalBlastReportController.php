@@ -10,28 +10,54 @@ use Drupal\tripal\Services\TripalJob;
  * Defines TripalBlastReportController class.
  */
 class TripalBlastReportController extends ControllerBase {
-  public function report($job_id) {
-    $report = NULL;
 
+  /**
+   * @var int $max_start_delay
+   *
+   * How long to wait in seconds for the job runner to start a job.
+   */
+  protected int $max_start_delay = 120;
+
+  /**
+   * Checks on job status and generates appropriate twig values.
+   *
+   * @param string $job_id
+   *   Alphanumeric unique job identifier.
+   */
+  public function report(string $job_id) {
+    $report = NULL;
     // BLASTs are run as a Tripal job. As such we need to determine whether the current
     // BLAST is in the queue, running or complete in order to determine what to show the user
     // decode the job_id
     $job_service = \Drupal::service('tripal_blast.job_service');
-    $job_id = $job_service->jobsBlastRevealSecret($job_id);
+    $blastjob_id = $job_service->jobsBlastRevealSecret($job_id);
 
     $tripaljob = new TripalJob;
-    $tripaljob->load($job_id);
+    $tripaljob->load($blastjob_id);
     $job = $tripaljob->getJob();
 
     if ($job->start_time == NULL AND $job->end_time == NULL) {
-      $this->messenger()->addMessage($this->t('Your BLAST job is in the queue and will be processed shortly. Please remain on this page to see your results.'));
-      // 1) Job is in the Queue.
-      $theme = 'theme-tripal-blast-report-pending';
-      $job_param = [
-        'job_id' => '',
-        'status' => 'Pending',
-        'status_code' => 0
-      ];
+      $start_delay = time() - $job->submit_date;
+      if ($start_delay > $this->max_start_delay) {
+        $this->messenger()->addMessage($this->t('Your BLAST job could not be started. The job running service may be down. Please contact the site administrator.'));
+        // Cancel the job so stalled jobs don't pile up.
+        $tripaljob->cancel();
+        $job_param = [
+          'job_id' => '',
+          'status' => 'Error',
+          'status_code' => 666
+        ];
+      }
+      else {
+        $this->messenger()->addMessage($this->t('Your BLAST job is in the queue and will be processed shortly. Please remain on this page to see your results.'));
+        // 1) Job is in the Queue.
+        $theme = 'theme-tripal-blast-report-pending';
+        $job_param = [
+          'job_id' => '',
+          'status' => 'Pending',
+          'status_code' => 0
+        ];
+      }
     }
     elseif (strtolower($job->status) == 'cancelled') {
       $this->messenger()->addWarning($this->t('Your BLAST job has been cancelled by an administrator.'));
@@ -57,12 +83,12 @@ class TripalBlastReportController extends ControllerBase {
       // 3) Job is Complete
       $theme = 'theme-tripal-blast-show-report';
       $job_param = [
-        'job_id' => $job_id,
+        'job_id' => $blastjob_id,
         'status' => '',
         'status_code' => ''
       ];
 
-      $report = $this->prepareReport($job_id);
+      $report = $this->prepareReport($blastjob_id);
     }
     else {
       // 4) Job is in Progress
@@ -85,20 +111,29 @@ class TripalBlastReportController extends ControllerBase {
   }
 
   /**
+   * Cancels a queued blast job.
+   *
+   * @param int $blastjob_id
+   *   Value of job_id in the public.blastjob table.
+   */
+  protected function cancelJob(int $blastjob_id) {
+  }
+
+  /**
    * Prepare report page.
    *
-   * @param $job_id
-   *   Job id the report is based on.
+   * @param int $blastjob_id
+   *   Value of job_id in the public.blastjob table.
    *
    * @return string
    *   Report page markup.
    */
-  public function prepareReport($job_id) {
+  public function prepareReport(int $blastjob_id) {
     $logger = \Drupal::logger('tripal_blast');
 
     // Get job profile.
     $job_service = \Drupal::service('tripal_blast.job_service');
-    $blast_job = $job_service->jobsGetJobByJobId($job_id, ['skip_file_check' => TRUE]);
+    $blast_job = $job_service->jobsGetJobByJobId($blastjob_id, ['skip_file_check' => TRUE]);
 
     // Add to markup.
     $output_files = array_map(fn($item) => $item['absolute_path'], $blast_job->files->result);
@@ -113,7 +148,7 @@ class TripalBlastReportController extends ControllerBase {
       )[0];
     } catch (\Exception $e) {
       $this->messenger()->addError($this->t('Unable to generate the BLAST command for execution. Please contact the site administrator.'));
-      $logger->error("Unable to generate the BLAST command for execution for job ID @job_id. The error was: @error", ['@job_id' => $job_id, '@error' => $e->getMessage()]);
+      $logger->error("Unable to generate the BLAST command for execution for job ID @blastjob_id. The error was: @error", ['@blastjob_id' => $blastjob_id, '@error' => $e->getMessage()]);
     }
 
     // Determine the URL of the blast form
@@ -179,7 +214,6 @@ class TripalBlastReportController extends ControllerBase {
 
     $blast_job->submission_date = \Drupal::service('date.formatter')
       ->format($blast_job->date_submitted, 'medium');
-
 
     // Handle no hits. This following array will hold the names of all query
     // sequences which didn't have any hits.
