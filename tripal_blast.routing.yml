@@ -35,6 +35,14 @@ tripal_blast.blast_report:
   requirements:
     _permission: 'access content'
 
+# Configuration dashboard.
+tripal_blast.dashboard:
+  path: 'admin/tripal/extension/tripal_blast'
+  defaults:
+    _title: 'Tripal BLAST'
+    _controller: '\Drupal\system\Controller\SystemController::systemAdminMenuBlockPage'
+  requirements:
+    _permission: 'administer tripal'
 
 # Routes below are for configuration and help.
 # Uses tabs @see tripal_blast.link.task.yml.
@@ -48,7 +56,7 @@ tripal_blast.configuration:
     _permission: 'administer tripal'
 
 tripal_blast.help:
-  path: '/admin/tripal/extension/tripal_blast/configuration/help'
+  path: '/admin/tripal/extension/tripal_blast/help'
   defaults:
     _title: 'Tripal Blast: Help'
     _controller: '\Drupal\tripal_blast\Controller\TripalBlastHelpController::help'
@@ -59,7 +67,7 @@ tripal_blast.help:
 # Route set below defines routes for the management of
 # configuration entity (list, add, edit and delete).
 entity.tripal_blast.blast_database:
-  path: '/admin/tripal/extension/tripal_blast'
+  path: '/admin/tripal/extension/tripal_blast/databases'
   defaults:
     _entity_list: 'tripalblastdatabase'
     _title: 'Tripal BLAST UI'
@@ -67,7 +75,7 @@ entity.tripal_blast.blast_database:
     _permission: 'administer tripal,_access_admin_menu_block_page'
 
 entity.tripal_blast.blast_database.add:
-  path: '/admin/tripal/extension/tripal_blast/add'
+  path: '/admin/tripal/extension/tripal_blast/databases/add'
   defaults:
     _entity_form: 'tripalblastdatabase.add'
     _title: 'Tripal BLAST Add Query Database'
@@ -75,7 +83,7 @@ entity.tripal_blast.blast_database.add:
     _permission: 'administer tripal'
 
 entity.tripalblastdatabase.edit_form:
-  path: '/admin/tripal/extension/tripal_blast/edit/{tripalblastdatabase}'
+  path: '/admin/tripal/extension/tripal_blast/databases/edit/{tripalblastdatabase}'
   defaults:
     _entity_form: 'tripalblastdatabase.edit'
     _title: 'Tripal BLAST Edit Query Database'
@@ -83,10 +91,9 @@ entity.tripalblastdatabase.edit_form:
     _permission: 'administer tripal'
 
 entity.tripalblastdatabase.delete_form:
-  path: '/admin/tripal/extension/tripal_blast/delete/{tripalblastdatabase}'
+  path: '/admin/tripal/extension/tripal_blast/databases/delete/{tripalblastdatabase}'
   defaults:
     _entity_form: 'tripalblastdatabase.delete'
     _title: 'Tripal BLAST Delete Query Database'
   requirements:
     _permission: 'administer tripal'
-
