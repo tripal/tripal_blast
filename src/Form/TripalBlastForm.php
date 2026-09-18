@@ -583,7 +583,7 @@ class TripalBlastForm extends FormBase {
     // FASTA FIELD:
     $fld_name_fasta = 'FASTA';
     $fld_value = '';
-    $fld_note = '';
+    $fld_note = $this->t('Enter query sequence(s) in the text area.');
 
     // Checkbox - TRUE or FALSE.
     if ($fld_value_show_example) {

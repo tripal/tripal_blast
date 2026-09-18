@@ -11,6 +11,7 @@ use Drupal\tripal\Services\TripalJob;
  */
 class TripalBlastReportController extends ControllerBase {
   public function report($job_id) {
+dpm("CP2 report($job_id)");//;;;
     $report = NULL;
 
     // BLASTs are run as a Tripal job. As such we need to determine whether the current
@@ -94,6 +95,7 @@ class TripalBlastReportController extends ControllerBase {
    *   Report page markup.
    */
   public function prepareReport($job_id) {
+dpm("CP1 prepareReport($job_id)");//;;;
     $logger = \Drupal::logger('tripal_blast');
 
     // Get job profile.
