@@ -42,10 +42,11 @@ class TripalBlastReportController extends ControllerBase {
         $this->messenger()->addMessage($this->t('Your BLAST job could not be started. The job running service may be down. Please contact the site administrator.'));
         // Cancel the job so stalled jobs don't pile up.
         $tripaljob->cancel();
+        $theme = 'theme-tripal-blast-report-pending';
         $job_param = [
           'job_id' => '',
           'status' => 'Error',
-          'status_code' => 666
+          'status_code' => 2,
         ];
       }
       else {
@@ -55,7 +56,8 @@ class TripalBlastReportController extends ControllerBase {
         $job_param = [
           'job_id' => '',
           'status' => 'Pending',
-          'status_code' => 0
+          'status_code' => 0,
+          'refresh_time' => 5000,
         ];
       }
     }
@@ -66,7 +68,7 @@ class TripalBlastReportController extends ControllerBase {
       $job_param = [
         'job_id' => '',
         'status' => 'Cancelled',
-        'status_code' => 999
+        'status_code' => 999,
       ];
     }
     elseif (strtolower($job->status) == 'error') {
@@ -76,7 +78,7 @@ class TripalBlastReportController extends ControllerBase {
       $job_param = [
         'job_id' => '',
         'status' => 'Error',
-        'status_code' => 666
+        'status_code' => 666,
       ];
     }
     elseif ($job->end_time !== NULL) {
@@ -85,18 +87,24 @@ class TripalBlastReportController extends ControllerBase {
       $job_param = [
         'job_id' => $blastjob_id,
         'status' => '',
-        'status_code' => ''
+        'status_code' => '',
       ];
 
       $report = $this->prepareReport($blastjob_id);
     }
     else {
       // 4) Job is in Progress
+      $run_time = time() - $job->submit_date;
+      // Automatically refresh the page less frequently for long run times.
+      // Add approximately 5000 milliseconds for each minute of run time.
+      $refresh_time_ms = (int) ($run_time * 83.3 + 5000);
       $theme = 'theme-tripal-blast-report-pending';
       $job_param = [
         'job_id' => '',
         'status' => 'Running',
-        'status_code' => 1
+        'status_code' => 1,
+        'refresh_time' => $refresh_time_ms,
+        'run_time' => gmdate($run_time),
       ];
     }
 
