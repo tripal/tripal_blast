@@ -115,15 +115,6 @@ class TripalBlastReportController extends ControllerBase {
   }
 
   /**
-   * Cancels a queued blast job.
-   *
-   * @param int $blastjob_id
-   *   Value of job_id in the public.blastjob table.
-   */
-  protected function cancelJob(int $blastjob_id) {
-  }
-
-  /**
    * Prepare report page.
    *
    * @param int $blastjob_id
