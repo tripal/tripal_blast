@@ -1,8 +1,11 @@
 {#
 /**
- * Display the results of a BLAST job execution
+ * Display the results of a BLAST job execution.
  */
 #}
+
+{# attach our css and js library #}
+{{ attach_library('tripal_blast/tripal-blast-report') }}
 
 <div class="blast-report">
   <div class="blast-job-info">
@@ -47,7 +50,60 @@
         and click the <em>target name </em> to get more information about the target hit.
       </p>
 
-      {# CONSTRUCT TABLE #}
+      <table id="blast_report">
+        <thead>
+          <tr>
+            <th class="arrow-col">&nbsp;</th>
+            <th class="number">#</th>
+            <th class="query">Query Name (Click for alignment &amp; visualization)</th>
+            <th class="hit">Target Name</th>
+            <th class="evalue">E-Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in report.tablerows %}
+            <tr class="result-summary" id="result-summary-{{ loop.index }}">
+              <td class="arrow-col"><div class="arrow"></div></td>
+              <td class="number">{{ row.number }}</td>
+              <td class="query">{{ row.query|raw }}</td>
+              <td class="hit">{{ row.hit }}</td>
+              <td class="evalue">{{ row.evalue }}</td>
+            </tr>
+            <tr class="alignment-row" id="alignment-row-{{ loop.index }}" style="display: hidden;">
+              <td colspan="5">
+                <div class="alignment-row-section hit-visualization" title="Your query sequence is shown at the bottom and the target sequence it aligned to is shown at the top. The shape connecting them indicates how much of the target and query are represented by the hit.">
+                  <div class="title">Hit Visualization</div>
+                  <img src="data:image/png;base64,{{ row.hit_visualization }}"/>
+                  <p>The image above shows the relationship between query and target for this particular BLAST hit.</p>
+                </div>
+                <div class="alignment-row-section alignment">
+                  <div class="title">Alignment</div>
+                    {% for hsp in row.HSPs %}
+                      <div class="hsp-title">HSP {{ hsp.Hsp_num }}</div>
+                      <div class="alignment-metrics">
+                        <span class="identity">
+                          Identity=&nbsp;{{ hsp.Hsp_identity }}/{{ hsp['Hsp_align-len'] }} ({{ hsp['Hsp_align-pct'] }}%)
+                       </span>,&nbsp;
+                       <span class="positive">
+                         Positive=&nbsp;{{ hsp.Hsp_positive }}/{{ hsp['Hsp_align-len'] }} ({{ hsp['Hsp_positive-pct'] }}%)
+                       </span>,&nbsp;
+                       <span class="coord-summary">
+                         Query Matches {{ hsp['Hsp_query-from'] }} to {{ hsp['Hsp_query-to'] }},&nbsp;
+                         Hit Matches {{ hsp['Hsp_hit-from'] }} to {{ hsp['Hsp_hit-to'] }}
+                       </span>
+                     </div>
+                     <div class="alignment-row">
+                       {{ hsp.Hsp_alignment|raw }}
+                     </div>
+
+                    {% endfor %}
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
 
     {% elseif report.num_results == 0 %}
       <div class="messages warning">

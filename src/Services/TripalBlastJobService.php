@@ -45,7 +45,7 @@ class TripalBlastJobService {
   protected TripalLogger $logger;
 
   /**
-   * Retrieve the number or recent jobs.
+   * Retrieve the number of recent jobs.
    */
   public function jobsCountRecentJobs() {
     return (isset($_SESSION['blast_jobs'])) ? sizeof($_SESSION['blast_jobs']) : 0;
