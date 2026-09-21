@@ -9,7 +9,7 @@
   padding: 0;
 }
 
-#tripal-blast-wrapper-ajax-fasta-textarea {
+#tripal-blast-wrapper-ajax-fasta-textarea textarea {
   font-family: monospace, monospace;
   font-size: 11px;
 }
