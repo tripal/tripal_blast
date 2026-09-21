@@ -624,7 +624,6 @@ class TripalBlastReportController extends ControllerBase {
     imagepng($img, NULL, 0, PNG_NO_FILTER);
     // Get what we've just outputted and base64 encode it.
     $b64_img = base64_encode(ob_get_contents());
-    imagedestroy($img);
     ob_end_clean();
 
     return $b64_img;
