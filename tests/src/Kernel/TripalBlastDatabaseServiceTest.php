@@ -30,18 +30,18 @@ class TripalBlastDatabaseServiceTest extends TripalTestKernelBase {
       'name' => 'Chlamydomonas reinhardtii Nucleotide DB',
       'path' => '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_reinhardtii_v5.6.nin',
       'dbtype' => 'n',
-      'dbxref_id_regexp' => '^>.*$',
-      'dbxref_db_id' => 1,
-      'dbxref_linkout_type' => 'none',
+      'db_regexp' => '^>.*$',
+      'db_id' => 1,
+      'db_linkout_type' => 'none',
     ],
     [
       'id' => 67890,
       'name' => 'Chlamydomonas reinhardtii Protein DB',
       'path' => '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_reinhardtii_v5.6_protein.nin',
       'dbtype' => 'p',
-      'dbxref_id_regexp' => '^>.*$',
-      'dbxref_db_id' => 2,
-      'dbxref_linkout_type' => 'none',
+      'db_regexp' => '^>.*$',
+      'db_id' => 2,
+      'db_linkout_type' => 'none',
     ]
   ];
 

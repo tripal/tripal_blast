@@ -15,6 +15,8 @@ class TripalBlastHooks {
 
   /**
    * Implements hook_theme().
+   *
+   * Used by Tripal BLAST UI page.
    */
   #[Hook('theme')]
   public function theme(array $existing, $type, $theme, $path) {
@@ -75,6 +77,14 @@ class TripalBlastHooks {
         'template' => 'template-tripal-blast-show-report',
       ],
     ];
+  }
+
+  /**
+   * Implements hook_blast_linkout_info().
+   */
+  #[Hook('blast_linkout_info')]
+  public function blastLinkoutInfo() {
+    return \Drupal::service('tripal_blast.linkout_service')->getLinkoutTypes();
   }
 
 }

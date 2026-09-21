@@ -23,9 +23,9 @@ class TripalBlastDatabaseListBuilder extends ConfigEntityListBuilder {
     $header['name'] = $this->t('Name');
     $header['path'] = $this->t('Path');
     $header['type'] = $this->t('Type');
-    $header['dbxref_id_regexp'] = $this->t('REGEXP Key');
-    $header['dbxref_db_id'] = $this->t('DBXref Id');
-    $header['dbxref_linkout_type'] = $this->t('Linkout Type');
+    $header['db_regexp'] = $this->t('REGEXP Key');
+    $header['db_id'] = $this->t('External Database');
+    $header['db_linkout_type'] = $this->t('Linkout Type');
 
     return $header + parent::buildHeader();
   }
@@ -41,9 +41,9 @@ class TripalBlastDatabaseListBuilder extends ConfigEntityListBuilder {
     $dbtype = $entity->getDbType() == 'n' ? 'Nucleotide (n)' : 'Protein (p)';
     $row['type'] = $dbtype;
 
-    $row['dbxref_id_regexp'] = $entity->getDbXrefRegExp();
-    $row['dbxref_db_id'] = $entity->getDbXref();
-    $row['dbxref_linkout_type'] = $entity->getDbXrefLinkout();
+    $row['db_regexp'] = $entity->getDbRegExp();
+    $row['db_id'] = $entity->getDbId();
+    $row['db_linkout_type'] = $entity->getDbLinkout();
 
     return $row + parent::buildRow($entity);
   }

@@ -266,8 +266,20 @@ class TripalBlastJobService {
       $job->blastdb->db_name = $config['name'];
       $job->blastdb->db_path = $config['path'];
       $job->blastdb->linkout = new \stdClass();
-      $job->blastdb->linkout->none = $config['dbxref_linkout_type'];
       $job->blastdb->db_dbtype = $config['dbtype'];
+      // Linkout is stored as a service name, colon, and linkout type,
+      // e.g. "tripal_blast.linkout_service:link".
+      $linkout = $config['db_linkout_type'];
+      if ($linkout) {
+        [$linkout_service, $linkout_type] = explode(':', $linkout, 2);
+        $job->blastdb->linkout->none = FALSE;
+        $job->blastdb->linkout->service = $linkout_service;
+        $job->blastdb->linkout->type = $linkout_type;
+        $job->blastdb->linkout->regex = $config['db_regexp'];
+      }
+      else {
+        $job->blastdb->linkout->none = TRUE;
+      }
     }
     else {
       // Otherwise the user uploaded their own database so provide what information we can.

@@ -18,3 +18,5 @@ services:
     class: Drupal\tripal_blast\Services\TripalBlastProgramBlastp
   tripal_blast.hook_service:
     class: 'Drupal\tripal_blast\Hook\TripalBlastHooks'
+  tripal_blast.linkout_service:
+    class: 'Drupal\tripal_blast\Services\TripalBlastLinkoutService'

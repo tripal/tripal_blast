@@ -203,24 +203,6 @@ class TripalBlastReportController extends ControllerBase {
 
     $blast_job->num_results_formatted = number_format(floatval($blast_job->num_results));
 
-    $blast_job->linkout = FALSE;
-    if ($blast_job->blastdb->linkout->none === FALSE) {
-      $blast_job->linkout_type = $blast_job->blastdb->linkout->type;
-      $blast_job->linkout_regex = $blast_job->blastdb->linkout->regex;
-
-      // Note that URL prefix is not required if linkout type is 'custom'.
-      if (isset($blast_job->blastdb->linkout->db_id->urlprefix) && !empty($blast_job->blastdb->linkout->db_id->urlprefix)) {
-        $blast_job->linkout_urlprefix = $blast_job->blastdb->linkout->db_id->urlprefix;
-      }
-
-      // Check that we can determine the linkout URL.
-      // (i.e.: that the function specified to do so, exists).
-      if (function_exists($blast_job->blastdb->linkout->url_function)) {
-        $blast_job->url_function = $blast_job->blastdb->linkout->url_function;
-        $blast_job->linkout = TRUE;
-      }
-    }
-
     $blast_job->submission_date = \Drupal::service('date.formatter')
       ->format($blast_job->date_submitted, 'medium');
 
@@ -370,29 +352,32 @@ class TripalBlastReportController extends ControllerBase {
               // for the tripal blast database used as a search target.
               // We can only generate a link-out if it's actually supported
               // for this database.
-              if ($blast_job->linkout) {
+              $linkout_obj = $blast_job->linkout;
+              if ($blast_job->blastdb->linkout->service) {
 
                 // First extract the linkout text using the regex provided
                 // through the Tripal blast database node.
-                if (preg_match($blast_job->linkout_regex, $hit_name, $blast_job->linkout_match)) {
+                if (preg_match($blast_job->blastdb->linkout->regex, $hit_name, $linkout_match)) {
                   $hit->{'linkout_id'} = $linkout_match[1];
                   $hit->{'hit_name'} = $hit_name;
 
-                  // Allow custom functions to determine the URL to support
-                  // more complicated link-outs rather than just using the
-                  // tripal database prefix.
-                  $hit_name = call_user_func(
-                    $blast_job->url_function,
-                    $blast_job->linkout_urlprefix,
-                    $hit,
-                    [
-                      'query_name' => $query_name,
-                      'score' => $score,
-                      'e-value' => $evalue,
-                      'HSPs' => $hsps,
-                      'Target' => $blast_job->blastdb->db_name,
-                    ]
-                  );
+                  // Call the specified linkout service to generate the linkout.
+                  $service = \Drupal::service($blast_job->blastdb->linkout->service);
+                  if ($service) {
+                    $hit_name = $service->createLinkOut(
+                      $blast_job->blastdb->linkout->type,
+                      $blast_job->blastdb->linkout->urlprefix ?? 'https://bogus.com/',  // @todo not implemented yet!
+                      $hit,
+                      [
+                        'query_name' => $query_name,
+                        'score' => $score,
+                        'e-value' => $evalue,
+                        'HSPs' => $hsps,
+                        'Target' => $blast_job->blastdb->db_name,
+                      ],
+                      []
+                    );
+                  }
                 }
               }
 

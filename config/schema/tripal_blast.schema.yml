@@ -17,12 +17,12 @@ tripal_blast.database.*:
     dbtype:
       type: 'string'
       label: 'Database Type'
-    dbxref_id_regexp:
+    db_regexp:
       type: 'string'
-      label: 'DB Xref Id Regexp'
-    dbxref_db_id:
-      type: 'integer'
-      label: 'DB Xref Id'
-    dbxref_linkout_type:
+      label: 'DB Regexp'
+    db_id:
       type: 'string'
-      label: 'DB Xref Type'
+      label: 'DB Id'
+    db_linkout_type:
+      type: 'string'
+      label: 'DB Link Type'

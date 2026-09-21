@@ -100,15 +100,19 @@ class TripalBlastDatabaseService {
         ->getStorage(static::CONFIG_ENTITY_NAME)
         ->load($db_id);
 
-      return [
-        'id'  => $config->getId(),
-        'name' => $config->getName(),
-        'path'  => $config->getPath(),
-        'dbtype' => $config->getDbType(),
-        'dbxref_id_regexp' => $config->getDbXrefRegExp(),
-        'dbxref_db_id' => $config->getDbXref(),
-        'dbxref_linkout_type' => $config->getDbXrefLinkout(),
-      ];
+      // When databases are edited, the entity $db_id will change,
+      // and $config will be NULL for the old one, so skip those.
+      if ($config) {
+        return [
+          'id'  => $config->getId(),
+          'name' => $config->getName(),
+          'path'  => $config->getPath(),
+          'dbtype' => $config->getDbType(),
+          'db_regexp' => $config->getDbRegExp(),
+          'db_id' => $config->getDbId(),
+          'db_linkout_type' => $config->getDbLinkout(),
+        ];
+      }
     }
   }
 
