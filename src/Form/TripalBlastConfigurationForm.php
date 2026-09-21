@@ -64,7 +64,7 @@ class TripalBlastConfigurationForm extends ConfigFormBase {
       '#title' => $this->t('Enter the number of CPU threads to use in blast search.'),
       '#description' => $this->t('You can increase the number to reduce the search time.
           Before you increase, please check your hardware configurations.
-          A value of one(1) can result in a slower search for some programs eg. tblastn.'),
+          A value of one(1) can result in a slower search for some programs e.g. tblastn.'),
       '#default_value' => $config->get('tripal_blast_config_general.threads'),
     ];
 
@@ -72,7 +72,7 @@ class TripalBlastConfigurationForm extends ConfigFormBase {
       '#type' => 'textfield',
       '#title' => $this->t('Default e-value (Expected Threshold)'),
       '#description' => $this->t('Expected number of chance matches in a random model.
-          This number should be give in a decimal format.'),
+          This number should be given in a decimal format.'),
       '#default_value' => $config->get('tripal_blast_config_general.eval'),
     ];
 
