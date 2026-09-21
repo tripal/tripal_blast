@@ -9,6 +9,11 @@
   padding: 0;
 }
 
+#tripal-blast-wrapper-ajax-fasta-textarea {
+  font-family: monospace, monospace;
+  font-size: 11px;
+}
+
 .tripal-blast-tip {
   font-style: italic;
 }
