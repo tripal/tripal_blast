@@ -363,7 +363,8 @@ class TripalBlastReportController extends ControllerBase {
               // for the tripal blast database used as a search target.
               // We can only generate a link-out if it's actually supported
               // for this database.
-              if ($linkout) {
+              // @todo $linkout is not defined!
+              if ($linkout ?? FALSE) {
 
                 // First extract the linkout text using the regex provided
                 // through the Tripal blast database node.
