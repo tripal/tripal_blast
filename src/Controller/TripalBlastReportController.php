@@ -34,7 +34,7 @@ class TripalBlastReportController extends ControllerBase {
     $job_service = \Drupal::service('tripal_blast.job_service');
     $blastjob_id = $job_service->jobsBlastRevealSecret($job_id);
 
-    $tripaljob = new(TripalJob);
+    $tripaljob = new TripalJob();
     $tripaljob->load($blastjob_id);
     $job = $tripaljob->getJob();
 
@@ -331,12 +331,12 @@ class TripalBlastReportController extends ControllerBase {
                 // formatted in a very specific manner. Here we build
                 // up the strings to be submitted. For example:
                 // hits=4263001_4262263_1_742;4260037_4259524_895_1411;&scores=722;473;.
-                $hit_hsps .= implode('_',
+                $hit_hsps .= implode('_', [
                   $hsp_array['Hsp_hit-from'],
                   $hsp_array['Hsp_hit-to'],
                   $hsp_array['Hsp_query-from'],
                   $hsp_array['Hsp_query-to'],
-                ) . ';';
+                ]) . ';';
                 $hsp_bit_score .= $hsp_xml->{'Hsp_bit-score'} . ';';
 
                 // Wrap the alignment, and remove the unwrapped version from
