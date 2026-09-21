@@ -130,7 +130,12 @@ class TripalBlastReportController extends ControllerBase {
 
     // Get job profile.
     $job_service = \Drupal::service('tripal_blast.job_service');
+    /* @var stdClass */
     $blast_job = $job_service->jobsGetJobByJobId($blastjob_id, ['skip_file_check' => TRUE]);
+
+    // Get report settings.
+    $blast_job->wrap_length = \Drupal::config('tripal_blast.settings')
+      ->get('tripal_blast_config_report.wrap_length');
 
     // Add to markup.
     $output_files = array_map(fn($item) => $item['absolute_path'], $blast_job->files->result);
@@ -152,10 +157,10 @@ class TripalBlastReportController extends ControllerBase {
 
     // Determine the URL of the blast form.
     $blast_programs = [
-      'blastn'  => ['nucleotide', 'nucleotide'],
-      'blastx'  => ['nucleotide', 'protein'],
+      'blastn' => ['nucleotide', 'nucleotide'],
+      'blastx' => ['nucleotide', 'protein'],
       'tblastn' => ['protein', 'nucleotide'],
-      'blastp'  => ['protein', 'protein'],
+      'blastp' => ['protein', 'protein'],
     ];
     $route_ui = 'tripal_blast.blast_program';
 
@@ -179,6 +184,8 @@ class TripalBlastReportController extends ControllerBase {
 
     $full_path_xml = $blast_job->files->result['xml']['absolute_path'];
     if (is_readable($full_path_xml)) {
+      // This gets the hit count without loading the xml, which could
+      // cause memory issues if a massive number of hits exist.
       $blast_job->num_results = shell_exec('grep -c "<Hit>" ' . escapeshellarg($full_path_xml));
 
       $max_results = \Drupal::config('tripal_blast.settings')
@@ -186,7 +193,7 @@ class TripalBlastReportController extends ControllerBase {
 
       if ($blast_job->num_results <= $max_results) {
         $blast_job->xml = simplexml_load_file($full_path_xml);
-        // Markup for the blast results graphical table.
+        // Blast hit row information for the blast results table and images.
         $blast_job->tablerows = $this->generateBlastTableRows($blast_job);
       }
       else {
@@ -198,7 +205,7 @@ class TripalBlastReportController extends ControllerBase {
 
     $blast_job->linkout = FALSE;
     if ($blast_job->blastdb->linkout->none === FALSE) {
-      $blast_job->linkout_type  = $blast_job->blastdb->linkout->type;
+      $blast_job->linkout_type = $blast_job->blastdb->linkout->type;
       $blast_job->linkout_regex = $blast_job->blastdb->linkout->regex;
 
       // Note that URL prefix is not required if linkout type is 'custom'.
@@ -207,7 +214,7 @@ class TripalBlastReportController extends ControllerBase {
       }
 
       // Check that we can determine the linkout URL.
-      // (ie: that the function specified to do so, exists).
+      // (i.e.: that the function specified to do so, exists).
       if (function_exists($blast_job->blastdb->linkout->url_function)) {
         $blast_job->url_function = $blast_job->blastdb->linkout->url_function;
         $blast_job->linkout = TRUE;
@@ -341,7 +348,7 @@ class TripalBlastReportController extends ControllerBase {
 
                 // Wrap the alignment, and remove the unwrapped version from
                 // HSP so that we don't pass it to the twig template.
-                $hsp_array['Hsp_alignment'] = $this->wrapAlignment($hsp_array);
+                $hsp_array['Hsp_alignment'] = $this->wrapAlignment($hsp_array, $blast_job->wrap_length);
                 unset($hsp_array['Hsp_qseq']);
                 unset($hsp_array['Hsp_midline']);
                 unset($hsp_array['Hsp_hseq']);
@@ -363,12 +370,11 @@ class TripalBlastReportController extends ControllerBase {
               // for the tripal blast database used as a search target.
               // We can only generate a link-out if it's actually supported
               // for this database.
-              // @todo $linkout is not defined!
-              if ($linkout ?? FALSE) {
+              if ($blast_job->linkout) {
 
                 // First extract the linkout text using the regex provided
                 // through the Tripal blast database node.
-                if (preg_match($linkout_regex, $hit_name, $linkout_match)) {
+                if (preg_match($blast_job->linkout_regex, $hit_name, $blast_job->linkout_match)) {
                   $hit->{'linkout_id'} = $linkout_match[1];
                   $hit->{'hit_name'} = $hit_name;
 
@@ -376,8 +382,8 @@ class TripalBlastReportController extends ControllerBase {
                   // more complicated link-outs rather than just using the
                   // tripal database prefix.
                   $hit_name = call_user_func(
-                    $url_function,
-                    $linkout_urlprefix,
+                    $blast_job->url_function,
+                    $blast_job->linkout_urlprefix,
                     $hit,
                     [
                       'query_name' => $query_name,
@@ -466,7 +472,7 @@ class TripalBlastReportController extends ControllerBase {
 
     // Image measurements.
     $height = 200 + (count($b_hits) * 16);
-    $width  = 520;
+    $width = 520;
 
     $img = imagecreatetruecolor($width, $height);
 
@@ -656,21 +662,21 @@ class TripalBlastReportController extends ControllerBase {
     $coord = [];
     foreach (array_keys($query) as $k) {
       // Determine the current coordinates.
-      $coord['qstart'] = $hsp['Hsp_query-from'] + ($k * 60);
+      $coord['qstart'] = $hsp['Hsp_query-from'] + ($k * $wrap);
       if ($hsp['Hsp_hit-from'] < $hsp['Hsp_hit-to']) {
-        $coord['hstart'] = $hsp['Hsp_hit-from'] + ($k * 60);
+        $coord['hstart'] = $hsp['Hsp_hit-from'] + ($k * $wrap);
       }
       else {
-        $coord['hstart'] = $hsp['Hsp_hit-from'] - ($k * 60);
+        $coord['hstart'] = $hsp['Hsp_hit-from'] - ($k * $wrap);
       }
-      $coord['qstop'] = $hsp['Hsp_query-from'] + (($k + 1) * 60) - 1;
+      $coord['qstop'] = $hsp['Hsp_query-from'] + (($k + 1) * $wrap) - 1;
       $coord['qstop'] = ($coord['qstop'] > $hsp['Hsp_query-to']) ? $hsp['Hsp_query-to'] : $coord['qstop'];
       if ($hsp['Hsp_hit-from'] < $hsp['Hsp_hit-to']) {
-        $coord['hstop'] = $hsp['Hsp_hit-from'] + (($k + 1) * 60) - 1;
+        $coord['hstop'] = $hsp['Hsp_hit-from'] + (($k + 1) * $wrap) - 1;
         $coord['hstop'] = ($coord['hstop'] > $hsp['Hsp_hit-to']) ? $hsp['Hsp_hit-to'] : $coord['hstop'];
       }
       else {
-        $coord['hstop'] = $hsp['Hsp_hit-from'] - (($k + 1) * 60) + 1;
+        $coord['hstop'] = $hsp['Hsp_hit-from'] - (($k + 1) * $wrap) + 1;
         $coord['hstop'] = ($coord['hstop'] < $hsp['Hsp_hit-to']) ? $hsp['Hsp_hit-to'] : $coord['hstop'];
       }
 

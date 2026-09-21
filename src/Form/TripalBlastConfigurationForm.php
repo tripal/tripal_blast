@@ -174,6 +174,22 @@ class TripalBlastConfigurationForm extends ConfigFormBase {
       '#default_value' => $config->get('tripal_blast_config_notification.warning_text'),
     ];
 
+    //
+    // # REPORT CONFIGURATIONS:
+    $form['report'] = [
+      '#type' => 'details',
+      '#open' => FALSE,
+      '#title' => $this->t('Blast report settings'),
+      '#description' => $this->t('This permits configuration of how blast results are displayed.'),
+    ];
+    $form['report']['fld_value_blast_report_wrap_length'] = [
+      '#type' => 'number',
+      '#title' => $this->t('Line length for blast hit alignments'),
+      '#min' => 10,
+      '#max' => 200,
+      '#default_value' => $config->get('tripal_blast_config_report.wrap_length') ?? 60,
+    ];
+
     return parent::buildForm($form, $form_state);
   }
 
@@ -219,6 +235,9 @@ class TripalBlastConfigurationForm extends ConfigFormBase {
     // NOTIFICATION CONFIGURATIONS:
     $fld_value_blast_warning_text = $form_state->getValue('fld_text_blast_warning_text');
 
+    // REPORT CONFIGURATIONS:
+    $fld_value_blast_report_wrap_length = $form_state->getValue('fld_value_blast_report_wrap_length');
+
     // Set defined variables.
     $this->configFactory->getEditable(static::SETTINGS)
       ->set('tripal_blast_config_general.path', $fld_value_blast_path)
@@ -231,6 +250,7 @@ class TripalBlastConfigurationForm extends ConfigFormBase {
       ->set('tripal_blast_config_sequence.protein', $fld_value_blast_protein_example)
       ->set('tripal_blast_config_jobs.max_result', $fld_value_blast_max_results)
       ->set('tripal_blast_config_notification.warning_text', $fld_value_blast_warning_text)
+      ->set('tripal_blast_config_report.wrap_length', $fld_value_blast_report_wrap_length)
       ->save();
 
     return parent::submitForm($form, $form_state);
