@@ -692,7 +692,7 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
           'dbtype' => 'p',
           'db_regexp' => '^>.*$',
           'db_id' => 2,
-          'db_linkout_type' => 'none',
+          'db_linkout_type' => 'tripal_blast.linkout_service:none',
         ],
         [
           'blast_program' => 'blastn',
@@ -770,7 +770,7 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
           'dbtype' => 'n',
           'db_regexp' => '^>.*$',
           'db_id' => 1,
-          'db_linkout_type' => 'none',
+          'db_linkout_type' => 'tripal_blast.linkout_service:none',
         ],
         [
           'blast_program' => 'blastn',

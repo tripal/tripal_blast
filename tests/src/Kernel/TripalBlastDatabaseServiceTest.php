@@ -32,7 +32,7 @@ class TripalBlastDatabaseServiceTest extends TripalTestKernelBase {
       'dbtype' => 'n',
       'db_regexp' => '^>.*$',
       'db_id' => 1,
-      'db_linkout_type' => 'none',
+      'db_linkout_type' => 'tripal_blast.linkout_service:none',
     ],
     [
       'id' => 67890,
@@ -41,7 +41,7 @@ class TripalBlastDatabaseServiceTest extends TripalTestKernelBase {
       'dbtype' => 'p',
       'db_regexp' => '^>.*$',
       'db_id' => 2,
-      'db_linkout_type' => 'none',
+      'db_linkout_type' => 'tripal_blast.linkout_service:none',
     ]
   ];
 

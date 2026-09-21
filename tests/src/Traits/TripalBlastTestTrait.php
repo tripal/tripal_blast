@@ -34,7 +34,7 @@ trait TripalBlastTestTrait {
     $values['dbtype'] ??= 'n';
     $values['db_regexp'] ??= '^>.*$';
     $values['db_id'] ??= 1;
-    $values['db_linkout_type'] ??= 'none';
+    $values['db_linkout_type'] ??= 'tripal_blast.linkout_service:none';
 
     // Now create it.
     $database = TripalBlastDatabase::create($values);
