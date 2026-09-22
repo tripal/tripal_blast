@@ -1,20 +1,17 @@
 <?php
-/**
- * @file
- * This is the controller for Tripal BLAST Configuration form.
- */
 
 namespace Drupal\tripal_blast\Form;
 
 use Drupal\Core\Entity\EntityForm;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Extension\ModuleHandler;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\tripal_chado\Database\ChadoConnection;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Form handler for the Example add and edit forms.
+ *
  * @see and credits to: https://www.drupal.org/node/1809494
  */
 class TripalBlastDatabaseForm extends EntityForm {
@@ -26,10 +23,17 @@ class TripalBlastDatabaseForm extends EntityForm {
    *   The entityTypeManager.
    * @param Drupal\tripal_chado\Database\ChadoConnection $chado_connection
    *   The chado connection used to query chado.
+   * @param Drupal\Core\Extension\ModuleHandler $moduleHandler
+   *   The drupal module handler service.
    */
-  public function __construct(EntityTypeManagerInterface $entityTypeManager, ChadoConnection $chado_connection) {
+  public function __construct(
+    EntityTypeManagerInterface $entityTypeManager,
+    ChadoConnection $chado_connection,
+    ModuleHandler $moduleHandler,
+  ) {
     $this->entityTypeManager = $entityTypeManager;
     $this->chado_connection = $chado_connection;
+    $this->moduleHandler = $moduleHandler;
   }
 
   /**
@@ -39,6 +43,7 @@ class TripalBlastDatabaseForm extends EntityForm {
     return new static(
       $container->get('entity_type.manager'),
       $container->get('tripal_chado.database'),
+      $container->get('module_handler'),
     );
   }
 
@@ -78,7 +83,7 @@ class TripalBlastDatabaseForm extends EntityForm {
     $form['fld_text_type'] = [
       '#type' => 'select',
       '#title' => $this->t('Database type'),
-      '#options' => ['n' => 'Nucleotide', 'p' => 'Protein'],
+      '#options' => ['n' => $this->t('Nucleotide'), 'p' => $this->t('Protein')],
       '#description' => $this->t('Type of the blast database (Nucleotide or Protein).'),
       '#default_value' => $blast_db->getDbType(),
     ];
@@ -96,7 +101,8 @@ class TripalBlastDatabaseForm extends EntityForm {
     $form['regular_expression']['fld_text_db_regexp'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Extract Regular Expression'),
-      '#description' => $this->t('The Regular Expression to use to extract the id from the FASTA header of the BLAST database hit.'),
+      '#description' => $this->t('The Regular Expression to use to extract the id from the FASTA header of the BLAST database hit. For example, to capture the first word, use @example',
+        ['@example' => '/^(\S+)/']),
       '#required' => FALSE,
       '#default_value' => $blast_db->getDbRegExp(),
     ];
@@ -107,7 +113,7 @@ class TripalBlastDatabaseForm extends EntityForm {
       '#type' => 'select',
       '#options' => $this->getDatabases(),
       '#title' => $this->t('BLAST database reference'),
-      '#description' => $this->t('The external Database reference for this BLAST database.'),
+      '#description' => $this->t('The external Database reference for this BLAST database. Only databases with a defined urlprefix are shown.'),
       '#required' => FALSE,
       '#default_value' => $blast_db->getDbId(),
     ];
@@ -173,11 +179,12 @@ class TripalBlastDatabaseForm extends EntityForm {
    *   The list of linkout types suitable to use as values for a form select.
    */
   protected function getLinkoutTypes(): array {
-    // Return hook implementations from all modules implementing it.
+    // Return hook implementations from all modules implementing one.
     $results = [];
-    \Drupal::moduleHandler()->invokeAllWith('blast_linkout_info',
+    $this->moduleHandler->invokeAllWith('blast_linkout_info',
       function (callable $hook, string $module) use (&$results) {
-        // Execute the hook callback and save its return value, grouped by module name
+        // Execute the hook callback and save its return value,
+        // grouped by module name.
         $results[$module] = $hook();
       }
     );
@@ -187,7 +194,6 @@ class TripalBlastDatabaseForm extends EntityForm {
     foreach ($results as $module => $hooks) {
       foreach ($hooks as $link_id => $hook) {
         $service_id = $hook['service'] . ':' . $link_id;
-        /* @var Drupal\Core\StringTranslation\TranslatableMarkup */
         $name = $hook['name'] . ' (' . $module . ')';
         $select_list[$service_id] = $name;
       }
@@ -204,6 +210,8 @@ class TripalBlastDatabaseForm extends EntityForm {
   protected function getDatabases(): array {
     $query = $this->chado_connection->select('1:db', 'db');
     $query->fields('db', ['db_id', 'name']);
+    $query->condition('[db].urlprefix', '', '!=');
+    $query->isNotNull('[db].urlprefix');
     $query->orderBy('db.name');
     $results = $query->execute();
     $select_arr = ['' => '- Select -'];
@@ -213,4 +221,5 @@ class TripalBlastDatabaseForm extends EntityForm {
     }
     return $select_arr;
   }
+
 }

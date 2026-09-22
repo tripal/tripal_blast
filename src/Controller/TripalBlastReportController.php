@@ -352,21 +352,22 @@ class TripalBlastReportController extends ControllerBase {
               // for the tripal blast database used as a search target.
               // We can only generate a link-out if it's actually supported
               // for this database.
-              $linkout_obj = $blast_job->linkout;
-              if ($blast_job->blastdb->linkout->service) {
+              $linkout_obj = $blast_job->blastdb->linkout;
+              if ($linkout_obj->service) {
 
                 // First extract the linkout text using the regex provided
                 // through the Tripal blast database node.
-                if (preg_match($blast_job->blastdb->linkout->regex, $hit_name, $linkout_match)) {
+                if (preg_match($linkout_obj->regex, $hit_name, $linkout_match)) {
                   $hit->{'linkout_id'} = $linkout_match[1];
                   $hit->{'hit_name'} = $hit_name;
 
                   // Call the specified linkout service to generate the linkout.
-                  $service = \Drupal::service($blast_job->blastdb->linkout->service);
+                  $service = \Drupal::service($linkout_obj->service);
                   if ($service) {
-                    $hit_name = $service->createLinkOut(
-                      $blast_job->blastdb->linkout->type,
-                      $blast_job->blastdb->linkout->urlprefix ?? 'https://bogus.com/',  // @todo not implemented yet!
+                    $hit_name = $service->createLinkout(
+                      $linkout_obj->type,
+                      $linkout_obj->urlprefix,
+                      $hit_name,
                       $hit,
                       [
                         'query_name' => $query_name,

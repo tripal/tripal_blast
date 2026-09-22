@@ -32,7 +32,7 @@ class TripalBlastJobService {
   /**
    * Constructs a new TripalBlastJobService object.
    *
-   * @param \Drupal\tripal\Services\TripalLogger|null $logger
+   * @param Drupal\tripal\Services\TripalLogger|null $logger
    *   The Tripal logger service.
    */
   public function __construct(ChadoConnection $chado_connection, ?TripalLogger $logger = NULL) {
@@ -43,14 +43,14 @@ class TripalBlastJobService {
   /**
    * A Database query interface for querying Chado using Tripal DBX.
    *
-   * @var \Drupal\tripal_chado\Database\ChadoConnection
+   * @var Drupal\tripal_chado\Database\ChadoConnection
    */
   protected ChadoConnection $chado_connection;
 
   /**
    * The Tripal logger service.
    *
-   * @var \Drupal\tripal\Services\TripalLogger
+   * @var Drupal\tripal\Services\TripalLogger
    */
   protected TripalLogger $logger;
 
@@ -269,35 +269,36 @@ class TripalBlastJobService {
     $job->date_completed = $tripal_job->end_time;
 
     // TARGET BLAST DATABASE.
+    $job->blastdb = new \stdClass();
     if ($blastjob->target_blastdb) {
       // If a provided blast database was used then load details.
       $config = \Drupal::service('tripal_blast.database_service')
         ->getDatabaseConfig($blastjob->target_blastdb);
 
-      $job->blastdb = new \stdClass();
-      $job->blastdb->db_name = $config['name'];
-      $job->blastdb->db_path = $config['path'];
-      $job->blastdb->linkout = new \stdClass();
-      $job->blastdb->db_dbtype = $config['dbtype'];
-      // Linkout is stored as a service name, colon, and linkout type,
-      // e.g. "tripal_blast.linkout_service:link".
-      $linkout = $config['db_linkout_type'];
-      if ($linkout) {
-        [$linkout_service, $linkout_type] = explode(':', $linkout, 2);
-        $job->blastdb->linkout->none = FALSE;
-        $job->blastdb->linkout->service = $linkout_service;
-        $job->blastdb->linkout->type = $linkout_type;
-        $job->blastdb->linkout->regex = $config['db_regexp'];
-        $job->blastdb->linkout->urlprefix = $this->getUrlprefix($config['db_id']);
-      }
-      else {
-        $job->blastdb->linkout->none = TRUE;
+      if ($config) {
+        $job->blastdb->db_name = $config['name'];
+        $job->blastdb->db_path = $config['path'];
+        $job->blastdb->db_dbtype = $config['dbtype'];
+        $job->blastdb->linkout = new \stdClass();
+        // Linkout is stored as a service name, colon, and linkout type,
+        // e.g. "tripal_blast.linkout_service:link".
+        $linkout_string = $config['db_linkout_type'] ?? NULL;
+        if ($linkout_string) {
+          [$linkout_service, $linkout_type] = explode(':', $linkout_string, 2);
+          $job->blastdb->linkout->none = FALSE;
+          $job->blastdb->linkout->service = $linkout_service;
+          $job->blastdb->linkout->type = $linkout_type;
+          $job->blastdb->linkout->regex = $config['db_regexp'];
+          $job->blastdb->linkout->urlprefix = $this->getUrlprefix($config['db_id']);
+        }
+        else {
+          $job->blastdb->linkout->none = TRUE;
+        }
       }
     }
     else {
       // Otherwise the user uploaded their own database so provide what
       // information we can.
-      $job->blastdb = new \stdClass();
       $job->blastdb->db_name = 'User Uploaded';
       $job->blastdb->db_path = $blastjob->target_file;
       $job->blastdb->linkout = new \stdClass();
