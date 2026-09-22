@@ -160,15 +160,14 @@ class TripalBlastJobService {
     $mapping = self::jobsBlastMapSecret(TRUE);
     $job_id = str_replace(array_keys($mapping), $mapping, $secret);
 
+    // Check that the job_id exists if it is an integer.
     if (is_numeric($job_id)) {
-      // Check that the job_id exists if it is an integer.
       $exists = self::jobsGetJobByJobId($job_id);
 
+      // The case for a job not existing is if it is from a user's session,
+      // but it is an old job that we have purged. Return FALSE for these.
       if ($exists) {
         return $job_id;
-      }
-      else {
-        $this->logger->error('Unable to decode the blast job_id from :id.', [':id' => $secret]);
       }
     }
     else {
