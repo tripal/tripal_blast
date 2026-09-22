@@ -5,6 +5,7 @@ namespace Drupal\tripal_blast\Services;
 use Drupal\Core\Render\Markup;
 use Drupal\tripal\Services\TripalJob;
 use Drupal\tripal\Services\TripalLogger;
+use Drupal\tripal_chado\Database\ChadoConnection;
 
 /**
  * Contains class definition of Tripal BLAST Jobs service.
@@ -34,9 +35,17 @@ class TripalBlastJobService {
    * @param \Drupal\tripal\Services\TripalLogger|null $logger
    *   The Tripal logger service.
    */
-  public function __construct(?TripalLogger $logger = NULL) {
+  public function __construct(ChadoConnection $chado_connection, ?TripalLogger $logger = NULL) {
+    $this->chado_connection = $chado_connection;
     $this->logger = $logger ?? \Drupal::service('tripal.logger');
   }
+
+  /**
+   * A Database query interface for querying Chado using Tripal DBX.
+   *
+   * @var \Drupal\tripal_chado\Database\ChadoConnection
+   */
+  protected ChadoConnection $chado_connection;
 
   /**
    * The Tripal logger service.
@@ -279,6 +288,7 @@ class TripalBlastJobService {
         $job->blastdb->linkout->service = $linkout_service;
         $job->blastdb->linkout->type = $linkout_type;
         $job->blastdb->linkout->regex = $config['db_regexp'];
+        $job->blastdb->linkout->urlprefix = $this->getUrlprefix($config['db_id']);
       }
       else {
         $job->blastdb->linkout->none = TRUE;
@@ -348,6 +358,33 @@ class TripalBlastJobService {
     }
 
     return $job;
+  }
+
+  /**
+   * Retrieve urlprefix from chado.db table.
+   *
+   * @param int|string $db
+   *   Numeric value for db_id, may be in parentheses, e.g. "NCBI (123)".
+   *
+   * @return string|bool
+   *   The urlprefix for the db, or FALSE if none.
+   */
+  protected function getUrlprefix(int|string $db): string|bool {
+    $db_id = NULL;
+    if (is_numeric($db)) {
+      $db_id = $db;
+    }
+    elseif (preg_match('/\((\d+)\)/', $db, $matches)) {
+      $db_id = $matches[1];
+    }
+    $urlprefix = FALSE;
+    if ($db_id) {
+      $query = $this->chado_connection->select('1:db', 'db');
+      $query->condition('db.db_id', $db_id, '=');
+      $query->addField('db', 'urlprefix', 'urlprefix');
+      $urlprefix = $query->execute()->fetchField();
+    }
+    return $urlprefix;
   }
 
   /**
@@ -632,16 +669,15 @@ class TripalBlastJobService {
    * @param string $output_filestub
    *   The filename (not including path) to give the results. Should not
    *   include file type suffix.
-   * @param array $options
-   *   An array of additional option where the key is the name of the option
-   *   used by BLAST (e.g.: 'num_alignments') and the value is relates to
-   *   this particular BLAST job (e.g.: 250)
+   * @param array|string $options
+   *   An array or serialized string of additional option where the key is
+   *   the name of the option used by BLAST (e.g.: 'num_alignments') and
+   *   the value is relates to this particular BLAST job (e.g.: 250).
    *
    * @return bool
    *   Returns FALSE if an error occured.
    */
-  public static function runJob(string $program, string $query, string $database, string $output_filestub, array $options): bool {
-    $logger = \Drupal::service('tripal.logger');
+  public static function runJob(string $program, string $query, string $database, string $output_filestub, array|string $options): bool {
 
     $output_file['archive'] = $output_filestub . '.asn';
     $output_file['xml'] = $output_filestub . '.xml';
@@ -659,7 +695,7 @@ class TripalBlastJobService {
       [$blast_cmd, $blast_formatter_command] = $job_service->getBlastCommand($program, $query, $database, $output_file, $options);
     }
     catch (\Exception $e) {
-      $logger->error("Unable to generate the BLAST command for execution. The error was: @error", ['@error' => $e->getMessage()]);
+      $this->logger->error("Unable to generate the BLAST command for execution. The error was: @error", ['@error' => $e->getMessage()]);
       return FALSE;
     }
 
@@ -680,7 +716,7 @@ class TripalBlastJobService {
     system($blast_cmd);
 
     if (!file_exists($output_file['archive'])) {
-      $logger->error("BLAST did not complete successfully as is implied by the lack of output file (%file). The command run was @command",
+      $this->logger->error("BLAST did not complete successfully as is implied by the lack of output file (%file). The command run was @command",
       ['%file' => $output_file['archive'], '@command' => $blast_cmd]);
 
       return FALSE;
@@ -694,7 +730,7 @@ class TripalBlastJobService {
     system($format_cmd);
 
     if (!file_exists($output_file['xml'])) {
-      $logger->error("Unable to convert BLAST ASN.1 archive to XML (%archive => %file).",
+      $this->logger->error("Unable to convert BLAST ASN.1 archive to XML (%archive => %file).",
       ['%archive' => $output_file['archive'], '%file' => $output_file['xml']]);
     }
 
@@ -704,7 +740,7 @@ class TripalBlastJobService {
     system($format_cmd);
 
     if (!file_exists($output_file['tsv'])) {
-      $logger->warning("Unable to convert BLAST ASN.1 archive to Tabular Output (%archive => %file).",
+      $this->logger->warning("Unable to convert BLAST ASN.1 archive to Tabular Output (%archive => %file).",
       ['%archive' => $output_file['archive'], '%file' => $output_file['tsv']]);
     }
 
@@ -713,7 +749,7 @@ class TripalBlastJobService {
     $job_service->jobsConvertTsvToGff3($output_file['tsv'], $output_file['gff']);
 
     if (!file_exists($output_file['gff'])) {
-      $logger->warning("Unable to convert BLAST Tabular Output to GFF Output (%archive => %file).",
+      $this->logger->warning("Unable to convert BLAST Tabular Output to GFF Output (%archive => %file).",
       ['%archive' => $output_file['archive'], '%file' => $output_file['gff']]);
     }
 
@@ -723,7 +759,7 @@ class TripalBlastJobService {
     system($format_cmd);
 
     if (!file_exists($output_file['html'])) {
-      $logger->warning("Unable to convert BLAST ASN.1 archive to HTML Output (%archive => %file).",
+      $this->logger->warning("Unable to convert BLAST ASN.1 archive to HTML Output (%archive => %file).",
       ['%archive' => $output_file['archive'], '%file' => $output_file['html']]);
     }
 
@@ -906,7 +942,7 @@ class TripalBlastJobService {
   /**
    * Prints the GFF parent feature and all of its children features.
    *
-   * @param resource $gff
+   * @param mixed $gff
    *   Output file handle.
    * @param array $blast_feature_array
    *   An array of the all the child features which is used to generate
@@ -915,7 +951,7 @@ class TripalBlastJobService {
    * @return void
    *   No return value, writes to $gff file handle.
    */
-  public function jobsPrintGffParentChildren(resource $gff, array $blast_feature_array): void {
+  public function jobsPrintGffParentChildren(mixed $gff, array $blast_feature_array): void {
     foreach ($blast_feature_array as $sq => $value) {
       [$s, $q] = preg_split('/,/', $sq);
       $evalue = $blast_feature_array["$s,$q"]['E'];
