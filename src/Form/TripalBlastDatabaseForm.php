@@ -17,23 +17,22 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class TripalBlastDatabaseForm extends EntityForm {
 
   /**
+   * A Database query interface for querying Chado using Tripal DBX.
+   *
+   * @var Drupal\tripal_chado\Database\ChadoConnection
+   */
+  protected ChadoConnection $chado_connection;
+
+  /**
    * Constructs an ExampleForm object.
    *
-   * @param Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
-   *   The entityTypeManager.
    * @param Drupal\tripal_chado\Database\ChadoConnection $chado_connection
    *   The chado connection used to query chado.
-   * @param Drupal\Core\Extension\ModuleHandler $moduleHandler
-   *   The drupal module handler service.
    */
   public function __construct(
-    EntityTypeManagerInterface $entityTypeManager,
     ChadoConnection $chado_connection,
-    ModuleHandler $moduleHandler,
   ) {
-    $this->entityTypeManager = $entityTypeManager;
     $this->chado_connection = $chado_connection;
-    $this->moduleHandler = $moduleHandler;
   }
 
   /**
@@ -41,9 +40,7 @@ class TripalBlastDatabaseForm extends EntityForm {
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('entity_type.manager'),
       $container->get('tripal_chado.database'),
-      $container->get('module_handler'),
     );
   }
 
@@ -142,7 +139,10 @@ class TripalBlastDatabaseForm extends EntityForm {
   public function save(array $form, FormStateInterface $form_state) {
     $blast_db = $this->entity;
 
-    $blast_db->set('id', hexdec(uniqid()));
+    // Only set the id on the initial save.
+    if (!$blast_db->id) {
+      $blast_db->set('id', hexdec(uniqid()));
+    }
     // Database Name.
     $dbname = $form_state->getValue('fld_text_name');
     $dbname = trim($dbname);
@@ -189,16 +189,25 @@ class TripalBlastDatabaseForm extends EntityForm {
       }
     );
 
-    // Create a select list.
-    $select_list = [];
+    // Create a select list. We want this module's types at the top.
+    // Other modules are sorted by module name, but within a module
+    // we keep the order that the module defined.
+    $our_list = [];
+    $other_lit = [];
     foreach ($results as $module => $hooks) {
       foreach ($hooks as $link_id => $hook) {
         $service_id = $hook['service'] . ':' . $link_id;
         $name = $hook['name'] . ' (' . $module . ')';
-        $select_list[$service_id] = $name;
+        if ($module === 'tripal_blast') {
+          $our_list[$service_id] = $name;
+        }
+        else {
+          $other_list[$service_id] = $name;
+        }
       }
     }
-    return $select_list;
+    ksort($other_list, SORT_FLAG_CASE);
+    return $our_list + $other_list;
   }
 
   /**

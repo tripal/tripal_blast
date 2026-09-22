@@ -241,7 +241,7 @@ class TripalBlastJobService {
    * @return bool|\stdClass
    *   Job record matching the job id, or FALSE if no corresponding job.
    */
-  public function jobsGetJobByJobId(string|int $job_id, array $options = []): ?\stdClass {
+  public function jobsGetJobByJobId(string|int $job_id, array $options = []): bool|\stdClass {
     // Set defaults.
     $options += [
       'skip_file_check' => FALSE,
