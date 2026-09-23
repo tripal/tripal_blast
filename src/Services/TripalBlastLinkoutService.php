@@ -200,7 +200,13 @@ class TripalBlastLinkoutService {
     // Fallback if link cannot be created is just the hit name.
     $link = $hit_name;
     if ($url_prefix && isset($hit->linkout_id)) {
-      $hit_url = $url_prefix . $hit->linkout_id;
+      // @todo We don't support the {db} token of the url prefix.
+      if (str_contains($url_prefix, '{accession}')) {
+        $hit_url = preg_replace('/\{accession\}/', $hit->linkout_id, $url_prefix);
+      }
+      else {
+        $hit_url = $url_prefix . $hit->linkout_id;
+      }
       try {
         $url = Url::fromUri($hit_url);
         $url->setOptions([
