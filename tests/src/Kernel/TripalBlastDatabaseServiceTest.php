@@ -5,6 +5,7 @@ namespace Drupal\Tests\tripal_blast\Kernel;
 use Drupal\Tests\tripal_chado\Kernel\ChadoTestKernelBase;
 use Drupal\tripal_blast\Entity\TripalBlastDatabase;
 use Drupal\tripal_blast\Services\TripalBlastDatabaseService;
+use Drupal\tripal_chado\Database\ChadoConnection;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 
