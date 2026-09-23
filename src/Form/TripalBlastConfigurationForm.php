@@ -43,6 +43,9 @@ class TripalBlastConfigurationForm extends ConfigFormBase {
     // Configuration/module variables.
     $config = $this->config(static::SETTINGS);
 
+    // Attach css for this form.
+    $form['#attached']['library'][] = 'tripal_blast/tripal-blast-configuration';
+
     //
     // # GENERAL CONFIGURATIONS:
     $form['general'] = [
@@ -129,6 +132,8 @@ class TripalBlastConfigurationForm extends ConfigFormBase {
       '#title' => $this->t('Nucleotide Example'),
       '#description' => $this->t('Enter a complete nucleotide FASTA record including the header.'),
       '#default_value' => $config->get('tripal_blast_config_sequence.nucleotide'),
+      '#prefix' => '<div class="tripal-blast-configuration-sequence">',
+      '#suffix' => '</div>',
     ];
 
     $form['example_sequence']['fld_text_blast_protein_example'] = [
@@ -136,6 +141,8 @@ class TripalBlastConfigurationForm extends ConfigFormBase {
       '#title' => $this->t('Protein Example'),
       '#description' => $this->t('Enter a complete protein FASTA record including the header.'),
       '#default_value' => $config->get('tripal_blast_config_sequence.protein'),
+      '#prefix' => '<div class="tripal-blast-configuration-sequence">',
+      '#suffix' => '</div>',
     ];
 
     //
