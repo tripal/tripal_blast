@@ -300,13 +300,15 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
    */
   public static function provideDataForTestJobsBlastRevealSecretInvalid() {
     return [
-      "Invalid numeric secret" => [
+      "Expired blast secret" => [
         'secret' => 323435,
-        'expected_error' => 'Unable to decode the blast job_id from 323435',
+        'expected_error' => FALSE,
+        'expected_return' => FALSE,
       ],
       "Invalid non-numeric secret" => [
-        'secret' => 'invalid-secret',
-        'expected_error' => 'Unable to decode the blast job_id from invalid-secret',
+        'secret' => '123-invalid-secret',
+        'expected_error' => 'Unable to decode the blast job_id from 123-invalid-secret',
+        'expected_return' => FALSE,
       ],
     ];
   }
@@ -322,14 +324,16 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
    * @dataProvider provideDataForTestJobsBlastRevealSecretInvalid
    */
   #[DataProvider('provideDataForTestJobsBlastRevealSecretInvalid')]
-  public function testJobsBlastRevealSecretInvalid(mixed $secret, string $expected_error): void {
+  public function testJobsBlastRevealSecretInvalid(mixed $secret, string $expected_error, mixed $expected_return): void {
     ob_start();
     $revealed = $this->blast_job_service->jobsBlastRevealSecret($secret);
     $printed_output = ob_get_contents();
     ob_end_clean();
 
-    $this->assertFalse($revealed, "The revealed job_id should be FALSE for an invalid secret.");
-    $this->assertStringContainsString($expected_error, $printed_output, 'The expected logger error did not occur when invalid secret is provided.');
+    $this->assertEquals($expected_return, $revealed, "The expected return value was not received for secret \"$secret\"");
+    if ($expected_error) {
+      $this->assertStringContainsString($expected_error, $printed_output, 'The expected logger error did not occur when invalid secret is provided.');
+    }
   }
 
   /**
