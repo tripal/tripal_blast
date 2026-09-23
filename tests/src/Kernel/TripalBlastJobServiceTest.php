@@ -302,7 +302,7 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
     return [
       "Expired blast secret" => [
         'secret' => 323435,
-        'expected_error' => FALSE,
+        'expected_error' => '',
         'expected_return' => FALSE,
       ],
       "Invalid non-numeric secret" => [
@@ -333,6 +333,9 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
     $this->assertEquals($expected_return, $revealed, "The expected return value was not received for secret \"$secret\"");
     if ($expected_error) {
       $this->assertStringContainsString($expected_error, $printed_output, 'The expected logger error did not occur when invalid secret is provided.');
+    }
+    else {
+      $this->assertEmpty($expected_error, $printed_output, "We did not expect a logger error for secret \"$secret\".");
     }
   }
 
@@ -442,7 +445,7 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
     $result = $this->blast_job_service::runJob('blastn', $query_file, $database_prefix, $output_stub, ['evalue' => '1e-5']);
     ob_end_clean();
 
-    $this->assertNull($result, 'runJob should complete successfully and return null.');
+    $this->assertTrue($result, 'runJob should complete successfully and return TRUE.');
     $this->assertFileExists($output_stub . '.asn', 'Blast Job is expected to return a .asn file.');
     $this->assertFileExists($output_stub . '.xml', 'Blast Job is expected to return a .xml file.');
     $this->assertFileExists($output_stub . '.tsv', 'Blast Job is expected to return a .tsv file.');
@@ -470,8 +473,7 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
     $mock_job_service->method('getBlastCommand')
       ->willReturn(['/bin/true', '/bin/true']);
     $mock_job_service->expects($this->once())
-      ->method('jobsConvertTSVtoGFF3')
-      ->willReturn(NULL);
+      ->method('jobsConvertTSVtoGFF3');
 
     $this->container->set('tripal_blast.job_service', $mock_job_service);
 

@@ -681,6 +681,7 @@ class TripalBlastJobService {
    *   Returns FALSE if an error occured.
    */
   public static function runJob(string $program, string $query, string $database, string $output_filestub, array|string $options): bool {
+    $logger = \Drupal::service('tripal.logger');
 
     $output_file['archive'] = $output_filestub . '.asn';
     $output_file['xml'] = $output_filestub . '.xml';
@@ -698,7 +699,7 @@ class TripalBlastJobService {
       [$blast_cmd, $blast_formatter_command] = $job_service->getBlastCommand($program, $query, $database, $output_file, $options);
     }
     catch (\Exception $e) {
-      $this->logger->error("Unable to generate the BLAST command for execution. The error was: @error", ['@error' => $e->getMessage()]);
+      $logger->error("Unable to generate the BLAST command for execution. The error was: @error", ['@error' => $e->getMessage()]);
       return FALSE;
     }
 
@@ -719,7 +720,7 @@ class TripalBlastJobService {
     system($blast_cmd);
 
     if (!file_exists($output_file['archive'])) {
-      $this->logger->error("BLAST did not complete successfully as is implied by the lack of output file (%file). The command run was @command",
+      $logger->error("BLAST did not complete successfully as is implied by the lack of output file (%file). The command run was @command",
       ['%file' => $output_file['archive'], '@command' => $blast_cmd]);
 
       return FALSE;
