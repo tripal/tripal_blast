@@ -7,10 +7,13 @@ tripal_blast.database.*:
   mapping:
     id:
       type: 'integer'
-      label: 'Database Entity ID'
+      label: 'Database Unique ID'
     name:
       type: 'string'
       label: 'Name'
+    entity_id:
+      type: 'integer'
+      label: 'Site Entity ID'
     path:
       type: 'string'
       label: 'Path'

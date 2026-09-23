@@ -215,6 +215,13 @@ class TripalBlastReportController extends ControllerBase {
     // "No Results" message.
     $blast_job->no_hits = TRUE;
 
+    // If we configured an entity_id for this blast database, then we can
+    // make the blast database name into a clickable link to that entity.
+    if ($blast_job->blastdb->entity_id) {
+      $link = Url::fromUri('base://bio_data/' . $blast_job->blastdb->entity_id);
+      $blast_job->blastdb->db_name = Link::fromTextAndUrl($blast_job->blastdb->db_name, $link);
+    }
+
     return $blast_job;
   }
 

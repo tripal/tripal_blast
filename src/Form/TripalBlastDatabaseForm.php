@@ -65,6 +65,17 @@ class TripalBlastDatabaseForm extends EntityForm {
     ];
 
     //
+    // # BLAST DATABASE ENTITY:
+    $form['fld_entity_id'] = [
+      '#type' => 'number',
+      '#min' => 1,
+      '#title' => $this->t('Site Entity ID'),
+      '#description' => $this->t('An optional numeric entity ID of a page on this site describing this database.'),
+      '#required' => FALSE,
+      '#default_value' => $blast_db->getEntityId(),
+    ];
+
+    //
     // # BLAST DATABASE PATH:
     $form['fld_text_path'] = [
       '#type' => 'textfield',
@@ -147,6 +158,9 @@ class TripalBlastDatabaseForm extends EntityForm {
     $dbname = $form_state->getValue('fld_text_name');
     $dbname = trim($dbname);
     $blast_db->set('name', $dbname);
+    // Entity ID.
+    $entity_id = $form_state->getValue('fld_entity_id');
+    $blast_db->set('entity_id', $entity_id);
     // Database Path.
     $dbpath = $form_state->getValue('fld_text_path');
     $dbpath = trim($dbpath);

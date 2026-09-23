@@ -26,6 +26,7 @@ use Drupal\tripal_blast\TripalBlastDatabaseInterface;
   entity_keys: [
     'id' => 'id',
     'label' => 'name',
+    'entity_id' => 'entity_id',
     'path' => 'path',
     'dbtype' => 'dbtype',
     'db_regexp' => 'db_regexp',
@@ -35,6 +36,7 @@ use Drupal\tripal_blast\TripalBlastDatabaseInterface;
   config_export: [
     'id',
     'name',
+    'entity_id',
     'path',
     'dbtype',
     'db_regexp',
@@ -65,6 +67,7 @@ use Drupal\tripal_blast\TripalBlastDatabaseInterface;
  *   entity_keys = {
  *     "id" = "id",
  *     "label" = "name",
+ *     "entity_id" = "entity_id",
  *     "path" = "path",
  *     "dbtype" = "dbtype",
  *     "db_regexp" = "db_regexp",
@@ -74,6 +77,7 @@ use Drupal\tripal_blast\TripalBlastDatabaseInterface;
  *   config_export = {
  *     "id",
  *     "name",
+ *     "entity_id",
  *     "path",
  *     "dbtype",
  *     "db_regexp",
@@ -141,6 +145,13 @@ class TripalBlastDatabase extends ConfigEntityBase implements TripalBlastDatabas
    */
   public function getName() {
     return $this->name;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getEntityId() {
+    return $this->entity_id;
   }
 
   /**

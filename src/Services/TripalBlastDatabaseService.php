@@ -88,24 +88,25 @@ class TripalBlastDatabaseService {
   /**
    * Get database asset (config entity fields).
    *
-   * @param $db_id (entity id)
-   *   String, id number of an entity,
+   * @param string $id
+   *   Sixteen-character numeric string, id of database configuration entity.
    *
-   * @param object
-   *   Config entity fields matching the id number given.
+   * @return array|null
+   *   Config entity fields matching the id number given,
+   *   or NULL if it does not exist.
    */
-  public function getDatabaseConfig($db_id) {
-    if ($db_id) {
+  public function getDatabaseConfig($id): ?array {
+    if ($id) {
       $config = \Drupal::entityTypeManager()
         ->getStorage(static::CONFIG_ENTITY_NAME)
-        ->load($db_id);
+        ->load($id);
 
-      // When databases are edited, the entity $db_id will change,
-      // and $config will be NULL for the old one, so skip those.
+      // If a database was removed, and has no config, return NULL.
       if ($config) {
         return [
           'id'  => $config->getId(),
           'name' => $config->getName(),
+          'entity_id' => $config->getEntityId(),
           'path'  => $config->getPath(),
           'dbtype' => $config->getDbType(),
           'db_regexp' => $config->getDbRegExp(),

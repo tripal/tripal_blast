@@ -17,6 +17,8 @@ interface TripalBlastDatabaseInterface extends ConfigEntityInterface {
 
   public function getName();
 
+  public function getEntityId();
+
   public function getPath();
 
   public function getDbType();
