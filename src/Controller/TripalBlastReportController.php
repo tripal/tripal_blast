@@ -360,7 +360,7 @@ class TripalBlastReportController extends ControllerBase {
               // We can only generate a link-out if it's actually supported
               // for this database.
               $linkout_obj = $blast_job->blastdb->linkout;
-              if ($linkout_obj->service) {
+              if ($linkout_obj->service ?? NULL) {
 
                 // First extract the linkout text using the regex provided
                 // through the Tripal blast database node.
