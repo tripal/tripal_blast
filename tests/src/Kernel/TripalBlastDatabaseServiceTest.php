@@ -17,7 +17,7 @@ use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
  */
 #[Group('tripal-blast')]
 #[RunTestsInSeparateProcesses]
-class TripalBlastDatabaseServiceTest extends TripalTestKernelBase {
+class TripalBlastDatabaseServiceTest extends ChadoTestKernelBase {
 
   /**
    * {@inheritdoc}
@@ -37,6 +37,7 @@ class TripalBlastDatabaseServiceTest extends TripalTestKernelBase {
     [
       'id' => 67890,
       'name' => 'Chlamydomonas reinhardtii Protein DB',
+      'entity_id' => NULL,
       'path' => '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_reinhardtii_v5.6_protein.nin',
       'dbtype' => 'p',
       'db_regexp' => '^>.*$',

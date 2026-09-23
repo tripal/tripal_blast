@@ -17,7 +17,7 @@ use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
  */
 #[Group('tripal-blast')]
 #[RunTestsInSeparateProcesses]
-class TripalBlastJobServiceTest extends TripalTestKernelBase {
+class TripalBlastJobServiceTest extends ChadoTestKernelBase {
 
   use TripalBlastTestTrait;
   use UserCreationTrait;
