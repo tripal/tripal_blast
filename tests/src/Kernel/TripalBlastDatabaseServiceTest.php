@@ -2,7 +2,7 @@
 
 namespace Drupal\Tests\tripal_blast\Kernel;
 
-use Drupal\Tests\tripal\Kernel\TripalTestKernelBase;
+use Drupal\Tests\tripal_chado\Kernel\ChadoTestKernelBase;
 use Drupal\tripal_blast\Entity\TripalBlastDatabase;
 use Drupal\tripal_blast\Services\TripalBlastDatabaseService;
 use PHPUnit\Framework\Attributes\Group;

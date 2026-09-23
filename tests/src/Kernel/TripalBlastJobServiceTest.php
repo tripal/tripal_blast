@@ -3,8 +3,8 @@
 namespace Drupal\Tests\tripal_blast\Kernel;
 
 use Drupal\file\Entity\File;
-use Drupal\Tests\tripal\Kernel\TripalTestKernelBase;
 use Drupal\Tests\tripal_blast\Traits\TripalBlastTestTrait;
+use Drupal\Tests\tripal_chado\Kernel\ChadoTestKernelBase;
 use Drupal\Tests\user\Traits\UserCreationTrait;
 use Drupal\tripal\Services\TripalLogger;
 use Drupal\tripal_blast\Services\TripalBlastJobService;
