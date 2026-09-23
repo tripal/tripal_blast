@@ -207,7 +207,7 @@ class TripalBlastDatabaseForm extends EntityForm {
     // Other modules are sorted by module name, but within a module
     // we keep the order that the module defined.
     $our_list = [];
-    $other_lit = [];
+    $other_list = [];
     foreach ($results as $module => $hooks) {
       foreach ($hooks as $link_id => $hook) {
         $service_id = $hook['service'] . ':' . $link_id;

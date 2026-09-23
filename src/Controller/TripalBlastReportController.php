@@ -130,7 +130,7 @@ class TripalBlastReportController extends ControllerBase {
 
     // Get job profile.
     $job_service = \Drupal::service('tripal_blast.job_service');
-    /* @var stdClass */
+    /** @var stdClass */
     $blast_job = $job_service->jobsGetJobByJobId($blastjob_id, ['skip_file_check' => TRUE]);
 
     // Get report settings.
