@@ -81,6 +81,13 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
   protected array $blast_databases = [];
 
   /**
+   * A Database query interface for querying Chado using Tripal DBX.
+   *
+   * @var \Drupal\tripal_chado\Database\ChadoConnection
+   */
+  protected ChadoConnection $chado_connection;
+
+  /**
    * The tripal blast job service.
    *
    * @var \Drupal\tripal_blast\Services\TripalBlastJobService
@@ -138,6 +145,10 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
     $this->container->set('tripal.logger', $mock_logger);
 
     $this->blast_job_service = $this->container->get('tripal_blast.job_service');
+
+    // Create a test chado instance as needed by our service.
+    $this->chado_connection = $this->createTestSchema(ChadoTestKernelBase::INIT_CHADO_EMPTY;
+    $this->container->set('tripal_chado.database', $this->chado_connection);
 
     $this->fixture_dir = $this->module_path . '/tests/fixtures/Chlamydomonas_reinhardtii_v5.6';
   }

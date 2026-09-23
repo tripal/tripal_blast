@@ -46,12 +46,23 @@ class TripalBlastDatabaseServiceTest extends TripalTestKernelBase {
   ];
 
   /**
+   * A Database query interface for querying Chado using Tripal DBX.
+   *
+   * @var \Drupal\tripal_chado\Database\ChadoConnection
+   */
+  protected ChadoConnection $chado_connection;
+
+  /**
    * {@inheritdoc}
    */
   protected function setUp(): void {
     parent::setUp();
     \Drupal::state()->set('is_a_test_environment', TRUE);
     $this->installConfig('system');
+
+    // Create a test chado instance as needed by our service.
+    $this->chado_connection = $this->createTestSchema(ChadoTestKernelBase::INIT_CHADO_EMPTY);
+    $this->container->set('tripal_chado.database', $this->chado_connection);
   }
 
   /**
