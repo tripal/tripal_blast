@@ -369,10 +369,10 @@ class TripalBlastJobService {
    * @param int|string $db
    *   Numeric value for db_id, may be in parentheses, e.g. "NCBI (123)".
    *
-   * @return string|bool
-   *   The urlprefix for the db, or FALSE if none.
+   * @return string|null
+   *   The urlprefix for the db, or NULL if none.
    */
-  protected function getUrlprefix(int|string $db): string|bool {
+  protected function getUrlprefix(int|string $db): ?string {
     $db_id = NULL;
     if (is_numeric($db)) {
       $db_id = $db;
@@ -380,7 +380,7 @@ class TripalBlastJobService {
     elseif (preg_match('/\((\d+)\)/', $db, $matches)) {
       $db_id = $matches[1];
     }
-    $urlprefix = FALSE;
+    $urlprefix = NULL;
     if ($db_id) {
       $query = $this->chado_connection->select('1:db', 'db');
       $query->condition('db.db_id', $db_id, '=');
