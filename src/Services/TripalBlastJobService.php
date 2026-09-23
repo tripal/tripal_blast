@@ -734,7 +734,7 @@ class TripalBlastJobService {
     system($format_cmd);
 
     if (!file_exists($output_file['xml'])) {
-      $this->logger->error("Unable to convert BLAST ASN.1 archive to XML (%archive => %file).",
+      $logger->error("Unable to convert BLAST ASN.1 archive to XML (%archive => %file).",
       ['%archive' => $output_file['archive'], '%file' => $output_file['xml']]);
     }
 
@@ -744,7 +744,7 @@ class TripalBlastJobService {
     system($format_cmd);
 
     if (!file_exists($output_file['tsv'])) {
-      $this->logger->warning("Unable to convert BLAST ASN.1 archive to Tabular Output (%archive => %file).",
+      $logger->warning("Unable to convert BLAST ASN.1 archive to Tabular Output (%archive => %file).",
       ['%archive' => $output_file['archive'], '%file' => $output_file['tsv']]);
     }
 
@@ -753,7 +753,7 @@ class TripalBlastJobService {
     $job_service->jobsConvertTsvToGff3($output_file['tsv'], $output_file['gff']);
 
     if (!file_exists($output_file['gff'])) {
-      $this->logger->warning("Unable to convert BLAST Tabular Output to GFF Output (%archive => %file).",
+      $logger->warning("Unable to convert BLAST Tabular Output to GFF Output (%archive => %file).",
       ['%archive' => $output_file['archive'], '%file' => $output_file['gff']]);
     }
 
@@ -763,7 +763,7 @@ class TripalBlastJobService {
     system($format_cmd);
 
     if (!file_exists($output_file['html'])) {
-      $this->logger->warning("Unable to convert BLAST ASN.1 archive to HTML Output (%archive => %file).",
+      $logger->warning("Unable to convert BLAST ASN.1 archive to HTML Output (%archive => %file).",
       ['%archive' => $output_file['archive'], '%file' => $output_file['html']]);
     }
 
