@@ -23,7 +23,7 @@ class TripalBlastDatabaseServiceTest extends ChadoTestKernelBase {
   /**
    * {@inheritdoc}
    */
-  protected static $modules = ['system', 'user', 'tripal', 'tripal_blast'];
+  protected static $modules = ['system', 'user', 'tripal', 'tripal_chado', 'tripal_blast'];
 
   protected static $testdb_details = [
     [

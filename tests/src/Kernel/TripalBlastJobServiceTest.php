@@ -33,7 +33,7 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
   /**
    * {@inheritdoc}
    */
-  protected static $modules = ['system', 'user', 'file', 'tripal', 'tripal_blast'];
+  protected static $modules = ['system', 'user', 'file', 'tripal', 'tripal_chado', 'tripal_blast'];
 
   /**
    * The YAML file indicating the scenarios to test.
