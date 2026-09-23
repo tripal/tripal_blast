@@ -289,7 +289,7 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
     $secret = $this->blast_job_service->jobsBlastMakeSecret($job_id);
     $this->assertNotSame((string) $job_id, $secret);
 
-    $revealed = $this->blast_job_service->jobsBlastRevealSecret($secret);
+    $revealed = (string) $this->blast_job_service->jobsBlastRevealSecret($secret);
     $this->assertSame((string) $job_id, $revealed);
   }
 
@@ -561,7 +561,7 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
    * @return array
    *   Each scenario contains an array containing the following sub arrays:
    *   - An array containing the inputs with the following keys:
-   *     - blast_program: The BLAST program to execute (ie: blastn, tblastn, tblastx, blastp, blastx).
+   *     - blast_program: The BLAST program to execute (i.e.: blastn, tblastn, tblastx, blastp, blastx).
    *     - target_blastdb: The tripal_blast_database id of the target database to search against.
    *     - target_file: The full path to the file containing the target database.
    *     - query_file: The full path to the file containing the query sequence.
@@ -926,7 +926,7 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
     }
 
     $this->assertTrue($exception_caught, "We expected an exception message when trying to get the blast command.");
-    $this->assertSame("Unable to find the BLAST executable (ie: /usr/bin/blastn). This can be changed in the admin settings; you supplied: /usr/bin/blastn", $exception_message, "We expected the excpetion to start with 'Unable to find the BLAST executable (ie: /usr/bin/blastn).', but it was $exception_message.");
+    $this->assertSame("Unable to find the BLAST executable (i.e.: /usr/bin/blastn). This can be changed in the admin settings; you supplied: /usr/bin/blastn", $exception_message, "We expected the excpetion to start with 'Unable to find the BLAST executable (i.e.: /usr/bin/blastn).', but it was $exception_message.");
   }
 
   /**
@@ -955,7 +955,7 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
     }
 
     $this->assertTrue($exception_caught, "We expected an exception message when trying to get the blast command.");
-    $this->assertSame("Unable to find the BLAST Formatter executable (ie: /usr/bin/blast_formatter). This can be changed in the admin settings; you supplied: /usr/local/blast_formatter", $exception_message, "We expected the excpetion to start with 'Unable to find the BLAST executable (ie: /usr/bin/blastn).', but it was $exception_message.");
+    $this->assertSame("Unable to find the BLAST Formatter executable (i.e.: /usr/bin/blast_formatter). This can be changed in the admin settings; you supplied: /usr/local/blast_formatter", $exception_message, "We expected the excpetion to start with 'Unable to find the BLAST executable (i.e.: /usr/bin/blastn).', but it was $exception_message.");
   }
 
   /**
