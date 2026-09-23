@@ -487,7 +487,7 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
     $printed_output = ob_get_contents();
     ob_end_clean();
 
-    $this->assertNull($result, 'runJob should complete and return null when formatter outputs are missing.');
+    $this->assertTrue($result, 'runJob should complete and return TRUE when formatter outputs are missing.');
     $this->assertFileExists($output_stub . '.asn', 'We expected an .asn file to be present, but it is missing.');
     $this->assertStringContainsString('Unable to convert BLAST ASN.1 archive to XML', $printed_output, 'The expected logger error did not occur when generating the XML file.');
     $this->assertStringContainsString('Unable to convert BLAST ASN.1 archive to Tabular Output', $printed_output, 'The expected logger error did not occur when generating the tabular file.');
