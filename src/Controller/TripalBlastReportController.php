@@ -180,7 +180,10 @@ class TripalBlastReportController extends ControllerBase {
     $blast_job->xml = NULL;
     $blast_job->num_results = FALSE;
     $blast_job->too_many_results = FALSE;
-    $blast_job->table_markup = 'undef';
+    $blast_job->linkout_supported = '';
+    if ($blast_job->blastdb->linkout->service ?? FALSE) {
+      $blast_job->linkout_supported = 'Click the <em>target name </em> to get more information about the target hit.';
+    }
 
     $full_path_xml = $blast_job->files->result['xml']['absolute_path'];
     if (is_readable($full_path_xml)) {
