@@ -513,7 +513,7 @@ class TripalBlastReportController extends ControllerBase {
 
     // Query labels.
     imagestring($img, 5, $q_xstart, $q_yend + 2, $name, $black);
-    imagestring($img, 3, $q_xstart, $q_ystart + 2, 'Query', $black);
+    imagestring($img, 3, 5, $q_ystart + 2, 'Query', $black);
 
     // Draw bar representing query.
     imagefilledrectangle($img, $q_xstart, $q_ystart, $q_xend, $q_yend, $gray);
