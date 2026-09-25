@@ -181,7 +181,7 @@ class TripalBlastReportController extends ControllerBase {
     $blast_job->num_results = FALSE;
     $blast_job->too_many_results = FALSE;
     $blast_job->linkout_supported = '';
-    if ($blast_job->blastdb->linkout->service ?? FALSE) {
+    if (!$blast_job->blastdb->linkout->none) {
       $blast_job->linkout_supported = 'Click the <em>target name </em> to get more information about the target hit.';
     }
 
@@ -363,32 +363,25 @@ class TripalBlastReportController extends ControllerBase {
               // We can only generate a link-out if it's actually supported
               // for this database.
               $linkout_obj = $blast_job->blastdb->linkout;
-              if ($linkout_obj->service ?? NULL) {
+              if (!$linkout_obj->none) {
 
                 // First extract the linkout text using the regex provided
                 // through the Tripal blast database node.
                 if (preg_match($linkout_obj->regex, $hit_name, $linkout_match)) {
-                  $hit->{'linkout_id'} = $linkout_match[1];
-                  $hit->{'hit_name'} = $hit_name;
+                  $hit->linkout_id = $linkout_match[1];
+                  $hit->hit_name = $hit_name;
+                  $hit->url_prefix = $linkout_obj->urlprefix;
+                  $hit->query_name = $query_name;
+                  $hit->score = $score;
+                  $hit->evalue = $evalue;
 
-                  // Call the specified linkout service to generate the linkout.
-                  $service = \Drupal::service($linkout_obj->service);
-                  if ($service) {
-                    $hit_name = $service->createLinkout(
-                      $linkout_obj->type,
-                      $linkout_obj->urlprefix,
-                      $hit_name,
-                      $hit,
-                      [
-                        'query_name' => $query_name,
-                        'score' => $score,
-                        'e-value' => $evalue,
-                        'HSPs' => $hsps,
-                        'Target' => $blast_job->blastdb->db_name,
-                      ],
-                      []
-                    );
+                  // Call the appropriate linkout plugin.
+                  $linkout_manager = \Drupal::service('plugin.manager.tripal_blast_linkout');
+                  $plugin = $linkout_manager->createInstance($linkout_obj->type);
+                  if (!$plugin) {
+                    throw new \Exception('TripalBlastReportController failed getting plugin ' . $linkout_obj->type);
                   }
+                  $hit_name = $plugin->createLink($hit);
                 }
               }
 

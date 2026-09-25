@@ -42,7 +42,7 @@ class TripalBlastHooks {
 
     $context_links = [
       // MISC/ADMIN.
-      'link_config' => '#',
+      'link_config' => '#CP2 <a href="x">x</a>',
       'link_jobs' => '#',
       'link_nodeadd' => '#',
       'link_dbadd' => '#',

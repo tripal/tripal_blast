@@ -19,7 +19,9 @@ services:
     class: Drupal\tripal_blast\Services\TripalBlastProgramBlastp
   tripal_blast.hook_service:
     class: 'Drupal\tripal_blast\Hook\TripalBlastHooks'
-  tripal_blast.linkout_service:
-    class: 'Drupal\tripal_blast\Services\TripalBlastLinkoutService'
+  plugin.manager.tripal_blast_linkout:
+    class: 'Drupal\tripal_blast\TripalBlastLinkoutManager'
     arguments:
-      - '@tripal.logger'
+      - '@container.namespaces'
+      - '@cache.discovery'
+      - '@module_handler'

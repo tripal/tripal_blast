@@ -3,9 +3,8 @@
 namespace Drupal\tripal_blast\Form;
 
 use Drupal\Core\Entity\EntityForm;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\Extension\ModuleHandler;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\tripal_blast\TripalBlastLinkoutManager;
 use Drupal\tripal_chado\Database\ChadoConnection;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -24,15 +23,26 @@ class TripalBlastDatabaseForm extends EntityForm {
   protected ChadoConnection $chado_connection;
 
   /**
+   * Manager for the linkout service for hit sequences.
+   *
+   * @var Drupal\tripal_blast\TripalBlastLinkoutManager
+   */
+  protected TripalBlastLinkoutManager $linkout_manager;
+
+  /**
    * Constructs an ExampleForm object.
    *
    * @param Drupal\tripal_chado\Database\ChadoConnection $chado_connection
    *   The chado connection used to query chado.
+   * @param Drupal\tripal_blast\TripalBlastLinkoutManager $linkout_manager
+   *   The manager used to generate linkout URLs for blast hits.
    */
   public function __construct(
     ChadoConnection $chado_connection,
+    TripalBlastLinkoutManager $linkout_manager,
   ) {
     $this->chado_connection = $chado_connection;
+    $this->linkout_manager = $linkout_manager;
   }
 
   /**
@@ -41,6 +51,7 @@ class TripalBlastDatabaseForm extends EntityForm {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('tripal_chado.database'),
+      $container->get('plugin.manager.tripal_blast_linkout'),
     );
   }
 
@@ -187,41 +198,29 @@ class TripalBlastDatabaseForm extends EntityForm {
   }
 
   /**
-   * Retrieves a list of available linkout types from all modules.
+   * Retrieves a list of available linkout types from all plugins.
    *
    * @return array
    *   The list of linkout types suitable to use as values for a form select.
    */
   protected function getLinkoutTypes(): array {
-    // Return hook implementations from all modules implementing one.
-    $results = [];
-    $this->moduleHandler->invokeAllWith('blast_linkout_info',
-      function (callable $hook, string $module) use (&$results) {
-        // Execute the hook callback and save its return value,
-        // grouped by module name.
-        $results[$module] = $hook();
-      }
-    );
-
-    // Create a select list. We want this module's types at the top.
-    // Other modules are sorted by module name, but within a module
-    // we keep the order that the module defined.
-    $our_list = [];
-    $other_list = [];
-    foreach ($results as $module => $hooks) {
-      foreach ($hooks as $link_id => $hook) {
-        $service_id = $hook['service'] . ':' . $link_id;
-        $name = $hook['name'] . ' (' . $module . ')';
-        if ($module === 'tripal_blast') {
-          $our_list[$service_id] = $name;
-        }
-        else {
-          $other_list[$service_id] = $name;
-        }
-      }
+    // Retrieve the list of available linkout types as a select list.
+    $linkout_list = ['' => '- Select -'];
+    $presort = [];
+    foreach ($this->linkout_manager->getDefinitions() as $definition) {
+      // Provider is the module providing the plugin.
+      $provider = $definition['provider'];
+      $id = $definition['id'];
+      $label = $definition['label'];
+      $description = $definition['description'];
+      $weight = $definition['weight'];
+      $presort[$weight][$id] = $label . ': ' . $description . ' (' . $provider . ')';
     }
-    ksort($other_list, SORT_FLAG_CASE);
-    return $our_list + $other_list;
+    ksort($presort, SORT_NUMERIC);
+    foreach ($presort as $item) {
+      $linkout_list += $item;
+    }
+    return $linkout_list;
   }
 
   /**

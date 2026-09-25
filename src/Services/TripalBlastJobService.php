@@ -32,6 +32,8 @@ class TripalBlastJobService {
   /**
    * Constructs a new TripalBlastJobService object.
    *
+   * @param Drupal\tripal_chado\Database\ChadoConnection $chado_connection
+   *   A Database query interface for querying Chado using Tripal DBX.
    * @param Drupal\tripal\Services\TripalLogger|null $logger
    *   The Tripal logger service.
    */
@@ -281,19 +283,15 @@ class TripalBlastJobService {
         $job->blastdb->db_path = $config['path'];
         $job->blastdb->db_dbtype = $config['dbtype'];
         $job->blastdb->linkout = new \stdClass();
-        // Linkout is stored as a service name, colon, and linkout type,
-        // e.g. "tripal_blast.linkout_service:link".
-        $linkout_string = $config['db_linkout_type'] ?? NULL;
-        if ($linkout_string) {
-          [$linkout_service, $linkout_type] = explode(':', $linkout_string, 2);
+        $linkout_type = $config['db_linkout_type'] ?: 'None';
+        if ($linkout_type == 'None') {
+          $job->blastdb->linkout->none = TRUE;
+        }
+        else {
           $job->blastdb->linkout->none = FALSE;
-          $job->blastdb->linkout->service = $linkout_service;
           $job->blastdb->linkout->type = $linkout_type;
           $job->blastdb->linkout->regex = $config['db_regexp'];
           $job->blastdb->linkout->urlprefix = $this->getUrlprefix($config['db_id']);
-        }
-        else {
-          $job->blastdb->linkout->none = TRUE;
         }
       }
     }

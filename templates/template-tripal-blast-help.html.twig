@@ -25,7 +25,7 @@
         Install NCBI BLAST+ on your server (Tested with 2.2.26+). There is a
         <a href="https://launchpad.net/ubuntu/+source/ncbi-blast+">package available
         for Ubuntu</a> to ease installation. Optionally you can set the path to your
-        BLAST executable: {{ context_links['link_config'] }} Page.
+        BLAST executable: {{ context_links['link_config']|raw }} Page.
       </li>
       <li>
         Optionally, create Tripal External Database References to allow you to link
