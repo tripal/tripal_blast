@@ -67,6 +67,7 @@ class TripalBlastLinkoutJbrowse extends PluginBase implements TripalBlastLinkout
     // calculate the smallest and largest coordinate.
     $coords = [];
     $count = 0;
+    $strands = [];
     foreach ($hit->Hit_hsps->Hsp as $hsp) {
       $count++;
 
