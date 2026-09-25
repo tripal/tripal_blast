@@ -69,6 +69,7 @@ class TripalBlastDatabaseForm extends EntityForm {
     // # BLAST DATABASE NAME:
     $form['fld_text_name'] = [
       '#type' => 'textfield',
+      '#maxlength' => 1000,
       '#title' => $this->t('Tripal BLAST database name'),
       '#description' => $this->t('The human-readable name of the BLAST database.'),
       '#required' => TRUE,
@@ -77,19 +78,20 @@ class TripalBlastDatabaseForm extends EntityForm {
 
     //
     // # BLAST DATABASE ENTITY:
-    $form['fld_entity_id'] = [
-      '#type' => 'number',
-      '#min' => 1,
-      '#title' => $this->t('Site Entity ID'),
-      '#description' => $this->t('An optional numeric entity ID of a page on this site describing this database.'),
+    $form['fld_text_db_url'] = [
+      '#type' => 'textfield',
+      '#maxlength' => 1000,
+      '#title' => $this->t('Database Description URL'),
+      '#description' => $this->t('An optional URL, internal or external, that points to a page describing this database. You can use "base://bio_data/123" format for entity pages on this site.'),
       '#required' => FALSE,
-      '#default_value' => $blast_db->getEntityId(),
+      '#default_value' => $blast_db->getDbUrl(),
     ];
 
     //
     // # BLAST DATABASE PATH:
     $form['fld_text_path'] = [
       '#type' => 'textfield',
+      '#maxlength' => 1000,
       '#title' => $this->t('Database source path'),
       '#description' => $this->t('The full path and filename prefix of the BLAST database.'),
       '#required' => TRUE,
@@ -119,6 +121,7 @@ class TripalBlastDatabaseForm extends EntityForm {
     // # REGULAR EXPRESSION:
     $form['regular_expression']['fld_text_db_regexp'] = [
       '#type' => 'textfield',
+      '#maxlength' => 1000,
       '#title' => $this->t('Extract Regular Expression'),
       '#description' => $this->t('The Regular Expression to use to extract the id from the FASTA header of the BLAST database hit. For example, to capture the first word, use @example',
         ['@example' => '/^(\S+)/']),
@@ -169,9 +172,10 @@ class TripalBlastDatabaseForm extends EntityForm {
     $dbname = $form_state->getValue('fld_text_name');
     $dbname = trim($dbname);
     $blast_db->set('name', $dbname);
-    // Entity ID.
-    $entity_id = $form_state->getValue('fld_entity_id');
-    $blast_db->set('entity_id', $entity_id);
+    // Database description URL.
+    $db_url = $form_state->getValue('fld_text_db_url');
+    $db_url = trim($db_url);
+    $blast_db->set('db_url', $db_url);
     // Database Path.
     $dbpath = $form_state->getValue('fld_text_path');
     $dbpath = trim($dbpath);

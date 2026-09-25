@@ -11,9 +11,9 @@ tripal_blast.database.*:
     name:
       type: 'string'
       label: 'Name'
-    entity_id:
-      type: 'integer'
-      label: 'Site Entity ID'
+    db_url:
+      type: 'string'
+      label: 'Database description URL'
     path:
       type: 'string'
       label: 'Path'

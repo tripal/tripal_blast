@@ -706,7 +706,7 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
         [
           'id'  => 67890,
           'name' => 'Chlamydomonas reinhardtii Protein DB',
-          'entity_id' => NULL,
+          'db_url' => '',
           'path'  => '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_reinhardtii_v5.6_protein',
           'dbtype' => 'p',
           'db_regexp' => '^>.*$',
@@ -785,7 +785,7 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
         [
           'id'  => 123450,
           'name' => 'Chlamydomonas reinhardtii Nucleotide DB',
-          'entity_id' => NULL,
+          'db_url' => '',
           'path'  => 'Chlamydomonas_reinhardtii_v5.6',
           'dbtype' => 'n',
           'db_regexp' => '^>.*$',

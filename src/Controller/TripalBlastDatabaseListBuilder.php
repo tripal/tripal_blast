@@ -22,7 +22,7 @@ class TripalBlastDatabaseListBuilder extends ConfigEntityListBuilder {
   public function buildHeader() {
     $header['id'] = $this->t('Database ID');
     $header['name'] = $this->t('Name');
-    $header['entity_id'] = $this->t('Entity ID');
+    $header['db_url'] = $this->t('Description URL');
     $header['path'] = $this->t('Path');
     $header['type'] = $this->t('Type');
     $header['db_regexp'] = $this->t('REGEXP Key');
@@ -38,7 +38,7 @@ class TripalBlastDatabaseListBuilder extends ConfigEntityListBuilder {
   public function buildRow(EntityInterface $entity) {
     $row['id'] = $entity->getId();
     $row['name'] = $entity->getName();
-    $row['entity_id'] = $this->entityLink($entity->getEntityId());
+    $row['db_url'] = $this->entityLink($entity->getDbUrl());
     $row['path'] = $entity->getPath();
 
     $dbtype = $entity->getDbType() == 'n' ? 'Nucleotide (n)' : 'Protein (p)';
@@ -52,24 +52,24 @@ class TripalBlastDatabaseListBuilder extends ConfigEntityListBuilder {
   }
 
   /**
-   * Generates a link to the referenced entity, if present.
+   * Generates a link to the referenced URL, if present.
    *
-   * @param int|null $entity_id
-   *   The entity_id.
+   * @param int|null $uri
+   *   A link to an internal or external page.
    *
    * @return Drupal\Core\Link|string
    *   A link to the entity, or an empty string.
    */
-  protected function entityLink(int|null $entity_id): Link|string {
+  protected function entityLink(string|null $uri): Link|string {
     $link = '';
-    if ($entity_id) {
-      $url = Url::fromUri('base://bio_data/' . $entity_id);
+    if ($uri) {
+      $url = Url::fromUri($uri);
       $url->setOptions([
         'attributes' => [
           'target' => '_blank',
         ],
       ]);
-      $link = Link::fromTextAndUrl($entity_id, $url);
+      $link = Link::fromTextAndUrl($uri, $url);
     }
     return $link;
   }

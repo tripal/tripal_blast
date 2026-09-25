@@ -61,7 +61,7 @@ class TripalBlastDatabaseService {
    *   associated to the id (database name).
    */
   public function getDatabaseByType($type = 'n') {
-    // Type can be the full word ie. nucleotide and protein,
+    // Type can be the full word i.e. nucleotide and protein,
     // or the one character value n and p for nucloetide and protein, respectively.
     $type = $this->translateType($type);
 
@@ -106,7 +106,7 @@ class TripalBlastDatabaseService {
         return [
           'id'  => $config->getId(),
           'name' => $config->getName(),
-          'entity_id' => $config->getEntityId(),
+          'db_url' => $config->getDbUrl(),
           'path'  => $config->getPath(),
           'dbtype' => $config->getDbType(),
           'db_regexp' => $config->getDbRegExp(),
