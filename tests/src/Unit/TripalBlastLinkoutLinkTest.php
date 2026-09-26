@@ -45,7 +45,17 @@ class TripalBlastLinkoutLinkTest extends UnitTestCase {
    */
   public function testCreateLink(): void {
 
+    $messages = [];
     $logger = $this->createMock(TripalLogger::class);
+    $logger->method('error')
+      ->willReturnCallback(function ($message, array $context = []) use (&$messages) {
+        $messages[] = [
+          'level' => 'error',
+          'message' => $message,
+          'context' => $context,
+        ];
+      }
+    );
 
     $plugin = new TripalBlastLinkoutLink(
       [],
@@ -64,6 +74,7 @@ class TripalBlastLinkoutLinkTest extends UnitTestCase {
     $result = $plugin->createLink($hit);
     $this->assertIsString($result, 'Link should be a string when no url prefix supplied');
     $this->assertEquals('entity_1234', $result, 'Returned link is not the hit name value from the hit xml object');
+    $this->assertCount(0, $messages, 'Did not expect any logger messages');
 
     // Tests a url prefix with no substitution tokens.
     $hit = new \SimpleXMLElement(
@@ -81,6 +92,7 @@ class TripalBlastLinkoutLinkTest extends UnitTestCase {
     $this->assertEquals('1234', (string) $result->getText(), 'Returned link display value is not the value from the hit xml object');
     // Url link.
     $this->assertEquals('base://bio_data/1234', $result->getUrl()->getUri(), 'Returned link url is not the expected value');
+    $this->assertCount(0, $messages, 'Did not expect any logger messages');
 
     // Tests a url prefix with substitution.
     $hit = new \SimpleXMLElement(
@@ -98,6 +110,23 @@ class TripalBlastLinkoutLinkTest extends UnitTestCase {
     $this->assertEquals('1234', (string) $result->getText(), 'Returned link display value is not the value from the hit xml object');
     // Url link.
     $this->assertEquals('base://bio_data/56/1234', $result->getUrl()->getUri(), 'Returned link url is not the expected value');
+    $this->assertCount(0, $messages, 'Did not expect any logger messages');
+
+    // Tests with an invalid urlprefix. Expect logger message.
+    $hit = new \SimpleXMLElement(
+    '<hit>
+  <hit_name>entity_1234</hit_name>
+  <query_name>QueryX</query_name>
+  <url_prefix>://bio_data/{db}/{accession}</url_prefix>
+  <linkout_id>1234</linkout_id>
+  <db>56</db>
+</hit>'
+    );
+    $result = $plugin->createLink($hit);
+    $this->assertCount(1, $messages, 'Expected a logger message for an invalid url prefix');
+    $this->assertStringContainsString('is invalid. You must use a valid URI scheme', $messages[0]['message'], 'Not the expected message');
+    $this->assertIsString($result, 'Link should be a string when url prefix is invalid');
+    $this->assertEquals('entity_1234', $result, 'Returned link is not the hit name value from the hit xml object');
 
   }
 
