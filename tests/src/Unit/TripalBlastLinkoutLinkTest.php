@@ -2,6 +2,7 @@
 
 namespace Drupal\tests\tripal_blast\Unit\Plugin\TripalBlastLinkout;
 
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Drupal\Core\GeneratedUrl;
 use Drupal\Core\Link;
 use Drupal\Core\Routing\UrlGeneratorInterface;
@@ -33,7 +34,7 @@ class TripalBlastLinkoutLinkTest extends UnitTestCase {
       ->method('generateFromRoute')
       ->willReturn(new GeneratedUrl());
 
-    $container = new \Symfony\Component\DependencyInjection\ContainerBuilder();
+    $container = new ContainerBuilder();
     $container->set('url_generator', $url_generator);
 
     \Drupal::setContainer($container);
@@ -53,19 +54,51 @@ class TripalBlastLinkoutLinkTest extends UnitTestCase {
       $logger,
     );
 
+    // Tests with no url prefix available.
     $hit = new \SimpleXMLElement(
-'<hit>
+    '<hit>
   <hit_name>entity_1234</hit_name>
   <query_name>QueryX</query_name>
-  <url_prefix>base://bio_data/{accession}</url_prefix>
-  <linkout_id>1234</linkout_id>
 </hit>'
     );
-
     $result = $plugin->createLink($hit);
+    $this->assertIsString($result, 'Link should be a string when no url prefix supplied');
+    $this->assertEquals('entity_1234', $result, 'Returned link is not the hit name value from the hit xml object');
 
+    // Tests a url prefix with no substitution tokens.
+    $hit = new \SimpleXMLElement(
+    '<hit>
+  <hit_name>entity_1234</hit_name>
+  <query_name>QueryX</query_name>
+  <url_prefix>base://bio_data/</url_prefix>
+  <linkout_id>1234</linkout_id>
+  <db>56</db>
+</hit>'
+    );
+    $result = $plugin->createLink($hit);
     $this->assertInstanceOf(Link::class, $result, 'Link is not of correct class');
-    $this->assertEquals('1234', (string) $result->getText(), 'Returned link is not the value from the hit xml object');
- }
+    // Displayed text.
+    $this->assertEquals('1234', (string) $result->getText(), 'Returned link display value is not the value from the hit xml object');
+    // Url link.
+    $this->assertEquals('base://bio_data/1234', $result->getUrl()->getUri(), 'Returned link url is not the expected value');
+
+    // Tests a url prefix with substitution.
+    $hit = new \SimpleXMLElement(
+    '<hit>
+  <hit_name>entity_1234</hit_name>
+  <query_name>QueryX</query_name>
+  <url_prefix>base://bio_data/{db}/{accession}</url_prefix>
+  <linkout_id>1234</linkout_id>
+  <db>56</db>
+</hit>'
+    );
+    $result = $plugin->createLink($hit);
+    $this->assertInstanceOf(Link::class, $result, 'Link is not of correct class');
+    // Displayed text.
+    $this->assertEquals('1234', (string) $result->getText(), 'Returned link display value is not the value from the hit xml object');
+    // Url link.
+    $this->assertEquals('base://bio_data/56/1234', $result->getUrl()->getUri(), 'Returned link url is not the expected value');
+
+  }
 
 }
