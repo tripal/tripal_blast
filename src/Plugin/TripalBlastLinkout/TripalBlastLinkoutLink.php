@@ -57,7 +57,7 @@ class TripalBlastLinkoutLink extends PluginBase implements TripalBlastLinkoutInt
     $link = $hit->hit_name;
 
     if (isset($hit->url_prefix) && isset($hit->linkout_id)) {
-      // Substitue placeholders if present, otherwise append.
+      // Substitute placeholders if present, otherwise append.
       if (str_contains($hit->url_prefix, '{accession}')) {
         $hit_url = preg_replace('/\{accession\}/', $hit->linkout_id, $hit->url_prefix);
       }
