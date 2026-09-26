@@ -44,13 +44,16 @@ tripal_blast.settings:
           type: text
           label: 'Protein Example Fasta Record'
 
-    # LARGE JOBS CONFIGURATIONS:
+    # JOB CONFIGURATIONS:
     tripal_blast_config_jobs:
       type: mapping
       mapping:
         max_result:
           type: integer
           label: 'Max Results to Display'
+        start_timeout:
+          type: integer
+          label: 'Timeout in seconds for starting a blast job'
 
     # NOTIFICATION CONFIGURATIONS
     tripal_blast_config_notification:

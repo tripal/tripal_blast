@@ -13,13 +13,6 @@ use Drupal\tripal\Services\TripalJob;
 class TripalBlastReportController extends ControllerBase {
 
   /**
-   * How long to wait in seconds for the job runner to start a job.
-   *
-   * @var int
-   */
-  protected int $max_start_delay = 120;
-
-  /**
    * Checks on job status and generates appropriate twig values.
    *
    * @param string $job_id
@@ -38,9 +31,13 @@ class TripalBlastReportController extends ControllerBase {
     $tripaljob->load($blastjob_id);
     $job = $tripaljob->getJob();
 
+    // How long to wait in seconds for the job runner to start a job.
+    $start_timeout = \Drupal::config('tripal_blast.settings')
+      ->get('tripal_blast_config_jobs.start_timeout');
+
     if ($job->start_time === NULL && $job->end_time === NULL) {
       $start_delay = time() - $job->submit_date;
-      if ($start_delay > $this->max_start_delay) {
+      if ($start_timeout && $start_delay > $start_timeout) {
         // Cancel the job so stalled jobs don't pile up.
         $tripaljob->cancel();
         $theme = 'theme-tripal-blast-report-pending';

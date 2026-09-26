@@ -147,20 +147,33 @@ class TripalBlastConfigurationForm extends ConfigFormBase {
 
     //
     // # JOBS CONFIGURATIONS:
-    $form['protection'] = [
+    $form['job_configuration'] = [
       '#type' => 'details',
       '#open' => FALSE,
-      '#title' => $this->t('Protect against large jobs'),
+      '#title' => $this->t('Job Configuration'),
       '#description' => $this->t('Depending on the size and nature of your target databases,
-        you may wish to constrain use of this module.'),
+        you may wish to constrain how blast jobs are executed.'),
     ];
 
-    $form['protection']['fld_text_blast_max_results'] = [
+    $form['job_configuration']['fld_text_blast_max_results'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Maximum number of results to show on report page'),
-      '#description' => $this->t('If there are more hits that this, the user is
-          able to download but not visualize the results.'),
+      '#description' => $this->t('If there are more hits that this number of hits,
+          the user is able to download but not visualize the results.
+          This protects against possible out of memory situations.'),
       '#default_value' => $config->get('tripal_blast_config_jobs.max_result'),
+    ];
+
+    $form['job_configuration']['fld_value_blast_start_timeout'] = [
+      '#type' => 'number',
+      '#min' => 0,
+      '#title' => $this->t('Timeout in seconds for starting a blast job'),
+      '#description' => $this->t('This controls how long to wait for a job to be
+          picked up by whatever job running service is being used. In the event that
+          the service is not working, a page will refresh forever, and jobs can pile up.
+          The value here specifies when the page reload times out and the job is cancelled.
+          Set to zero to disable timeout and wait indefinitely.'),
+      '#default_value' => $config->get('tripal_blast_config_jobs.start_timeout'),
     ];
 
     //
@@ -238,6 +251,7 @@ class TripalBlastConfigurationForm extends ConfigFormBase {
 
     // JOB CONFIGURATIONS:
     $fld_value_blast_max_results = $form_state->getValue('fld_text_blast_max_results');
+    $fld_value_blast_start_timeout = $form_state->getValue('fld_value_blast_start_timeout');
 
     // NOTIFICATION CONFIGURATIONS:
     $fld_value_blast_warning_text = $form_state->getValue('fld_text_blast_warning_text');
@@ -256,6 +270,7 @@ class TripalBlastConfigurationForm extends ConfigFormBase {
       ->set('tripal_blast_config_sequence.nucleotide', $fld_value_blast_nucleotide_example)
       ->set('tripal_blast_config_sequence.protein', $fld_value_blast_protein_example)
       ->set('tripal_blast_config_jobs.max_result', $fld_value_blast_max_results)
+      ->set('tripal_blast_config_jobs.start_timeout', $fld_value_blast_start_timeout)
       ->set('tripal_blast_config_notification.warning_text', $fld_value_blast_warning_text)
       ->set('tripal_blast_config_report.wrap_length', $fld_value_blast_report_wrap_length)
       ->save();
