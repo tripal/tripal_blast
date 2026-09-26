@@ -7,6 +7,7 @@ services:
   tripal_blast.job_service:
     class: Drupal\tripal_blast\Services\TripalBlastJobService
     arguments:
+      - '@tripal_chado.database'
       - '@tripal.logger'
   tripal_blast.program_blastn:
     class: Drupal\tripal_blast\Services\TripalBlastProgramBlastn
@@ -18,3 +19,9 @@ services:
     class: Drupal\tripal_blast\Services\TripalBlastProgramBlastp
   tripal_blast.hook_service:
     class: 'Drupal\tripal_blast\Hook\TripalBlastHooks'
+  plugin.manager.tripal_blast_linkout:
+    class: 'Drupal\tripal_blast\TripalBlastLinkoutManager'
+    arguments:
+      - '@container.namespaces'
+      - '@cache.discovery'
+      - '@module_handler'

@@ -61,7 +61,7 @@ class TripalBlastDatabaseService {
    *   associated to the id (database name).
    */
   public function getDatabaseByType($type = 'n') {
-    // Type can be the full word ie. nucleotide and protein,
+    // Type can be the full word i.e. nucleotide and protein,
     // or the one character value n and p for nucloetide and protein, respectively.
     $type = $this->translateType($type);
 
@@ -88,27 +88,32 @@ class TripalBlastDatabaseService {
   /**
    * Get database asset (config entity fields).
    *
-   * @param $db_id (entity id)
-   *   String, id number of an entity,
+   * @param string $id
+   *   Sixteen-character numeric string, id of database configuration entity.
    *
-   * @param object
-   *   Config entity fields matching the id number given.
+   * @return array|null
+   *   Config entity fields matching the id number given,
+   *   or NULL if it does not exist.
    */
-  public function getDatabaseConfig($db_id) {
-    if ($db_id) {
+  public function getDatabaseConfig($id): ?array {
+    if ($id) {
       $config = \Drupal::entityTypeManager()
         ->getStorage(static::CONFIG_ENTITY_NAME)
-        ->load($db_id);
+        ->load($id);
 
-      return [
-        'id'  => $config->getId(),
-        'name' => $config->getName(),
-        'path'  => $config->getPath(),
-        'dbtype' => $config->getDbType(),
-        'dbxref_id_regexp' => $config->getDbXrefRegExp(),
-        'dbxref_db_id' => $config->getDbXref(),
-        'dbxref_linkout_type' => $config->getDbXrefLinkout(),
-      ];
+      // If a database was removed, and has no config, return NULL.
+      if ($config) {
+        return [
+          'id'  => $config->getId(),
+          'name' => $config->getName(),
+          'db_url' => $config->getDbUrl(),
+          'path'  => $config->getPath(),
+          'dbtype' => $config->getDbType(),
+          'db_regexp' => $config->getDbRegExp(),
+          'db_id' => $config->getDbId(),
+          'db_linkout_type' => $config->getDbLinkout(),
+        ];
+      }
     }
   }
 

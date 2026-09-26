@@ -10,8 +10,14 @@ use Drupal\Core\StringTranslation\StringTranslationTrait;
  * Class-based hook implementations for Tripal BLAST.
  */
 class TripalBlastHooks {
+
   use StringTranslationTrait;
 
+  /**
+   * Implements hook_theme().
+   *
+   * Used by Tripal BLAST UI page.
+   */
   #[Hook('theme')]
   public function theme(array $existing, $type, $theme, $path) {
     // Links rendered as a markup for the template file.
@@ -28,7 +34,7 @@ class TripalBlastHooks {
     foreach ($blast_programs as $name => $param) {
       [$query, $db] = $param;
       $links_ui['link_' . $name] = Link::createFromRoute(
-        $this->t($name),
+        $name,
         $route_ui,
         ['query' => $query, 'db' => $db]
       );
@@ -36,7 +42,7 @@ class TripalBlastHooks {
 
     $context_links = [
       // MISC/ADMIN.
-      'link_config' => '#',
+      'link_config' => '#CP2 <a href="x">x</a>',
       'link_jobs' => '#',
       'link_nodeadd' => '#',
       'link_dbadd' => '#',
@@ -72,4 +78,5 @@ class TripalBlastHooks {
       ],
     ];
   }
+
 }

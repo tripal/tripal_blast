@@ -59,3 +59,11 @@ tripal_blast.settings:
         warning_text:
           type: text
           label: 'Warning Text on Blast Page'
+
+    # REPORT CONFIGURATIONS
+    tripal_blast_config_report:
+      type: mapping
+      mapping:
+        wrap_length:
+          type: integer
+          label: 'Line length for blast hit alignments'

@@ -26,20 +26,22 @@ use Drupal\tripal_blast\TripalBlastDatabaseInterface;
   entity_keys: [
     'id' => 'id',
     'label' => 'name',
+    'db_url' => 'db_url',
     'path' => 'path',
     'dbtype' => 'dbtype',
-    'dbxref_id_regexp' => 'dbxref_id_regexp',
-    'dbxref_db_id' => 'dbxref_db_id',
-    'dbxref_linkout_type' => 'dbxref_linkout_type',
+    'db_regexp' => 'db_regexp',
+    'db_id' => 'db_id',
+    'db_linkout_type' => 'db_linkout_type',
   ],
   config_export: [
     'id',
     'name',
+    'db_url',
     'path',
     'dbtype',
-    'dbxref_id_regexp',
-    'dbxref_db_id',
-    'dbxref_linkout_type',
+    'db_regexp',
+    'db_id',
+    'db_linkout_type',
   ],
   links: [
     'edit-form' => '/admin/tripal/extension/tripal_blast/configuration/tripalblastdatabase/edit/{tripalblastdatabase}',
@@ -65,20 +67,22 @@ use Drupal\tripal_blast\TripalBlastDatabaseInterface;
  *   entity_keys = {
  *     "id" = "id",
  *     "label" = "name",
+ *     "db_url" = "db_url",
  *     "path" = "path",
  *     "dbtype" = "dbtype",
- *     "dbxref_id_regexp" = "dbxref_id_regexp",
- *     "dbxref_db_id" = "dbxref_db_id",
- *     "dbxref_linkout_type" = "dbxref_linkout_type"
+ *     "db_regexp" = "db_regexp",
+ *     "db_id" = "db_id",
+ *     "db_linkout_type" = "db_linkout_type"
  *   },
  *   config_export = {
  *     "id",
  *     "name",
+ *     "db_url",
  *     "path",
  *     "dbtype",
- *     "dbxref_id_regexp",
- *     "dbxref_db_id",
- *     "dbxref_linkout_type"
+ *     "db_regexp",
+ *     "db_id",
+ *     "db_linkout_type"
  *   },
  *   links = {
  *     "edit-form" = "/admin/tripal/extension/tripal_blast/configuration/tripalblastdatabase/edit/{tripalblastdatabase}",
@@ -100,6 +104,12 @@ class TripalBlastDatabase extends ConfigEntityBase implements TripalBlastDatabas
   protected $name;
 
   /**
+   * A URL pointing to a descriptive page for the blast database.
+   * @var string
+   */
+  protected $db_url;
+
+  /**
    * The full path and filename prefix of the blast database.
    * @var string
    */
@@ -115,19 +125,19 @@ class TripalBlastDatabase extends ConfigEntityBase implements TripalBlastDatabas
    * The Regular Expression to use to extract the id from the FASTA header of the BLAST database hit.
    * @var string
    */
-  protected $dbxref_id_regexp;
+  protected $db_regexp;
 
   /**
    * The Database records from this BLAST Database reference.
    * @var integer
    */
-  protected $dbxref_db_id;
+  protected $db_id;
 
   /**
    * Type of linkout to be used for this database reference.
    * @var string
    */
-  protected $dbxref_linkout_type;
+  protected $db_linkout_type;
 
   /**
    * {@inheritdoc}
@@ -141,6 +151,13 @@ class TripalBlastDatabase extends ConfigEntityBase implements TripalBlastDatabas
    */
   public function getName() {
     return $this->name;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getDbUrl() {
+    return $this->db_url;
   }
 
   /**
@@ -160,21 +177,22 @@ class TripalBlastDatabase extends ConfigEntityBase implements TripalBlastDatabas
   /**
    * {@inheritdoc}
    */
-  public function getDbXrefRegExp() {
-    return $this->dbxref_id_regexp;
+  public function getDbRegExp() {
+    return $this->db_regexp;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getDbXref() {
-    return $this->dbxref_db_id;
+  public function getDbId() {
+    return $this->db_id;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getDbXrefLinkout() {
-    return $this->dbxref_linkout_type;
+  public function getDbLinkout() {
+    return $this->db_linkout_type;
   }
+
 }
