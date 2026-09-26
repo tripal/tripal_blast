@@ -116,7 +116,34 @@ class TripalBlastLinkoutJbrowseTest extends UnitTestCase {
     // Displayed text.
     $this->assertEquals('chr2', (string) $result->getText(), 'Returned link display value is not the value from the hit xml object');
     // Url link.
-    $this->assertEquals('ttps://jbrowse.example.org/?loc=chr2:392..858&addFeatures=[{"seq_id":"chr2","start":450,"end":800,"name":"QueryB Blast Hit","strand":1,"subfeatures":[{"start":700,"end":800,"strand":"-1","type":"match_part"},{"start":450,"end":500,"strand":"-1","type":"match_part"}]}]&addTracks=[{"label":"blast","key":"BLAST Result","type":"JBrowse/View/Track/HTMLFeatures","store":"url"}]',
+    $this->assertEquals('https://jbrowse.example.org/?loc=chr2:392..858&addFeatures=[{"seq_id":"chr2","start":450,"end":800,"name":"QueryB Blast Hit","strand":1,"subfeatures":[{"start":700,"end":800,"strand":"-1","type":"match_part"},{"start":450,"end":500,"strand":"-1","type":"match_part"}]}]&addTracks=[{"label":"blast","key":"BLAST Result","type":"JBrowse/View/Track/HTMLFeatures","store":"url"}]',
+      $result->getUrl()->getUri(), 'Returned link url is not the expected value');
+
+    // Tests constructing a JBrowse link on both strands.
+    $hit = new \SimpleXMLElement(
+    '<hit>
+  <hit_name>subject1</hit_name>
+  <query_name>QueryC</query_name>
+  <url_prefix>https://jbrowse.example.org/?</url_prefix>
+  <linkout_id>chr3</linkout_id>
+  <Hit_hsps>
+    <Hsp>
+      <Hsp_hit-from>800</Hsp_hit-from>
+      <Hsp_hit-to>700</Hsp_hit-to>
+    </Hsp>
+    <Hsp>
+      <Hsp_hit-from>450</Hsp_hit-from>
+      <Hsp_hit-to>500</Hsp_hit-to>
+    </Hsp>
+  </Hit_hsps>
+</hit>'
+    );
+    $result = $plugin->createLink($hit);
+    $this->assertInstanceOf(Link::class, $result, 'Link is not of correct class');
+    // Displayed text.
+    $this->assertEquals('chr3', (string) $result->getText(), 'Returned link display value is not the value from the hit xml object');
+    // Url link.
+    $this->assertEquals('https://jbrowse.example.org/?loc=chr3:392..858&addFeatures=[{"seq_id":"chr3","start":450,"end":800,"name":"QueryC Blast Hit","strand":1,"subfeatures":[{"start":700,"end":800,"strand":"-1","type":"match_part"},{"start":450,"end":500,"strand":"1","type":"match_part"}]}]&addTracks=[{"label":"blast","key":"BLAST Result","type":"JBrowse/View/Track/HTMLFeatures","store":"url"}]',
       $result->getUrl()->getUri(), 'Returned link url is not the expected value');
 
   }
