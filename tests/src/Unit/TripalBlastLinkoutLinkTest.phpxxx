@@ -1,0 +1,123 @@
+<?php
+
+namespace *rupal\Tests\tripal_blast\Unit\Plug*n\TripalBlastLinkout;
+
+use Drupal\*ore\GeneratedUrl;
+use Drupal\Core\*ink;
+use Drupal\Core\Routing\UrlGe*eratorInterface;
+use Drupal\Tests\*nitTestCase;
+use Drupal\tripal\Ser*ices\TripalLogger;
+use Drupal\trip*l_blast\Plugin\TripalBlastLinkout\*ripalBlastLinkoutLink;
+
+/**
+ * @co*ersDefaultClass \Drupal\tripal_bla*t\Plugin\TripalBlastLinkout\Tripal*lastLinkoutLink
+ *
+ * @group tripa*_blast
+ */
+class TripalBlastLinkou*LinkTest extends UnitTestCase {
+
+ *protected function setUp(): void {*    parent::setUp();
+
+    $url_gen*rator = $this->createMock(UrlGener*torInterface::class);
+    $url_gen*rator
+      ->method('generateFrom*oute')
+      ->willReturn(new Gene*atedUrl());
+
+    \Drupal::setConta*ner($this->getContainerWithUrlGene*ator($url_generator));
+  }
+
+  prot*cted function getContainerWithUrlG*nerator($url_generator) {
+    $con*ainer = new \Symfony\Component\Dep*ndencyInjection\ContainerBuilder()*
+    $container->set('url_generato*', $url_generator);
+    return $co*tainer;
+  }
+
+  /**
+   * @covers ::*reateLink
+   */
+  public function *estCreatesLinkWithAppendedAccessio*(): void {
+    $logger = $this->cr*ateMock(TripalLogger::class);
+
+   *$plugin = new TripalBlastLinkoutLi*k(
+      [],
+      'Link',
+      [*,
+      $logger,
+    );
+
+    $hit * new \SimpleXMLElement(
+      '<hi*>
+        <hit_name>Hit1</hit_name*
+        <url_prefix>https://examp*e.org/feature/</url_prefix>
+      * <linkout_id>ABC123</linkout_id>
+ *    </hit>'
+    );
+
+    $result = *plugin->createLink($hit);
+
+    $th*s->assertInstanceOf(Link::class, $*esult);
+
+    $url = $result->getUr*()->toString();
+
+    $this->assert*tringContainsString(
+      'https:*/example.org/feature/ABC123',
+    * $url
+    );
+  }
+
+  /**
+   * @cove*s ::createLink
+   */
+  public func*ion testCreatesLinkUsingPlaceholde*(): void {
+    $logger = $this->cr*ateMock(TripalLogger::class);
+
+   *$plugin = new TripalBlastLinkoutLi*k(
+      [],
+      'Link',
+      [*,
+      $logger,
+    );
+
+    $hit * new \SimpleXMLElement(
+      '<hi*>
+        <hit_name>Hit1</hit_name*
+        <url_prefix>https://examp*e.org/{accession}</url_prefix>
+   *    <linkout_id>ABC123</linkout_id*
+      </hit>'
+    );
+
+    $result*= $plugin->createLink($hit);
+
+    *this->assertInstanceOf(Link::class* $result);
+
+    $this->assertStrin*ContainsString(
+      'ABC123',
+  *   $result->getUrl()->toString()
+ *  );
+  }
+
+  /**
+   * @covers ::cre*teLink
+   */
+  public function tes*ReturnsHitNameWhenDataMissing(): v*id {
+    $logger = $this->createMo*k(TripalLogger::class);
+
+    $plug*n = new TripalBlastLinkoutLink(
+  *   [],
+      'Link',
+      [],
+   *  $logger,
+    );
+
+    $hit = new *SimpleXMLElement(
+      '<hit>
+   *    <hit_name>Hit1</hit_name>
+    * </hit>'
+    );
+
+    $result = $pl*gin->createLink($hit);
+
+    $this-*assertSame('Hit1', (string) $resul*);
+  }
+
+}
