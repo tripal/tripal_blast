@@ -79,12 +79,4 @@ class TripalBlastHooks {
     ];
   }
 
-  /**
-   * Implements hook_blast_linkout_info().
-   */
-  #[Hook('blast_linkout_info')]
-  public function blastLinkoutInfo() {
-    return \Drupal::service('tripal_blast.linkout_service')->getLinkoutTypes();
-  }
-
 }
