@@ -181,10 +181,6 @@ class TripalBlastForm extends FormBase {
           '#ajax' => [
             'callback' => '::ajaxShowExampleSequenceCallback',
             'wrapper'  => 'tripal-blast-wrapper-ajax-fasta-textarea',
-            'method'   => 'replace',
-            'effect'   => 'fade',
-            'progress' => 'throbber',
-            'message'  => ''
           ],
           '#prefix' => '<div id="tripal-blast-wrapper-checkbox-example-sequence">',
           '#suffix' => '</div>',
@@ -586,6 +582,8 @@ class TripalBlastForm extends FormBase {
 
     // FASTA FIELD:
     $fld_name_fasta = 'FASTA';
+    $fld_value = '';
+    $fld_note = $this->t('Enter query sequence(s) in the text area.');
 
     // Checkbox - TRUE or FALSE.
     if ($fld_value_show_example) {
@@ -594,18 +592,17 @@ class TripalBlastForm extends FormBase {
 
       // Add a note to user, default example may be replaced through the admin interface.
       $l = Link::fromTextAndUrl('administrative interface', Url::fromRoute('tripal_blast.configuration'))->toString();
-      $fld_note = '<div class="tripal-blast-tip">'
-        . $this->t('You can set the example sequence through the @note.', ['@note' => $l])
-        . '</div>';
-    }
-    else {
-      $fld_value = '';
-      $fld_note  = '';
+      $current_user = \Drupal::currentUser();
+      if ($current_user->hasRole('administrator') || $current_user->hasRole('administer tripal')) {
+        $fld_note = '<div class="tripal-blast-tip">'
+          . $this->t('You can set the example sequence through the @note.', ['@note' => $l])
+          . '</div>';
+      }
     }
 
     // Update field value and suffix (add a note/tip).
     $form['B']['query'][$fld_name_fasta]['#value']  = $fld_value;
-    $form['B']['query'][$fld_name_fasta]['#suffix'] = $fld_note;
+    $form['B']['query'][$fld_name_fasta]['#description'] = $fld_note;
 
     return $form['B']['query']['FASTA'];
   }
