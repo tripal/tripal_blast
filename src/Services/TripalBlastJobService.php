@@ -488,7 +488,7 @@ class TripalBlastJobService {
       // We want to save all result files (.asn, .xml, .tsv, .html) in the
       // public files directory, usually [drupal root]/sites/default/files.
       $output_dir = tripal_get_files_dir('tripal_blast');
-      $job_parameters['result_filestub'] = $output_dir . date('YMd_His') . '.blast';
+      $job_parameters['result_filestub'] = $output_dir . '/' . date('YMd_His') . '.blast';
     }
 
     // If advanced options are not set, we will set it to an empty array.
