@@ -27,6 +27,22 @@ class TripalBlastReportController extends ControllerBase {
     $job_service = \Drupal::service('tripal_blast.job_service');
     $blastjob_id = $job_service->jobsBlastRevealSecret($job_id);
 
+    // If the job has expired and been removed, provide a message.
+    if (!$blastjob_id) {
+      return [
+        '#theme' => 'theme-tripal-blast-report-pending',
+        '#attached' => [
+          'library' => ['tripal_blast/tripal-blast-report'],
+        ],
+        '#report' => NULL,
+        '#job' => [
+          'job_id' => '',
+          'status' => 'Expired',
+          'status_code' => 3,
+        ],
+      ];
+    }
+
     $tripaljob = new TripalJob();
     $tripaljob->load($blastjob_id);
     $job = $tripaljob->getJob();
