@@ -36,10 +36,10 @@ class TripalBlastCommands extends DrushCommands {
    *   No return value.
    */
   #[CLI\Command(name: 'tripal-blast:clean', aliases: ['trp-blast-clean'])]
-  #[CLI\Option(name: 'files', description: 'Remove old files (default)')]
+  #[CLI\Option(name: 'files', description: 'Remove only old files [default]')]
   #[CLI\Option(name: 'blastjob', description: 'Remove old files and blastjob table entries.')]
   #[CLI\Option(name: 'tripaljob', description: 'Remove old files, blastjob, and tripal_jobs table entries.')]
-  #[CLI\Option(name: 'age', description: 'Maximum age of files to retain in days. Default is 7 days.')]
+  #[CLI\Option(name: 'age', description: 'Maximum age of files to retain in days.')]
   #[CLI\Usage(
     name: "drush tripal-blast:clean",
     description: 'Deletes old blast output files older than 7 days. Only files are removed, all job table entries are retained.',
@@ -50,7 +50,7 @@ class TripalBlastCommands extends DrushCommands {
   )]
   public function tripalBlastClean(
     array $options = [
-      'files' => TRUE,
+      'files' => FALSE,
       'blastjob' => FALSE,
       'tripaljob' => FALSE,
       'age' => '7',
