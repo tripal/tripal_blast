@@ -1,0 +1,7 @@
+services:
+  tripal_blast.command:
+    class: '\Drupal\tripal_blast\Drush\Commands\TripalBlastCommands'
+    arguments:
+      - '@database'
+    tags:
+      - { name: 'drush.command' }
