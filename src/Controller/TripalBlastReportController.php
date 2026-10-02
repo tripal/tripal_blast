@@ -27,6 +27,22 @@ class TripalBlastReportController extends ControllerBase {
     $job_service = \Drupal::service('tripal_blast.job_service');
     $blastjob_id = $job_service->jobsBlastRevealSecret($job_id);
 
+    // If the job has expired and been removed, provide a message.
+    if (!$blastjob_id) {
+      return [
+        '#theme' => 'theme-tripal-blast-report-pending',
+        '#attached' => [
+          'library' => ['tripal_blast/tripal-blast-report'],
+        ],
+        '#report' => NULL,
+        '#job' => [
+          'job_id' => '',
+          'status' => 'Expired',
+          'status_code' => 3,
+        ],
+      ];
+    }
+
     $tripaljob = new TripalJob();
     $tripaljob->load($blastjob_id);
     $job = $tripaljob->getJob();
@@ -78,14 +94,23 @@ class TripalBlastReportController extends ControllerBase {
     }
     elseif ($job->end_time !== NULL) {
       // 3) Job is Complete
-      $theme = 'theme-tripal-blast-show-report';
-      $job_param = [
-        'job_id' => $blastjob_id,
-        'status' => '',
-        'status_code' => '',
-      ];
-
       $report = $this->prepareReport($blastjob_id);
+      if ($report->expired) {
+        $theme = 'theme-tripal-blast-report-pending';
+        $job_param = [
+          'job_id' => '',
+          'status' => 'Expired',
+          'status_code' => 3,
+        ];
+      }
+      else {
+        $theme = 'theme-tripal-blast-show-report';
+        $job_param = [
+          'job_id' => $blastjob_id,
+          'status' => '',
+          'status_code' => '',
+        ];
+      }
     }
     else {
       // 4) Job is in Progress
@@ -119,8 +144,8 @@ class TripalBlastReportController extends ControllerBase {
    * @param int $blastjob_id
    *   Value of job_id in the public.blastjob table.
    *
-   * @return string
-   *   Report page markup.
+   * @return stdClass
+   *   Blast job object.
    */
   public function prepareReport(int $blastjob_id) {
     $logger = \Drupal::logger('tripal_blast');
@@ -177,6 +202,7 @@ class TripalBlastReportController extends ControllerBase {
     $blast_job->xml = NULL;
     $blast_job->num_results = FALSE;
     $blast_job->too_many_results = FALSE;
+    $blast_job->expired = FALSE;
     $blast_job->linkout_supported = '';
     if (!$blast_job->blastdb->linkout->none) {
       $blast_job->linkout_supported = 'Click the <em>target name </em> to get more information about the target hit.';
@@ -199,6 +225,11 @@ class TripalBlastReportController extends ControllerBase {
       else {
         $blast_job->too_many_results = TRUE;
       }
+    }
+    // If the xml file is not available, this may be an old expired job.
+    else {
+      $blast_job->expired = TRUE;
+      return $blast_job;
     }
 
     $blast_job->num_results_formatted = number_format(floatval($blast_job->num_results));
