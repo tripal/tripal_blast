@@ -34,6 +34,8 @@ tripal_blast.blast_report:
     _controller: '\Drupal\tripal_blast\Controller\TripalBlastReportController::report'
   requirements:
     _permission: 'access content'
+  options:
+    no_cache: 'TRUE'
 
 # Configuration dashboard.
 tripal_blast.dashboard:
