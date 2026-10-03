@@ -48,7 +48,8 @@ function tripal_blast_uninstall() {
 
 /**
  * Implements hook_schema().
- * Create the blast job database table for storing blast job requests.
+ *
+ * Create the "blastjob" database table for storing blast job requests.
  */
 function tripal_blast_schema() {
   // BLAST JOBS
@@ -60,19 +61,25 @@ function tripal_blast_schema() {
       'job_id' => [
         'description' => t('The Tripal job_id for the blast job.'),
         'type' => 'int',
-        'unsigned' => true,
-        'not null' => true,
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+      'uuid' => [
+        'description' => t('An unguessable random unique identifier for the blast job to use in urls.'),
+        'type' => 'varchar',
+        'length' => 36,
+        'not null' => TRUE,
       ],
       'blast_program' => [
-        'description' => t('The program to use to run the blast (ie: blastn, blastp, etc.).'),
+        'description' => t('The program to use to run the blast (i.e.: blastn, blastp, etc.).'),
         'type' => 'varchar',
         'length' => 20,
-        'not null' => true,
+        'not null' => TRUE,
       ],
       'target_blastdb' => [
         'description' => t('The nid of the blastdb used to search against; NULL if target was uploaded.'),
         'type' => 'int',
-        'unsigned' => true,
+        'unsigned' => TRUE,
       ],
       'target_file' => [
         'description' => t('The absolute path to the uploaded blast database after it was run through makeblastdb; NULL if target was NOT uploaded.'),
@@ -92,6 +99,9 @@ function tripal_blast_schema() {
       ],
     ],
     'primary key' => ['job_id'],
+    'unique keys' => [
+      'uuid' => ['uuid'],
+    ],
     'foreign keys' => [
       'job_id' => [
         'table' => 'tripal_jobs',
