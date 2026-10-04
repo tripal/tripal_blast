@@ -124,18 +124,21 @@ class TripalBlastDrushCommandsTest extends KernelTestBase {
     $blastjobs = [
       [
         'job_id' => 1,
+        'uuid' => '1234b567-c85e-12f5-c325-718327814391',
         'blast_program' => 'blastn',
         'query_file' => '/tmp/tripalblastphpunittest_1.fna',
         'result_filestub' => 'public://tripal_blast/tripalblastphpunittest_1',
       ],
       [
         'job_id' => 2,
+        'uuid' => '1234b567-c85e-12f5-c325-718327814392',
         'blast_program' => 'blastn',
         'query_file' => '/tmp/tripalblastphpunittest_2.fna',
         'result_filestub' => 'public://tripal_blast/tripalblastphpunittest_2',
       ],
       [
         'job_id' => 3,
+        'uuid' => '1234b567-c85e-12f5-c325-718327814393',
         'blast_program' => 'blastn',
         'query_file' => '/tmp/tripalblastphpunittest_3.fna',
         'result_filestub' => 'public://tripal_blast/tripalblastphpunittest_3',
