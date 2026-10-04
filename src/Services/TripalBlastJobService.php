@@ -2,6 +2,8 @@
 
 namespace Drupal\tripal_blast\Services;
 
+use Drupal\Component\Uuid\UuidInterface;
+use Drupal\Core\Database\Connection;
 use Drupal\Core\Render\Markup;
 use Drupal\tripal\Services\TripalJob;
 use Drupal\tripal\Services\TripalLogger;
@@ -32,15 +34,33 @@ class TripalBlastJobService {
   /**
    * Constructs a new TripalBlastJobService object.
    *
+   * @param Drupal\Core\Database\Connection $drupal_connection
+   *   A connection to the Drupal database.
    * @param Drupal\tripal_chado\Database\ChadoConnection $chado_connection
    *   A Database query interface for querying Chado using Tripal DBX.
-   * @param Drupal\tripal\Services\TripalLogger|null $logger
+   * @param Drupal\Component\Uuid\UuidInterface $uuidService
+   *   Service to generate unique identifiers.
+   * @param Drupal\tripal\Services\TripalLogger $logger
    *   The Tripal logger service.
    */
-  public function __construct(ChadoConnection $chado_connection, ?TripalLogger $logger = NULL) {
+  public function __construct(
+    Connection $drupal_connection,
+    ChadoConnection $chado_connection,
+    UuidInterface $uuidService,
+    TripalLogger $logger,
+  ) {
+    $this->drupal_connection = $drupal_connection;
     $this->chado_connection = $chado_connection;
-    $this->logger = $logger ?? \Drupal::service('tripal.logger');
+    $this->uuidService = $uuidService;
+    $this->logger = $logger;
   }
+
+  /**
+   * The drupal database connection.
+   *
+   * @var Drupal\Core\Database\Connection
+   */
+  protected Connection $drupal_connection;
 
   /**
    * A Database query interface for querying Chado using Tripal DBX.
@@ -48,6 +68,13 @@ class TripalBlastJobService {
    * @var Drupal\tripal_chado\Database\ChadoConnection
    */
   protected ChadoConnection $chado_connection;
+
+  /**
+   * UUID generator.
+   *
+   * @var Drupal\Component\Uuid\UuidInterface;
+   */
+  protected UuidInterface $uuidService;
 
   /**
    * The Tripal logger service.
@@ -88,6 +115,7 @@ class TripalBlastJobService {
           // @todo Check that the results are still available.
           // This is meant to replace the arbitrary only show jobs executed
           // less than 48 hrs ago.
+
           // Remove jobs from the list that are not of the correct program.
           if ($filter_jobs and !in_array($job->program, $programs)) {
             $add = FALSE;
@@ -123,7 +151,7 @@ class TripalBlastJobService {
 
     $rows = [];
     foreach ($jobs as $job) {
-      $result_link = '/blast/report/' . self::jobsBlastMakeSecret($job->job_id);
+      $result_link = '/blast/report/' . $job->uuid;
 
       $rows[] = [
         $job->query_summary,
@@ -145,88 +173,25 @@ class TripalBlastJobService {
   }
 
   /**
-   * Makes the tripal job_id unrecognizable.
-   *
-   * @param int $job_id
-   *   The tripal job_id of the blast you want to make secret.
-   *
-   * @return string
-   *   A short string representing the job_id.
-   */
-  public function jobsBlastMakeSecret(int $job_id): string {
-    $mapping = self::jobsBlastMapSecret();
-    $secret = str_replace(array_keys($mapping), $mapping, $job_id);
-
-    return $secret;
-  }
-
-  /**
    * Reveals the true job_id for your secret blast result.
    *
-   * @param string $secret
-   *   The job_id previously made secret by blast_ui_make_secret().
+   * @param $secret
+   *    The uuid of the job.
    *
    * @return int|bool
-   *   The revealed tripal job_id, or FALSE if job does not exist.
+   *    The revealed tripal job_id, or FALSE if secret does not exist.
    */
-  public function jobsBlastRevealSecret(string $secret): int|bool {
-    $mapping = self::jobsBlastMapSecret(TRUE);
-    $job_id = str_replace(array_keys($mapping), $mapping, $secret);
-
-    // Check that the job_id exists if it is an integer.
-    if (is_numeric($job_id)) {
-      $exists = self::jobsGetJobByJobId($job_id);
-
-      // The case for a job not existing is if it is from a user's session,
-      // but it is an old job that we have purged. Return FALSE for these.
-      if ($exists) {
-        return $job_id;
-      }
-    }
-    else {
+  public function jobsBlastRevealSecret($secret): int|bool {
+    $query = $this->drupal_connection->select('blastjob', 'B');
+    $query->condition('B.uuid', $secret, '=');
+    $query->addField('B', 'job_id', 'job_id');
+    // Uuid has a unique constraint, so only zero or one results are possible.
+    $job_id = $query->execute()->fetchField();
+    if (!$job_id) {
+      $job_id = FALSE;
       $this->logger->error('Unable to decode the blast job_id from :id.', [':id' => $secret]);
     }
-
-    return FALSE;
-  }
-
-  /**
-   * A single location for keeping track of the mapping used in our secrets.
-   */
-  public function jobsBlastMapSecret($reveal = FALSE) {
-    $mapping = [
-      1 => 'P',
-      2 => 'sA',
-      3 => 'b',
-      4 => 'Q',
-      5 => 'Hi',
-      6 => 'yt',
-      7 => 'f',
-      8 => 'zE',
-      9 => 'Km',
-      0 => 'jVo',
-    ];
-
-    // Since this is an open-source module with all the code publically
-    // available, our secret is not very secret... We are ok with this
-    // since the liklihood of profiting by stealing random blast results
-    // is pretty low. That said, if this bothers you, feel free to
-    // implement the following function in a private module to change
-    // this mapping to something that cannot easily be looked up on
-    // github. ;-).
-    // NOTE: Ensure that the mapping you come up with is unique to
-    // ensure that the job_id can be consistently revealed or your users
-    // might end up unable to find their own blast results...
-    if (function_exists('private_make_mapping_ultra_secret')) {
-      $mapping = private_make_mapping_ultra_secret($mapping);
-    }
-
-    if ($reveal) {
-      return array_flip($mapping);
-    }
-    else {
-      return $mapping;
-    }
+    return $job_id;
   }
 
   /**
@@ -249,7 +214,7 @@ class TripalBlastJobService {
       'skip_file_check' => FALSE,
     ];
 
-    $query = \Drupal::database()->select('blastjob', 'jobs');
+    $query = $this->drupal_connection->select('blastjob', 'jobs');
     $query->fields('jobs');
     $query->condition('jobs.job_id', $job_id);
 
@@ -264,6 +229,7 @@ class TripalBlastJobService {
 
     $job = new \stdClass();
     $job->job_id = $job_id;
+    $job->uuid = $blastjob->uuid;
     $job->program = $blastjob->blast_program;
     $job->options = unserialize($blastjob->options, ['allowed_classes' => FALSE]);
     $job->date_submitted = $tripal_job->submit_date;
@@ -406,10 +372,10 @@ class TripalBlastJobService {
    *     the option used by BLAST (e.g.: 'num_alignments') and the value is
    *     relates to this particular BLAST job (e.g.: 250).
    *
-   * @return int|null
-   *   The tripal job_id of the newly created BLAST job.
+   * @return array|null
+   *   The parameters of the tripal job, or NULL if job was not created.
    */
-  public function createBlastJob(array $job_parameters): ?int {
+  public function createBlastJob(array $job_parameters): ?array {
 
     // Validate the blast_program parameter.
     if (!array_key_exists('blast_program', $job_parameters)) {
@@ -496,6 +462,9 @@ class TripalBlastJobService {
       $job_parameters['options'] = [];
     }
 
+    // Create a unique unguessable identifier for urls.
+    $job_parameters['uuid'] = $this->uuidService->generate();
+
     // Create the tripal job.
     $trpjob_args = [
       $job_parameters['blast_program'],
@@ -521,9 +490,9 @@ class TripalBlastJobService {
     }
 
     // Finally, use this helper method to save the job parameters into the
-    // blastjob table and return the job object.
+    // blastjob table and return the job parameters.
     $this->jobsSave($job_parameters);
-    return $job_parameters['job_id'];
+    return $job_parameters;
   }
 
   /**
@@ -536,9 +505,10 @@ class TripalBlastJobService {
    *   No return value.
    */
   protected function jobsSave(array $job_parameters): void {
-    \Drupal::service('database')->insert('blastjob')
+    $this->drupal_connection->insert('blastjob')
       ->fields([
         'job_id' => $job_parameters['job_id'],
+        'uuid' => $job_parameters['uuid'],
         'blast_program' => $job_parameters['blast_program'],
         'target_blastdb' => $job_parameters['target_blastdb'] ?? NULL,
         'target_file' => $job_parameters['target_file'],

@@ -683,12 +683,11 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
 
     $job_service = $this->getMockBuilder(\Drupal\tripal_blast\Services\TripalBlastJobService::class)
       ->disableOriginalConstructor()
-      ->onlyMethods(['createBlastJob', 'jobsBlastMakeSecret'])
+      ->onlyMethods(['createBlastJob'])
       ->getMock();
     $job_service->expects($this->once())
       ->method('createBlastJob')
-      ->willReturn(2024);
-    $job_service->method('jobsBlastMakeSecret')->willReturn('encoded-job');
+      ->willReturn(['job_id' => 2024, 'uuid' => '1234b567-c85e-12f5-c325-718327814391']);
     $this->container->set('tripal_blast.job_service', $job_service);
 
     $form = [];
@@ -711,7 +710,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
     $this->assertNotNull($form_state->getRedirect(), "Expeccted a redirect object, but it was NULL.");
     $redirect_path = $form_state->getRedirect()->getInternalPath();
     $this->assertSame(
-      'blast/report/encoded-job',
+      'blast/report/1234b567-c85e-12f5-c325-718327814391',
       $redirect_path,
       "We expected the redirect route to be 'blast/report/encoded-job' but it was $redirect_path."
     );
@@ -1009,17 +1008,16 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
 
     $job_service = $this->getMockBuilder(\Drupal\tripal_blast\Services\TripalBlastJobService::class)
       ->disableOriginalConstructor()
-      ->onlyMethods(['createBlastJob', 'jobsBlastMakeSecret'])
+      ->onlyMethods(['createBlastJob'])
       ->getMock();
 
     $job_service->expects($this->once())
       ->method('createBlastJob')
-      ->willReturnCallback(function (array $submission) use (&$captured_submission): int {
+      ->willReturnCallback(function (array $submission) use (&$captured_submission): ?array {
         $captured_submission = $submission;
-        return 2024;
+        return ['job_id' => 2024, 'uuid' => '1234b567-c85e-12f5-c325-718327814391'];
       });
 
-    $job_service->method('jobsBlastMakeSecret')->willReturn('encoded-job');
     $this->container->set('tripal_blast.job_service', $job_service);
 
     $form = [];
