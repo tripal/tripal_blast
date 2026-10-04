@@ -512,6 +512,7 @@ class TripalBlastForm extends FormBase {
     $blast_submission['options'] = $advanced_options;
 
     $job_id = NULL;
+    $uuid = NULL;
 
     // SUBMIT JOB TO TRIPAL
     //---------------------
@@ -521,7 +522,11 @@ class TripalBlastForm extends FormBase {
       // Actually submit the job.
       try {
         $job_service = \Drupal::service('tripal_blast.job_service');
-        $job_id = $job_service->createBlastJob($blast_submission);
+        $job_parameters = $job_service->createBlastJob($blast_submission);
+        if ($job_parameters) {
+          $job_id = $job_parameters['job_id'] ?? NULL;
+          $uuid = $job_parameters['uuid'] ?? NULL;
+        }
       }
       catch (\Exception $e) {
         \Drupal::messenger()->addError($this->t('Unable to submit the BLAST job. The error was: @error', ['@error' => $e->getMessage()]));
@@ -529,14 +534,11 @@ class TripalBlastForm extends FormBase {
     }
 
     if ($job_id) {
-      //Encode the job_id.
-      $job_encode_id = $job_service->jobsBlastMakeSecret($job_id);
-
       // Add it to the recent jobs list.
       if (!isset($_SESSION['blast_jobs'])) {
         $_SESSION['blast_jobs'] = [];
       }
-      $_SESSION['blast_jobs'][] = $job_encode_id;
+      $_SESSION['blast_jobs'][] = $uuid;
 
       // NOTE: Originally there was a call to tripal_launch_jobs() here.
       // That should NEVER be done since it runs possibly long jobs in the page
@@ -545,7 +547,7 @@ class TripalBlastForm extends FormBase {
       // on a specified schedule.
 
       // Redirect to the BLAST results page using form redirection (no direct send).
-      $go = '/blast/report/' . $job_encode_id;
+      $go = '/blast/report/' . $uuid;
       $url = Url::fromUserInput($go);
       $form_state->setRedirectUrl($url);
     }
