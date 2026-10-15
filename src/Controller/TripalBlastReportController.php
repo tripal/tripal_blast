@@ -37,6 +37,10 @@ class TripalBlastReportController extends ControllerBase {
     $tripaljob->load($blastjob_id);
     $job = $tripaljob->getJob();
 
+    // How long to wait in seconds for the job runner to start a job.
+    $start_timeout = \Drupal::config('tripal_blast.settings')
+      ->get('tripal_blast_config_jobs.start_timeout');
+
     if (strtolower($job->status) == 'cancelled') {
       // Job has been cancelled (code 999).
       $theme = 'theme-tripal-blast-report-pending';
