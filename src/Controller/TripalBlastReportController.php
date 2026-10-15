@@ -1,4 +1,5 @@
 <?php
+
 namespace Drupal\tripal_blast\Controller;
 
 use Drupal\Core\Link;
@@ -36,10 +37,30 @@ class TripalBlastReportController extends ControllerBase {
     $tripaljob->load($blastjob_id);
     $job = $tripaljob->getJob();
 
-    if ($job->start_time == NULL AND $job->end_time == NULL) {
+    if (strtolower($job->status) == 'cancelled') {
+      // Job has been cancelled (code 999).
+      $theme = 'theme-tripal-blast-report-pending';
+      $job_param = [
+        'job_id' => '',
+        'status' => 'Cancelled',
+        'status_code' => 999,
+      ];
+    }
+    elseif (strtolower($job->status) == 'error') {
+      // Job has encountered an error (code 666).
+      $theme = 'theme-tripal-blast-report-pending';
+      $job_param = [
+        'job_id' => '',
+        'status' => 'Error',
+        'status_code' => 666,
+      ];
+    }
+    elseif ($job->start_time === NULL && $job->end_time === NULL) {
       $start_delay = time() - $job->submit_date;
-      if ($start_delay > $this->max_start_delay) {
-        // Cancel the job so stalled jobs don't pile up.
+      // Job pending (code 0) or has taken too long to start (code 2).
+      if ($start_timeout && $start_delay > $start_timeout) {
+        // Job has taken too long to start (code 2).
+        // Cancel the job so that stalled jobs don't pile up.
         $tripaljob->cancel();
         $theme = 'theme-tripal-blast-report-pending';
         $job_param = [
@@ -49,8 +70,8 @@ class TripalBlastReportController extends ControllerBase {
         ];
       }
       else {
-        // 1) Job is in the Queue.
         $theme = 'theme-tripal-blast-report-pending';
+        // Job is in the queue (code 0), wait then refresh.
         $job_param = [
           'job_id' => '',
           'status' => 'Pending',
@@ -59,37 +80,30 @@ class TripalBlastReportController extends ControllerBase {
         ];
       }
     }
-    elseif (strtolower($job->status) == 'cancelled') {
-      // 2) Job has been Cancelled.
-      $theme = 'theme-tripal-blast-report-pending';
-      $job_param = [
-        'job_id' => '',
-        'status' => 'Cancelled',
-        'status_code' => 999,
-      ];
-    }
-    elseif (strtolower($job->status) == 'error') {
-      // 2) Job has encountered an error.
-      $theme = 'theme-tripal-blast-report-pending';
-      $job_param = [
-        'job_id' => '',
-        'status' => 'Error',
-        'status_code' => 666,
-      ];
-    }
     elseif ($job->end_time !== NULL) {
-      // 3) Job is Complete
-      $theme = 'theme-tripal-blast-show-report';
-      $job_param = [
-        'job_id' => $blastjob_id,
-        'status' => '',
-        'status_code' => '',
-      ];
-
+      // Job is complete but expired (code 3) or is ready to display (no code).
       $report = $this->prepareReport($blastjob_id);
+      if ($report->expired) {
+        // Job is too old and has expired (code 3).
+        $theme = 'theme-tripal-blast-report-pending';
+        $job_param = [
+          'job_id' => '',
+          'status' => 'Expired',
+          'status_code' => 3,
+        ];
+      }
+      else {
+        // Display the job output (different theme, code is not used).
+        $theme = 'theme-tripal-blast-show-report';
+        $job_param = [
+          'job_id' => $blastjob_id,
+          'status' => '',
+          'status_code' => '',
+        ];
+      }
     }
     else {
-      // 4) Job is in Progress
+      // Job is in progress (code 1), wait then refresh.
       $run_time = time() - $job->submit_date;
       // Automatically refresh the page less frequently for long run times.
       // Add approximately 5000 milliseconds for each minute of run time.
