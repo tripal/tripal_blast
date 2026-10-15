@@ -3,11 +3,12 @@
 namespace Drupal\Tests\tripal_blast\Kernel;
 
 use Drupal\file\Entity\File;
-use Drupal\Tests\tripal\Kernel\TripalTestKernelBase;
 use Drupal\Tests\tripal_blast\Traits\TripalBlastTestTrait;
+use Drupal\Tests\tripal_chado\Kernel\ChadoTestKernelBase;
 use Drupal\Tests\user\Traits\UserCreationTrait;
 use Drupal\tripal\Services\TripalLogger;
 use Drupal\tripal_blast\Services\TripalBlastJobService;
+use Drupal\tripal_chado\Database\ChadoConnection;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
@@ -17,7 +18,7 @@ use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
  */
 #[Group('tripal-blast')]
 #[RunTestsInSeparateProcesses]
-class TripalBlastJobServiceTest extends TripalTestKernelBase {
+class TripalBlastJobServiceTest extends ChadoTestKernelBase {
 
   use TripalBlastTestTrait;
   use UserCreationTrait;
@@ -32,7 +33,7 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
   /**
    * {@inheritdoc}
    */
-  protected static $modules = ['system', 'user', 'file', 'tripal', 'tripal_blast'];
+  protected static $modules = ['system', 'user', 'file', 'tripal', 'tripal_chado', 'tripal_blast'];
 
   /**
    * The YAML file indicating the scenarios to test.
@@ -79,6 +80,13 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
    *   TripalBlastDatabase entity.
    */
   protected array $blast_databases = [];
+
+  /**
+   * A Database query interface for querying Chado using Tripal DBX.
+   *
+   * @var \Drupal\tripal_chado\Database\ChadoConnection
+   */
+  protected ChadoConnection $chado_connection;
 
   /**
    * The tripal blast job service.
@@ -136,6 +144,10 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
         return NULL;
       });
     $this->container->set('tripal.logger', $mock_logger);
+
+    // Create a test chado instance as needed by our service.
+    $this->chado_connection = $this->createTestSchema(ChadoTestKernelBase::INIT_CHADO_EMPTY);
+    $this->container->set('tripal_chado.database', $this->chado_connection);
 
     $this->blast_job_service = $this->container->get('tripal_blast.job_service');
 
@@ -277,7 +289,7 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
     $secret = $this->blast_job_service->jobsBlastMakeSecret($job_id);
     $this->assertNotSame((string) $job_id, $secret);
 
-    $revealed = $this->blast_job_service->jobsBlastRevealSecret($secret);
+    $revealed = (string) $this->blast_job_service->jobsBlastRevealSecret($secret);
     $this->assertSame((string) $job_id, $revealed);
   }
 
@@ -288,13 +300,15 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
    */
   public static function provideDataForTestJobsBlastRevealSecretInvalid() {
     return [
-      "Invalid numeric secret" => [
+      "Expired blast secret" => [
         'secret' => 323435,
-        'expected_error' => 'Unable to decode the blast job_id from 323435',
+        'expected_error' => '',
+        'expected_return' => FALSE,
       ],
       "Invalid non-numeric secret" => [
-        'secret' => 'invalid-secret',
-        'expected_error' => 'Unable to decode the blast job_id from invalid-secret',
+        'secret' => '123-invalid-secret',
+        'expected_error' => 'Unable to decode the blast job_id from 123-invalid-secret',
+        'expected_return' => FALSE,
       ],
     ];
   }
@@ -310,14 +324,19 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
    * @dataProvider provideDataForTestJobsBlastRevealSecretInvalid
    */
   #[DataProvider('provideDataForTestJobsBlastRevealSecretInvalid')]
-  public function testJobsBlastRevealSecretInvalid(mixed $secret, string $expected_error): void {
+  public function testJobsBlastRevealSecretInvalid(mixed $secret, string $expected_error, mixed $expected_return): void {
     ob_start();
     $revealed = $this->blast_job_service->jobsBlastRevealSecret($secret);
     $printed_output = ob_get_contents();
     ob_end_clean();
 
-    $this->assertFalse($revealed, "The revealed job_id should be FALSE for an invalid secret.");
-    $this->assertStringContainsString($expected_error, $printed_output, 'The expected logger error did not occur when invalid secret is provided.');
+    $this->assertEquals($expected_return, $revealed, "The expected return value was not received for secret \"$secret\"");
+    if ($expected_error) {
+      $this->assertStringContainsString($expected_error, $printed_output, 'The expected logger error did not occur when invalid secret is provided.');
+    }
+    else {
+      $this->assertEmpty($expected_error, $printed_output, "We did not expect a logger error for secret \"$secret\".");
+    }
   }
 
   /**
@@ -426,7 +445,7 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
     $result = $this->blast_job_service::runJob('blastn', $query_file, $database_prefix, $output_stub, ['evalue' => '1e-5']);
     ob_end_clean();
 
-    $this->assertNull($result, 'runJob should complete successfully and return null.');
+    $this->assertTrue($result, 'runJob should complete successfully and return TRUE.');
     $this->assertFileExists($output_stub . '.asn', 'Blast Job is expected to return a .asn file.');
     $this->assertFileExists($output_stub . '.xml', 'Blast Job is expected to return a .xml file.');
     $this->assertFileExists($output_stub . '.tsv', 'Blast Job is expected to return a .tsv file.');
@@ -454,8 +473,7 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
     $mock_job_service->method('getBlastCommand')
       ->willReturn(['/bin/true', '/bin/true']);
     $mock_job_service->expects($this->once())
-      ->method('jobsConvertTSVtoGFF3')
-      ->willReturn(NULL);
+      ->method('jobsConvertTSVtoGFF3');
 
     $this->container->set('tripal_blast.job_service', $mock_job_service);
 
@@ -469,7 +487,7 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
     $printed_output = ob_get_contents();
     ob_end_clean();
 
-    $this->assertNull($result, 'runJob should complete and return null when formatter outputs are missing.');
+    $this->assertTrue($result, 'runJob should complete and return TRUE when formatter outputs are missing.');
     $this->assertFileExists($output_stub . '.asn', 'We expected an .asn file to be present, but it is missing.');
     $this->assertStringContainsString('Unable to convert BLAST ASN.1 archive to XML', $printed_output, 'The expected logger error did not occur when generating the XML file.');
     $this->assertStringContainsString('Unable to convert BLAST ASN.1 archive to Tabular Output', $printed_output, 'The expected logger error did not occur when generating the tabular file.');
@@ -545,7 +563,7 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
    * @return array
    *   Each scenario contains an array containing the following sub arrays:
    *   - An array containing the inputs with the following keys:
-   *     - blast_program: The BLAST program to execute (ie: blastn, tblastn, tblastx, blastp, blastx).
+   *     - blast_program: The BLAST program to execute (i.e.: blastn, tblastn, tblastx, blastp, blastx).
    *     - target_blastdb: The tripal_blast_database id of the target database to search against.
    *     - target_file: The full path to the file containing the target database.
    *     - query_file: The full path to the file containing the query sequence.
@@ -688,11 +706,12 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
         [
           'id'  => 67890,
           'name' => 'Chlamydomonas reinhardtii Protein DB',
+          'db_url' => '',
           'path'  => '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_reinhardtii_v5.6_protein',
           'dbtype' => 'p',
-          'dbxref_id_regexp' => '^>.*$',
-          'dbxref_db_id' => 2,
-          'dbxref_linkout_type' => 'none',
+          'db_regexp' => '^>.*$',
+          'db_id' => 2,
+          'db_linkout_type' => 'tripal_blast.linkout_service:none',
         ],
         [
           'blast_program' => 'blastn',
@@ -766,11 +785,12 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
         [
           'id'  => 123450,
           'name' => 'Chlamydomonas reinhardtii Nucleotide DB',
+          'db_url' => '',
           'path'  => 'Chlamydomonas_reinhardtii_v5.6',
           'dbtype' => 'n',
-          'dbxref_id_regexp' => '^>.*$',
-          'dbxref_db_id' => 1,
-          'dbxref_linkout_type' => 'none',
+          'db_regexp' => '^>.*$',
+          'db_id' => 1,
+          'db_linkout_type' => 'tripal_blast.linkout_service:none',
         ],
         [
           'blast_program' => 'blastn',
@@ -908,7 +928,7 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
     }
 
     $this->assertTrue($exception_caught, "We expected an exception message when trying to get the blast command.");
-    $this->assertSame("Unable to find the BLAST executable (ie: /usr/bin/blastn). This can be changed in the admin settings; you supplied: /usr/bin/blastn", $exception_message, "We expected the excpetion to start with 'Unable to find the BLAST executable (ie: /usr/bin/blastn).', but it was $exception_message.");
+    $this->assertSame("Unable to find the BLAST executable (i.e.: /usr/bin/blastn). This can be changed in the admin settings; you supplied: /usr/bin/blastn", $exception_message, "We expected the excpetion to start with 'Unable to find the BLAST executable (i.e.: /usr/bin/blastn).', but it was $exception_message.");
   }
 
   /**
@@ -937,7 +957,7 @@ class TripalBlastJobServiceTest extends TripalTestKernelBase {
     }
 
     $this->assertTrue($exception_caught, "We expected an exception message when trying to get the blast command.");
-    $this->assertSame("Unable to find the BLAST Formatter executable (ie: /usr/bin/blast_formatter). This can be changed in the admin settings; you supplied: /usr/local/blast_formatter", $exception_message, "We expected the excpetion to start with 'Unable to find the BLAST executable (ie: /usr/bin/blastn).', but it was $exception_message.");
+    $this->assertSame("Unable to find the BLAST Formatter executable (i.e.: /usr/bin/blast_formatter). This can be changed in the admin settings; you supplied: /usr/local/blast_formatter", $exception_message, "We expected the excpetion to start with 'Unable to find the BLAST executable (i.e.: /usr/bin/blastn).', but it was $exception_message.");
   }
 
   /**

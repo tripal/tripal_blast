@@ -2,9 +2,10 @@
 
 namespace Drupal\Tests\tripal_blast\Kernel;
 
-use Drupal\Tests\tripal\Kernel\TripalTestKernelBase;
+use Drupal\Tests\tripal_chado\Kernel\ChadoTestKernelBase;
 use Drupal\tripal_blast\Entity\TripalBlastDatabase;
 use Drupal\tripal_blast\Services\TripalBlastDatabaseService;
+use Drupal\tripal_chado\Database\ChadoConnection;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 
@@ -17,12 +18,12 @@ use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
  */
 #[Group('tripal-blast')]
 #[RunTestsInSeparateProcesses]
-class TripalBlastDatabaseServiceTest extends TripalTestKernelBase {
+class TripalBlastDatabaseServiceTest extends ChadoTestKernelBase {
 
   /**
    * {@inheritdoc}
    */
-  protected static $modules = ['system', 'user', 'tripal', 'tripal_blast'];
+  protected static $modules = ['system', 'user', 'tripal', 'tripal_chado', 'tripal_blast'];
 
   protected static $testdb_details = [
     [
@@ -30,20 +31,28 @@ class TripalBlastDatabaseServiceTest extends TripalTestKernelBase {
       'name' => 'Chlamydomonas reinhardtii Nucleotide DB',
       'path' => '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_reinhardtii_v5.6.nin',
       'dbtype' => 'n',
-      'dbxref_id_regexp' => '^>.*$',
-      'dbxref_db_id' => 1,
-      'dbxref_linkout_type' => 'none',
+      'db_regexp' => '^>.*$',
+      'db_id' => 1,
+      'db_linkout_type' => 'tripal_blast.linkout_service:none',
     ],
     [
       'id' => 67890,
       'name' => 'Chlamydomonas reinhardtii Protein DB',
+      'db_url' => '',
       'path' => '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_reinhardtii_v5.6_protein.nin',
       'dbtype' => 'p',
-      'dbxref_id_regexp' => '^>.*$',
-      'dbxref_db_id' => 2,
-      'dbxref_linkout_type' => 'none',
+      'db_regexp' => '^>.*$',
+      'db_id' => 2,
+      'db_linkout_type' => 'tripal_blast.linkout_service:none',
     ]
   ];
+
+  /**
+   * A Database query interface for querying Chado using Tripal DBX.
+   *
+   * @var \Drupal\tripal_chado\Database\ChadoConnection
+   */
+  protected ChadoConnection $chado_connection;
 
   /**
    * {@inheritdoc}
@@ -52,6 +61,10 @@ class TripalBlastDatabaseServiceTest extends TripalTestKernelBase {
     parent::setUp();
     \Drupal::state()->set('is_a_test_environment', TRUE);
     $this->installConfig('system');
+
+    // Create a test chado instance as needed by our service.
+    $this->chado_connection = $this->createTestSchema(ChadoTestKernelBase::INIT_CHADO_EMPTY);
+    $this->container->set('tripal_chado.database', $this->chado_connection);
   }
 
   /**
