@@ -8,9 +8,11 @@ namespace Drupal\tripal_blast\Form;
 
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\InvokeCommand;
+use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Link;
+use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Url;
 use Drupal\file\Entity\File;
 use Drupal\tripal_blast\Services\TripalBlastProgramHelper;
@@ -432,6 +434,13 @@ class TripalBlastForm extends FormBase {
     $blast_submission = [];
     $blast_submission['blast_program'] = $blast_program = $form_state->getValue('blast_program');
 
+    // Create a unique directory for this job's input and output.
+    $unique_dir = $this->createOutputDirectory();
+    if (!$unique_dir) {
+      return;
+    }
+    $blast_submission['result_filestub'] = $unique_dir . '/output';
+
     // QUERY
     // -----
     // BLAST can only take the query as a file;
@@ -441,10 +450,8 @@ class TripalBlastForm extends FormBase {
     if ($var_qflag_value) {
       if ($var_qflag_value == 'seqQuery') {
         $seq_content = $form_state->getValue('FASTA');
-
-        $query_file = \Drupal::service('file_system')->getTempDirectory() . '/' . date('YMd_His') . '_query.fasta';
+        $query_file = $unique_dir . '/query.fasta';
         $blast_submission['query_file'] = $query_file;
-
         file_put_contents($blast_submission['query_file'], trim($seq_content));
       }
       elseif ($var_qflag_value == 'upQuery') {
@@ -516,8 +523,12 @@ class TripalBlastForm extends FormBase {
 
     // SUBMIT JOB TO TRIPAL
     //---------------------
-    // If there is a blast target...
-    if (!$error) {
+    if ($error) {
+      // Delete the output directory created for this job.
+      unlink($unique_dir . '/query.fasta');
+      rmdir($unique_dir);
+    }
+    else {
 
       // Actually submit the job.
       try {
@@ -551,6 +562,54 @@ class TripalBlastForm extends FormBase {
       $url = Url::fromUserInput($go);
       $form_state->setRedirectUrl($url);
     }
+  }
+
+  /**
+   * Generates a unique empty directory for blast input and output files.
+   *
+   * @return string
+   *   System path of a new empty directory that is guaranteed to have a
+   *   unique name. We need the system path rather than a drupal public://
+   *   path because we need to pass it to the appropriate blast program.
+   *   Returns an empty string if a directory could not be created.
+   */
+  protected function createOutputDirectory(): string {
+    // @todo add injection to this class.
+    $messenger = \Drupal::messenger();
+    $fs = \Drupal::service('file_system');
+    $fs_flags = FileSystemInterface::CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS;
+
+    // Get the path to our module's directory in public://.
+    $public_dir = \Drupal::service('file_system')->realpath('public://');
+    $module_dir .= $public_dir . '/tripal_blast';
+
+    // Make sure the module directory exists, create if it does not exist.
+    if (!file_exists($module_dir)) {
+      if (!$fs->prepareDirectory($module_dir, $fs_flags)) {
+        $messenger->addError($this->t('Could not create directory "@dir"', ['@dir' => $module_dir]));
+        return '';
+      }
+    }
+
+    // We want to save all result files (.asn, .xml, .tsv, .html) in the
+    // public files directory, usually [drupal root]/sites/default/files.
+
+    // Create a unique directory. Check for uniqueness, and increment suffix
+    // if directory already exists. This will only be needed if two users
+    // submit blast jobs at almost the same time, within one second.
+    $timestamp = date('Ymd_His');
+    $suffix = 1;
+    $unique_dir = $module_dir . '/' . $timestamp;
+    while (file_exists($unique_dir)) {
+      $unique_dir = $module_dir . '/' . $timestamp . $suffix++;
+    }
+    if (!$fs->prepareDirectory($unique_dir, $fs_flags)) {
+      $messenger->addError($this->t('Could not create directory "@dir"', ['@dir' => $unique_dir]));
+      return '';
+    }
+    // Blast programs will need create and write permissions when run as a job.
+    chmod($unique_dir, 0777);
+    return $unique_dir;
   }
 
   /**
