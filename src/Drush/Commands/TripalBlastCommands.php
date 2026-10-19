@@ -116,9 +116,11 @@ class TripalBlastCommands extends DrushCommands {
         // empty. Don't just randomly glob if we don't have a valid stub.
         if ($result->result_filestub && preg_match('/\/tripal_blast\//', $result->result_filestub)) {
           $path_parts = pathinfo($result->result_filestub);
-          $outfiles = $this->file_system->scanDirectory($path_parts['dirname'], '/' . $path_parts['filename'] . '/');
-          foreach ($outfiles as $file) {
-            $files[] = $file->uri;
+          if (is_dir($path_parts['dirname'])) {
+            $outfiles = $this->file_system->scanDirectory($path_parts['dirname'], '/' . $path_parts['filename'] . '/');
+            foreach ($outfiles as $file) {
+              $files[] = $file->uri;
+            }
           }
         }
       }
