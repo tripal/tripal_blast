@@ -435,11 +435,12 @@ class TripalBlastForm extends FormBase {
     $blast_submission['blast_program'] = $blast_program = $form_state->getValue('blast_program');
 
     // Create a unique directory for this job's input and output.
-    $unique_dir = $this->createOutputDirectory();
+    $timestamp = date('Ymd_His');
+    $unique_dir = $this->createOutputDirectory($timestamp);
     if (!$unique_dir) {
       return;
     }
-    $blast_submission['result_filestub'] = $unique_dir . '/output';
+    $blast_submission['result_filestub'] = $unique_dir . '/' . $timestamp . '.blast';
 
     // QUERY
     // -----
@@ -450,7 +451,7 @@ class TripalBlastForm extends FormBase {
     if ($var_qflag_value) {
       if ($var_qflag_value == 'seqQuery') {
         $seq_content = $form_state->getValue('FASTA');
-        $query_file = $unique_dir . '/query.fasta';
+        $query_file = $unique_dir . '/' . $timestamp . '.query.fasta';
         $blast_submission['query_file'] = $query_file;
         file_put_contents($blast_submission['query_file'], trim($seq_content));
       }
@@ -567,13 +568,16 @@ class TripalBlastForm extends FormBase {
   /**
    * Generates a unique empty directory for blast input and output files.
    *
+   * @param string $timestamp
+   *   A representation of the current time.
+   *
    * @return string
    *   System path of a new empty directory that is guaranteed to have a
    *   unique name. We need the system path rather than a drupal public://
    *   path because we need to pass it to the appropriate blast program.
    *   Returns an empty string if a directory could not be created.
    */
-  protected function createOutputDirectory(): string {
+  protected function createOutputDirectory(string $timestamp): string {
     // @todo add injection to this class.
     $messenger = \Drupal::messenger();
     $fs = \Drupal::service('file_system');
@@ -597,7 +601,6 @@ class TripalBlastForm extends FormBase {
     // Create a unique directory. Check for uniqueness, and increment suffix
     // if directory already exists. This will only be needed if two users
     // submit blast jobs at almost the same time, within one second.
-    $timestamp = date('Ymd_His');
     $suffix = 1;
     $unique_dir = $module_dir . '/' . $timestamp;
     while (file_exists($unique_dir)) {
