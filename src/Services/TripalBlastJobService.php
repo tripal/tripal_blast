@@ -81,6 +81,8 @@ class TripalBlastJobService {
    *   A connection to the Drupal database.
    * @param Drupal\tripal_chado\Database\ChadoConnection $chado_connection
    *   A Database query interface for querying Chado using Tripal DBX.
+   * @param Drupal\Core\File\FileSystemInterface $fileSystem
+   *   The drupal file system service.
    * @param Drupal\Component\Uuid\UuidInterface $uuidService
    *   Service to generate unique identifiers.
    * @param Drupal\tripal\Services\TripalLogger $logger
