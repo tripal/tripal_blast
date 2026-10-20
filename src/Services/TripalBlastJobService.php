@@ -4,6 +4,7 @@ namespace Drupal\tripal_blast\Services;
 
 use Drupal\Component\Uuid\UuidInterface;
 use Drupal\Core\Database\Connection;
+use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Render\Markup;
 use Drupal\tripal\Services\TripalJob;
 use Drupal\tripal\Services\TripalLogger;
@@ -32,30 +33,6 @@ class TripalBlastJobService {
   ];
 
   /**
-   * Constructs a new TripalBlastJobService object.
-   *
-   * @param Drupal\Core\Database\Connection $drupal_connection
-   *   A connection to the Drupal database.
-   * @param Drupal\tripal_chado\Database\ChadoConnection $chado_connection
-   *   A Database query interface for querying Chado using Tripal DBX.
-   * @param Drupal\Component\Uuid\UuidInterface $uuidService
-   *   Service to generate unique identifiers.
-   * @param Drupal\tripal\Services\TripalLogger $logger
-   *   The Tripal logger service.
-   */
-  public function __construct(
-    Connection $drupal_connection,
-    ChadoConnection $chado_connection,
-    UuidInterface $uuidService,
-    TripalLogger $logger,
-  ) {
-    $this->drupal_connection = $drupal_connection;
-    $this->chado_connection = $chado_connection;
-    $this->uuidService = $uuidService;
-    $this->logger = $logger;
-  }
-
-  /**
    * The drupal database connection.
    *
    * @var Drupal\Core\Database\Connection
@@ -70,6 +47,13 @@ class TripalBlastJobService {
   protected ChadoConnection $chado_connection;
 
   /**
+   * Drupal file system service.
+   *
+   * @var Drupal\Core\File\FileSystemInterface
+   */
+  protected FileSystemInterface $fileSystem;
+
+  /**
    * UUID generator.
    *
    * @var Drupal\Component\Uuid\UuidInterface;
@@ -82,6 +66,39 @@ class TripalBlastJobService {
    * @var Drupal\tripal\Services\TripalLogger
    */
   protected TripalLogger $logger;
+
+  /**
+   * A UUID for the current job. This is set by createJobDirectory().
+   *
+   * @var string
+   */
+  protected string $uuid;
+
+  /**
+   * Constructs a new TripalBlastJobService object.
+   *
+   * @param Drupal\Core\Database\Connection $drupal_connection
+   *   A connection to the Drupal database.
+   * @param Drupal\tripal_chado\Database\ChadoConnection $chado_connection
+   *   A Database query interface for querying Chado using Tripal DBX.
+   * @param Drupal\Component\Uuid\UuidInterface $uuidService
+   *   Service to generate unique identifiers.
+   * @param Drupal\tripal\Services\TripalLogger $logger
+   *   The Tripal logger service.
+   */
+  public function __construct(
+    Connection $drupal_connection,
+    ChadoConnection $chado_connection,
+    FileSystemInterface $fileSystem,
+    UuidInterface $uuidService,
+    TripalLogger $logger,
+  ) {
+    $this->drupal_connection = $drupal_connection;
+    $this->chado_connection = $chado_connection;
+    $this->fileSystem = $fileSystem;
+    $this->uuidService = $uuidService;
+    $this->logger = $logger;
+  }
 
   /**
    * Retrieve the number of recent jobs.
@@ -352,6 +369,45 @@ class TripalBlastJobService {
       $urlprefix = $query->execute()->fetchField();
     }
     return $urlprefix;
+  }
+
+  /**
+   * Set up a unique directory for blast job input and output files.
+   *
+   * This also initializes the class $uuid variable, which is also used in
+   * creating the results uri.
+   *
+   * @return string
+   *   The system path to the created directory.
+   */
+  public function createJobDirectory(): string {
+    // Get the path to our module's directory in public://.
+    $public_dir = $this->fileSystem->realpath('public://');
+    $module_dir .= $public_dir . '/tripal_blast';
+
+    // Make sure the module directory exists, create if it does not exist.
+    if (!file_exists($module_dir)) {
+      if (!$this->fileSystemfs->prepareDirectory($module_dir, $fs_flags)) {
+        $this->logger->error($this->t('Could not create directory "@dir"', ['@dir' => $module_dir]));
+        return '';
+      }
+    }
+
+    // Get a uuid and store it.
+    $this->uuid = $this->uuidService->generate();
+
+    // Create the unique directory.
+    $unique_dir = $module_dir . '/' . $this->uuid;
+    if (!$this->fileSystem->prepareDirectory($unique_dir, $fs_flags)) {
+      $this->logger->error($this->t('Could not create directory "@dir"', ['@dir' => $unique_dir]));
+      return '';
+    }
+
+    // Blast programs will need create and write permissions when run as a job.
+    chmod($unique_dir, 0777);
+
+    // Return the system path.
+    return $unique_dir;
   }
 
   /**

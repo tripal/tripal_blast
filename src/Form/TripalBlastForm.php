@@ -595,9 +595,6 @@ class TripalBlastForm extends FormBase {
       }
     }
 
-    // We want to save all result files (.asn, .xml, .tsv, .html) in the
-    // public files directory, usually [drupal root]/sites/default/files.
-
     // Create a unique directory. Check for uniqueness, and increment suffix
     // if directory already exists. This will only be needed if two users
     // submit blast jobs at almost the same time, within one second.
