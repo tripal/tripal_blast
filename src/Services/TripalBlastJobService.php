@@ -388,6 +388,7 @@ class TripalBlastJobService {
     $module_dir = $public_dir . '/tripal_blast';
 
     // Make sure the module directory exists, create if it does not exist.
+    $fs_flags = FileSystemInterface::CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS;
     if (!file_exists($module_dir)) {
       if (!$this->fileSystem->prepareDirectory($module_dir, $fs_flags)) {
         $this->logger->error('Could not create directory "@dir"', ['@dir' => $module_dir]);
