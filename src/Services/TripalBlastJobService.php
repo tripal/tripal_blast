@@ -385,7 +385,7 @@ class TripalBlastJobService {
   public function createJobDirectory(): string {
     // Get the path to our module's directory in public://.
     $public_dir = $this->fileSystem->realpath('public://');
-    $module_dir .= $public_dir . '/tripal_blast';
+    $module_dir = $public_dir . '/tripal_blast';
 
     // Make sure the module directory exists, create if it does not exist.
     if (!file_exists($module_dir)) {
