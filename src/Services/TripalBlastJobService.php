@@ -390,7 +390,7 @@ class TripalBlastJobService {
     // Make sure the module directory exists, create if it does not exist.
     if (!file_exists($module_dir)) {
       if (!$this->fileSystem->prepareDirectory($module_dir, $fs_flags)) {
-        $this->logger->error($this->t('Could not create directory "@dir"', ['@dir' => $module_dir]));
+        $this->logger->error('Could not create directory "@dir"', ['@dir' => $module_dir]);
         return '';
       }
     }
@@ -404,7 +404,7 @@ class TripalBlastJobService {
       throw new \Exception("Duplicate UUID $unique_dir");
     }
     if (!$this->fileSystem->prepareDirectory($unique_dir, $fs_flags)) {
-      $this->logger->error($this->t('Could not create directory "@dir"', ['@dir' => $unique_dir]));
+      $this->logger->error('Could not create directory "@dir"', ['@dir' => $unique_dir]);
       return '';
     }
 
