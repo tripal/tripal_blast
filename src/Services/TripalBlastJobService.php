@@ -400,6 +400,9 @@ class TripalBlastJobService {
 
     // Create the unique directory.
     $unique_dir = $module_dir . '/' . $this->uuid;
+    if (is_dir($unique_dir)) {
+      throw new \Exception("Duplicate UUID $unique_dir");
+    }
     if (!$this->fileSystem->prepareDirectory($unique_dir, $fs_flags)) {
       $this->logger->error($this->t('Could not create directory "@dir"', ['@dir' => $unique_dir]));
       return '';
