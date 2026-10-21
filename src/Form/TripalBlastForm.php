@@ -46,10 +46,10 @@ class TripalBlastForm extends FormBase {
    */
   public function __construct(
     TripalBlastDatabaseService $database_service,
-    TripalBlastJobService $this->jobService,
+    TripalBlastJobService $job_service,
   ) {
     $this->databaseService = $database_service;
-    $this->jobService = $this->jobService;
+    $this->jobService = $job_service;
   }
 
   /**
