@@ -604,6 +604,9 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
     $job_service->method('jobsCreateTable')->willReturn(['#type' => 'table']);
 
     $this->container->set('tripal_blast.job_service', $job_service);
+    // Re-create the blast form that was created in setup() because
+    // we need the mock job service included.
+    $this->blast_form = TripalBlastForm::create($this->container);
 
     $build = $this->blast_form->buildForm([], new FormState(), 'nucleotide', 'nucleotide');
 
@@ -629,6 +632,9 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
       'files' => (object) ['query' => $query_file],
     ]);
     $this->container->set('tripal_blast.job_service', $job_service);
+    // Re-create the blast form that was created in setup() because
+    // we need the mock job service included.
+    $this->blast_form = TripalBlastForm::create($this->container);
 
     \Drupal::request()->query->set('resubmit', 'secret-id');
 
