@@ -3,11 +3,12 @@
 namespace Drupal\Tests\tripal_blast\Kernel;
 
 use Drupal\KernelTests\KernelTestBase;
-use Drupal\tripal_blast\TripalBlastLinkoutManager;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 
 /**
+ * Tests the blast linkout manager.
+ *
  * @group TripalBlast
  * @group TripalBlastLinkout
  */

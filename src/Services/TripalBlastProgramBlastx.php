@@ -1,22 +1,18 @@
 <?php
-/**
- * @file
- * Form definition of BLASTx program.
- */
 
 namespace Drupal\tripal_blast\Services;
 
-use Drupal\tripal_blast\Services\TripalBlastProgramHelper;
-
 /**
- * BLASTx program class.
+ * Tripal blastx program class.
  */
 class TripalBlastProgramBlastx {
-  const BLASTx = 'blastx';
+  const BLASTX = 'blastx';
 
   /**
-   * Advanced field names used - refer to this value when
-   * validating and submitting fields under advanced options.
+   * Advanced field names used.
+   *
+   * Refer to this value when validating and submitting fields
+   * under advanced options.
    */
   public function formFieldNames() {
     // Keys match field names used in form definition below.
@@ -25,21 +21,22 @@ class TripalBlastProgramBlastx {
   }
 
   /**
-   * Adds the BLASTx Advanced Options to the passed in form.
+   * Adds the blastx Advanced Options to the passed in form.
+   *
    * This form function is meant to be called within another form definition.
    *
-   * @param $blast_cache
-   *   BLAST job history to reference information information contained.
+   * @param array $blast_cache
+   *   BLAST job history to reference information contained.
    *
    * @return array
    *   Additional form field definitions.
    */
-  public function formOptions($blast_cache) {
-    $blast = self::BLASTx;
+  public function formOptions(array $blast_cache): array {
+    $blast = self::BLASTX;
 
     // Edit and Resubmit functionality.
-    // We want to pull up the details from a previous blast and fill them in as defaults
-    // for this blast.
+    // We want to pull up the details from a previous blast and fill them in
+    // as defaults for this blast.
     $options = (isset($blast_cache)) ? $blast_cache : [];
     $defaults = TripalBlastProgramHelper::programGetDefaultValues($options, $blast);
 
@@ -50,7 +47,7 @@ class TripalBlastProgramBlastx {
   /**
    * Map advanced options specific to this program to BLAST keywords.
    *
-   * @param $advanced_field_names
+   * @param array $advanced_field_values
    *   Values set from form ($form_state).
    *
    * @return array
@@ -59,4 +56,5 @@ class TripalBlastProgramBlastx {
   public function formFieldBlastKey($advanced_field_values) {
     return [];
   }
+
 }

@@ -56,7 +56,7 @@ class TripalBlastJobService {
   /**
    * UUID generator.
    *
-   * @var Drupal\Component\Uuid\UuidInterface;
+   * @var Drupal\Component\Uuid\UuidInterface
    */
   protected UuidInterface $uuidService;
 
@@ -134,7 +134,6 @@ class TripalBlastJobService {
           // @todo Check that the results are still available.
           // This is meant to replace the arbitrary only show jobs executed
           // less than 48 hrs ago.
-
           // Remove jobs from the list that are not of the correct program.
           if ($filter_jobs and !in_array($job->program, $programs)) {
             $add = FALSE;
@@ -194,13 +193,13 @@ class TripalBlastJobService {
   /**
    * Reveals the true job_id for your secret blast result.
    *
-   * @param $secret
-   *    The uuid of the job.
+   * @param string $secret
+   *   The uuid of the job.
    *
    * @return int|bool
-   *    The revealed tripal job_id, or FALSE if secret does not exist.
+   *   The revealed tripal job_id, or FALSE if secret does not exist.
    */
-  public function jobsBlastRevealSecret($secret): int|bool {
+  public function jobsBlastRevealSecret(string $secret): int|bool {
     $query = $this->drupal_connection->select('blastjob', 'B');
     $query->condition('B.uuid', $secret, '=');
     $query->addField('B', 'job_id', 'job_id');

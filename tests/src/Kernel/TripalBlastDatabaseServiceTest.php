@@ -25,6 +25,11 @@ class TripalBlastDatabaseServiceTest extends ChadoTestKernelBase {
    */
   protected static $modules = ['system', 'user', 'tripal', 'tripal_chado', 'tripal_blast'];
 
+  /**
+   * Definitions of blast databases for testing.
+   *
+   * @var array
+   */
   protected static $testdb_details = [
     [
       'id' => 123450,
@@ -44,7 +49,7 @@ class TripalBlastDatabaseServiceTest extends ChadoTestKernelBase {
       'db_regexp' => '^>.*$',
       'db_id' => 2,
       'db_linkout_type' => 'tripal_blast.linkout_service:none',
-    ]
+    ],
   ];
 
   /**
@@ -153,12 +158,12 @@ class TripalBlastDatabaseServiceTest extends ChadoTestKernelBase {
     $expectations = [
       'n' => [
         'n' => 'blastn',
-        'p' => 'blastx'
+        'p' => 'blastx',
       ],
       'p' => [
         'n' => 'tblastn',
-        'p' => 'blastp'
-      ]
+        'p' => 'blastp',
+      ],
     ];
 
     // Check we get the expected program names for each combination of
@@ -172,7 +177,7 @@ class TripalBlastDatabaseServiceTest extends ChadoTestKernelBase {
     // -- long name both database and query type.
     $long_names = [
       'n' => 'nucleotide',
-      'p' => 'protein'
+      'p' => 'protein',
     ];
     foreach ($expectations as $db_type => $query_types) {
       foreach ($query_types as $query_type => $expected_program) {

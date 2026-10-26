@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\tripal_blast\Kernel;
 
+use Drupal\tripal_blast\Services\TripalBlastJobService;
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Form\FormState;
 use Drupal\file\Entity\File;
@@ -106,11 +107,14 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
    * Provides data for testBuildForm.
    *
    * @return array
-   *   An array of test scenarios, each containing query type, database type, expected program and expected title.
+   *   An array of test scenarios, each containing query type, database
+   *   type, expected program and expected title.
    *   - query_type: The type of the query (nucleotide or protein).
    *   - db_type: The type of the database (nucleotide or protein).
-   *   - expected_program: The expected BLAST program based on the query and database types.
-   *   - expected_title: The expected title of the current BLAST program based on the query and database types.
+   *   - expected_program: The expected BLAST program based on the query
+   *     and database types.
+   *   - expected_title: The expected title of the current BLAST program
+   *     based on the query and database types.
    */
   public static function provideDataForTestBuildForm(): array {
     return [
@@ -153,7 +157,8 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
    * Tests that the build form contains the expected BLAST fields.
    *
    * @param array $scenario
-   *  The scenario data containing query type, database type, and expected program.
+   *   The scenario data containing query type, database type,
+   *   and expected program.
    *
    * @dataProvider provideDataForTestBuildForm
    */
@@ -171,7 +176,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
       '@name' => $scenario['expected_program'],
     ];
     $title = $this->container->get('string_translation')->translate('@query to @program BLAST (@name)', $page_title);
-    $this->assertEquals($scenario['expected_title'],(string) $title);
+    $this->assertEquals($scenario['expected_title'], (string) $title);
 
     // Test if correct hidden elements are present.
     $this->assertSame($scenario['query_type'], $build['query_type']['#value'], 'We expect the query type to be ' . $scenario['query_type'] . ' but it is not.');
@@ -190,7 +195,8 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
    * Provides data for testValidateForm.
    *
    * @return array
-   *   An array of test scenarios, each containing form values and expected results.
+   *   An array of test scenarios, each containing form values
+   *   and expected results.
    */
   public static function provideDataForTestValidateForm(): array {
     return [
@@ -383,12 +389,12 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
   }
 
   /**
-   * Tests that the form validation correctly identifies missing query and database.
+   * Tests form validation for missing query and database.
    *
    * @param array $values
-   *  The form values to validate.
+   *   The form values to validate.
    * @param array $expected
-   *  The expected results, including expected error keys.
+   *   The expected results, including expected error keys.
    *
    * @dataProvider provideDataForTestValidateForm
    */
@@ -502,7 +508,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
    * Tests that form submission creates a BLAST job record for each program.
    *
    * @param array $values
-   *  The form values to submit.
+   *   The form values to submit.
    *
    * @dataProvider provideDataForTestSubmitForm
    */
@@ -537,13 +543,15 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
     $db_file->save();
 
     $fixture_dir = $this->module_path . '/tests/fixtures/Chlamydomonas_reinhardtii_v5.6';
-    $nucleotide_db = $this->createBlastDatabase([
+    // A nucleotide_db.
+    $this->createBlastDatabase([
       'id' => 123450,
       'name' => 'Fixture nucleotide BLAST DB',
       'path' => $fixture_dir . '/Chlamydomonas_reinhardtii_v5.6.nin',
       'dbtype' => 'n',
     ]);
-    $protein_db = $this->createBlastDatabase([
+    // A protein_db.
+    $this->createBlastDatabase([
       'id' => 67890,
       'name' => 'Fixture protein BLAST DB',
       'path' => $fixture_dir . '/Chlamydomonas_reinhardtii_v5.6_protein.nin',
@@ -595,7 +603,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
    * Tests buildForm recent job display.
    */
   public function testBuildFormDisplaysRecentJobs(): void {
-    $job_service = $this->getMockBuilder(\Drupal\tripal_blast\Services\TripalBlastJobService::class)
+    $job_service = $this->getMockBuilder(TripalBlastJobService::class)
       ->disableOriginalConstructor()
       ->onlyMethods(['jobsCountRecentJobs', 'jobsCreateTable'])
       ->getMock();
@@ -621,7 +629,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
     $query_file = $this->container->get('file_system')->getTempDirectory() . '/resubmit_query.fasta';
     file_put_contents($query_file, ">query\nACGT");
 
-    $job_service = $this->getMockBuilder(\Drupal\tripal_blast\Services\TripalBlastJobService::class)
+    $job_service = $this->getMockBuilder(TripalBlastJobService::class)
       ->disableOriginalConstructor()
       ->onlyMethods(['jobsBlastRevealSecret', 'jobsGetJobByJobId'])
       ->getMock();
@@ -687,7 +695,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
     $editable_config->set('tripal_blast_config_general.path', $temp_dir . '/');
     $editable_config->save();
 
-    $job_service = $this->getMockBuilder(\Drupal\tripal_blast\Services\TripalBlastJobService::class)
+    $job_service = $this->getMockBuilder(TripalBlastJobService::class)
       ->disableOriginalConstructor()
       ->onlyMethods(['createBlastJob'])
       ->getMock();
@@ -726,7 +734,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
    * Tests submitForm catches job creation errors.
    */
   public function testSubmitFormCatchesJobCreationErrors(): void {
-    $job_service = $this->getMockBuilder(\Drupal\tripal_blast\Services\TripalBlastJobService::class)
+    $job_service = $this->getMockBuilder(TripalBlastJobService::class)
       ->disableOriginalConstructor()
       ->onlyMethods(['createBlastJob'])
       ->getMock();
@@ -794,6 +802,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
    * Provides data for testing the gap cost retrieval in the AJAX callback.
    *
    * @return array
+   *   The data array for the tests.
    */
   public static function provideDataForTestProgramGetGapCostInAjaxCallback(): array {
     return [
@@ -860,17 +869,21 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
           'M&MScores' => 5,
         ],
         [
-          'gap_keys' => ['5_2', '3_2', '2_2', '1_2', '0_2', '4_1', '3_1', '2_1']
+          'gap_keys' => ['5_2', '3_2', '2_2', '1_2', '0_2', '4_1', '3_1', '2_1'],
         ],
       ],
     ];
   }
 
   /**
-   * Tests that the AJAX callback correctly retrieves the gap cost based on the program and M&M score.
+   * Tests that the AJAX callback correctly retrieves the gap cost.
+   *
+   * The gap cost is based on the program and M&M score.
    *
    * @param array $data
    *   The form values to test the AJAX callback with.
+   * @param array $result
+   *   Expected gap_keys values.
    *
    * @dataProvider provideDataForTestProgramGetGapCostInAjaxCallback
    */
@@ -896,6 +909,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
    * Provides data for testBlastProgramHelperProgramSetMatchMiss.
    *
    * @return array
+   *   The data array for the tests.
    */
   public static function provideDataForTestBlastProgramHelperProgramSetMatchMiss(): array {
     return [
@@ -999,7 +1013,10 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
   }
 
   /**
-   * Tests that the BLAST program helper correctly sets match and mismatch scores based on the M&M score.
+   * Tests the BLAST program helper match and mismatch scores.
+   *
+   * The BLAST program helper should correctly set match and mismatch scores
+   * based on the M&M score.
    *
    * @param array $data
    *   The form values to test the BLAST program helper with.
@@ -1012,7 +1029,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
   public function testBlastProgramHelperProgramSetMatchMiss(array $data, array $result): void {
     $captured_submission = NULL;
 
-    $job_service = $this->getMockBuilder(\Drupal\tripal_blast\Services\TripalBlastJobService::class)
+    $job_service = $this->getMockBuilder(TripalBlastJobService::class)
       ->disableOriginalConstructor()
       ->onlyMethods(['createBlastJob'])
       ->getMock();
@@ -1041,6 +1058,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
    * Provide data for testProgramValidateFastaSequence method.
    *
    * @return array
+   *   The data array for the tests.
    */
   public static function provideDataForTestProgramValidateFastaSequence() {
     return [

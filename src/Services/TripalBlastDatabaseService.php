@@ -1,29 +1,23 @@
 <?php
-/**
- * @file
- * Contains class definition of Tripal BLAST Database service.
- * All results are from configuration entity.
- */
+
 namespace Drupal\tripal_blast\Services;
 
-use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\Entity\Query\QueryFactory;
-use Drupal\tripal_blast\TripalBlastDatabaseInterface;
-
-
+/**
+ * This service handles tripal blast databases.
+ */
 class TripalBlastDatabaseService {
   const CONFIG_ENTITY_NAME = 'tripalblastdatabase';
 
   /**
    * Get a specific BlastDB.
    *
-   * @param $identifiers
+   * @param array $identifiers
    *   An array of identifiers used to determine which BLAST DB to retrieve.
    *
-   * @return
-   *   A fully-loaded BLAST DB Node
+   * @return object|null
+   *   A fully-loaded BLAST DB Node.
    */
-  public function getDatabaseByIdentifier($identifiers) {
+  public function getDatabaseByIdentifier(array $identifiers) {
     $condition = [];
     if (isset($identifiers['id'])) {
       $condition['field'] = 'id';
@@ -52,34 +46,38 @@ class TripalBlastDatabaseService {
 
   /**
    * Get BLAST database (configuration entity) by database type (dbtype field).
+   *
    * Default to n = nucleotide type database.
    *
-   * @param $type
-   *   n or p for Nucleotide and Protein BLAST database types, repectively.
+   * @param string $type
+   *   Is 'n' or 'p' for Nucleotide or Protein BLAST database types,
+   *   repectively.
+   *
    * @return array
-   *   Associative array where the key is the database id and value is the name
-   *   associated to the id (database name).
+   *   Associative array where the key is the database id and the value is
+   *   the name associated to the id (database name).
    */
   public function getDatabaseByType($type = 'n') {
-    // Type can be the full word i.e. nucleotide and protein,
-    // or the one character value n and p for nucloetide and protein, respectively.
+    // Type can be the full word i.e. 'nucleotide' or 'protein',
+    // or the one character value 'n' or 'p' for nucloetide or
+    // protein, respectively.
     $type = $this->translateType($type);
 
     $storage = \Drupal::entityTypeManager()->getStorage(static::CONFIG_ENTITY_NAME);
     $entity_query = $storage->getQuery();
 
     $blast_db = $entity_query->condition('dbtype', $type)
-    ->sort('name', 'ASC')
-    ->execute();
+      ->sort('name', 'ASC')
+      ->execute();
 
     // Load multiples or single item load($id)
     $all = $storage->loadMultiple($blast_db);
     $db = [];
-    foreach($all as $id => $db_obj) {
+    foreach ($all as $db_obj) {
       $db_id = $db_obj->getId();
       $db_name = $db_obj->getName();
 
-      $db[ $db_id ] = $db_name;
+      $db[$db_id] = $db_name;
     }
 
     return $db;
@@ -120,11 +118,11 @@ class TripalBlastDatabaseService {
   /**
    * Translate database type to single character value.
    *
-   * @param $type
-   *   BLAST database query type ie: nucleotide or protein.
+   * @param string $type
+   *   BLAST database query type i.e.: 'nucleotide' or 'protein'.
    *
-   * @return char
-   *   n for nucleotide and p for protein.
+   * @return string
+   *   Returns 'n' for nucleotide or 'p' for protein.
    */
   protected function translateType(string $type): string {
     $type = (string) $type;
@@ -138,16 +136,17 @@ class TripalBlastDatabaseService {
   /**
    * Determine the BLAST program given the type of database and query.
    *
-   * @param $database_type
-   *   BLAST database type (i.e. nucleotide or protein).
-   * @param $query_type
-   *   BLAST query type (i.e. nucleotide or protein).
+   * @param string $database_type
+   *   BLAST database type (i.e. 'nucleotide' or 'protein').
+   * @param string $query_type
+   *   BLAST query type (i.e. 'nucleotide' or 'protein').
    *
-   * @return string
-   *   BLAST program: blastn, blastx, tblastn, blastp.
+   * @return string|null
+   *   BLAST program: blastn, blastx, tblastn, blastp, or NULL if
+   *   invalid values were passed.
    *
-   * @see routing.yml - $type and $program can be parsed using the
-   * request url.
+   * @see routing.yml
+   * $type and $program can be parsed using the request url.
    */
   public function getProgramName(string $database_type, string $query_type): ?string {
     $database_type = $this->translateType($database_type);
@@ -155,14 +154,15 @@ class TripalBlastDatabaseService {
     $db_types = [
       'n' => [
         'n' => 'blastn',
-        'p' => 'blastx'
+        'p' => 'blastx',
       ],
       'p' => [
         'n' => 'tblastn',
-        'p' => 'blastp'
-      ]
+        'p' => 'blastp',
+      ],
     ];
 
     return $db_types[$database_type][$query_type] ?? NULL;
   }
+
 }

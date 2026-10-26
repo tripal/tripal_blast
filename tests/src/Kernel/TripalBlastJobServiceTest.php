@@ -2,7 +2,7 @@
 
 namespace Drupal\Tests\tripal_blast\Kernel;
 
-use Drupal\file\Entity\File;
+use Drupal\tripal_blast\Services\TripalBlastDatabaseService;
 use Drupal\Tests\tripal_blast\Traits\TripalBlastTestTrait;
 use Drupal\Tests\tripal_chado\Kernel\ChadoTestKernelBase;
 use Drupal\Tests\user\Traits\UserCreationTrait;
@@ -192,6 +192,7 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
    * Get the list of scenarios to test.
    *
    * @return array
+   *   The test scenarios.
    */
   public static function provideScenarios(): array {
     $scenarios = [];
@@ -203,6 +204,7 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
 
     return $scenarios;
   }
+
   /**
    * Tests that a blastjob record is saved and returned by the service.
    *
@@ -223,11 +225,12 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
     $job = $service->jobsGetJobByJobId($job_parameters['job_id'], ['skip_file_check' => TRUE]);
     $this->assertIsObject($job);
     // @todo implement a way to compare the job object with the expected values.
-    // $this->assertBlastJobContains($current_scenario['expectations']['job'], $job, "The retrieved job does not match what we expected.");
+    // $this->assertBlastJobContains($current_scenario['expectations']['job'],
+    // $job, "The retrieved job does not match what we expected.");.
   }
 
   /**
-   * Tests that a user-uploaded BLAST database returns the expected job metadata.
+   * Tests that a user-uploaded database returns the expected job metadata.
    */
   public function testUploadedBlastdbForNucleotideTarget(): void {
     $query_file = $this->module_path . '/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_gene.fasta';
@@ -252,7 +255,7 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
   }
 
   /**
-   * Tests that a user-uploaded protein BLAST database returns protein db_dbtype.
+   * Tests that a user-uploaded protein database returns protein db_dbtype.
    */
   public function testUploadedBlastdbForProteinTarget(): void {
     $query_file = $this->module_path . '/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_gene.fasta';
@@ -298,8 +301,9 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
    * Provides data for testJobsBlastRevealSecretInvalid() method.
    *
    * @return array
+   *   Data to use for the test.
    */
-  public static function provideDataForTestJobsBlastRevealSecretInvalid() {
+  public static function provideDataForTestJobsBlastRevealSecretInvalid(): array {
     return [
       "Expired blast secret" => [
         'secret' => '1234b567-c85e-12f5-c325-718327814391',
@@ -316,11 +320,14 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
    *   A string or an integer containing the secret.
    * @param string $expected_error
    *   A string containing the expected error.
+   * @param string|null $expected_return
+   *   If not null, contains text that we expect in the output messages.
+   *   If null, we expect no output messages.
    *
    * @dataProvider provideDataForTestJobsBlastRevealSecretInvalid
    */
   #[DataProvider('provideDataForTestJobsBlastRevealSecretInvalid')]
-  public function testJobsBlastRevealSecretInvalid(mixed $secret, string $expected_error, mixed $expected_return): void {
+  public function testJobsBlastRevealSecretInvalid(mixed $secret, string $expected_error, ?string $expected_return): void {
     ob_start();
     $revealed = $this->blast_job_service->jobsBlastRevealSecret($secret);
     $printed_output = ob_get_contents();
@@ -376,7 +383,7 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
     $this->assertSame(1, $recent_jobs_count, "The recent jobs count is not one when it should be.");
 
     try {
-      $jobs_table = $this->blast_job_service->jobsCreateTable([ $current_scenario['job']['blast_program'] ]);
+      $jobs_table = $this->blast_job_service->jobsCreateTable([$current_scenario['job']['blast_program']]);
       $this->assertSame('Recent Jobs', $jobs_table['#title']);
       $this->assertCount(1, $jobs_table['#rows']);
 
@@ -397,8 +404,9 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
   }
 
   /**
-   * Tests jobsGetRecentJobs() methods for the cases when the type of the recent
-   * job was not in the array.
+   * Tests jobsGetRecentJobs() methods.
+   *
+   * This tests the cases when the type of the recent job was not in the array.
    */
   public function testGetRecentJobsIncorrectProgram() {
     $job_parameters = [
@@ -412,7 +420,6 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
     $job_parameters = $this->blast_job_service->createBlastJob($job_parameters);
 
     $secret = $job_parameters['uuid'];
-    $previous_session = $_SESSION['blast_jobs'] ?? NULL;
     $_SESSION['blast_jobs'] = [$secret];
 
     $recent_jobs = $this->blast_job_service->jobsGetRecentJobs(['blastp']);
@@ -530,7 +537,6 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
    */
   public function testRunJobErrors() {
     $query_file = $this->fixture_dir . '/Chlamydomonas_gene.fasta';
-    $database_prefix = $this->fixture_dir . '/Chlamydomonas_reinhardtii_v5.6';
 
     $temp_dir = sys_get_temp_dir() . '/tripal_blast_runjob_' . uniqid();
     mkdir($temp_dir, 0755, TRUE);
@@ -560,12 +566,17 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
    * @return array
    *   Each scenario contains an array containing the following sub arrays:
    *   - An array containing the inputs with the following keys:
-   *     - blast_program: The BLAST program to execute (i.e.: blastn, tblastn, tblastx, blastp, blastx).
-   *     - target_blastdb: The tripal_blast_database id of the target database to search against.
-   *     - target_file: The full path to the file containing the target database.
+   *     - blast_program: The BLAST program to execute (i.e.: blastn, tblastn,
+   *       tblastx, blastp, blastx).
+   *     - target_blastdb: The tripal_blast_database id of the target database
+   *       to search against.
+   *     - target_file: The full path to the file containing the target
+   *       database.
    *     - query_file: The full path to the file containing the query sequence.
-   *     - result_filestub: The full path to the file where the results will be written (without file type suffix).
-   *   - An array containing the expected exception messages thrown for each case:
+   *     - result_filestub: The full path to the file where the results will
+   *       be written (without file type suffix).
+   *   - An array containing the expected exception messages thrown for each
+   *     case:
    *     - 'expected_exception': Expected exception message.
    */
   public static function provideDataForTestCreateBlastJobErrors() {
@@ -622,7 +633,7 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
           'result_filestub' => 'Chlamydomonas_reinhardtii_v5.6',
         ],
         [
-          'expected_exception' => "Missing required parameter 'query_file' when creating a new BLAST job."
+          'expected_exception' => "Missing required parameter 'query_file' when creating a new BLAST job.",
         ],
       ],
       'query file does not exist' => [
@@ -634,7 +645,7 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
           'result_filestub' => 'Chlamydomonas_reinhardtii_v5.6',
         ],
         [
-          'expected_exception' => "The value supplied for parameter 'query_file' does not exist. The value supplied was: modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas.fasta"
+          'expected_exception' => "The value supplied for parameter 'query_file' does not exist. The value supplied was: modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas.fasta",
         ],
       ],
     ];
@@ -655,7 +666,7 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
     $exception_message = 'NONE';
     $exception_caught = FALSE;
 
-    foreach(['target_file', 'query_file', 'result_filestub'] as $file_path) {
+    foreach (['target_file', 'query_file', 'result_filestub'] as $file_path) {
       if (isset($job_parameters[$file_path])) {
         $job_parameters[$file_path] = $this->fixture_dir . '/' . $job_parameters[$file_path];
       }
@@ -678,7 +689,7 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
   }
 
   /**
-   * Provides data for testCreateBlastJobBlastDB() method.
+   * Provides data for testCreateBlastJobBlastDb() method.
    *
    * @return array
    *   Each scenario contains an array with the following:
@@ -687,7 +698,7 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
    *     createBlastJob() method.
    *   - A string containing the expected exception.
    */
-  public static function provideDataForTestCreateBlastJobBlastDB() {
+  public static function provideDataFortestCreateBlastJobBlastDb() {
     return [
       'target blastdb does not exist -> NULL' => [
         NULL,
@@ -697,7 +708,7 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
           'query_file' => 'Chlamydomonas_gene.fasta',
           'result_filestub' => 'Chlamydomonas_reinhardtii_v5.6',
         ],
-        "The value supplied for parameter 'target_blastdb' does not exist. The value supplied was: 123450"
+        "The value supplied for parameter 'target_blastdb' does not exist. The value supplied was: 123450",
       ],
       'target blastdb does not exist -> invalid' => [
         [
@@ -716,7 +727,7 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
           'query_file' => 'Chlamydomonas_gene.fasta',
           'result_filestub' => 'Chlamydomonas_reinhardtii_v5.6',
         ],
-        "The BLAST database specified by parameter 'target_blastdb' does not exist or is not readable. The value supplied was: 67890"
+        "The BLAST database specified by parameter 'target_blastdb' does not exist or is not readable. The value supplied was: 67890",
       ],
     ];
   }
@@ -730,13 +741,14 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
    *   - An array containing the parameters for createBlastJob.
    * @param string $expected_exception
    *   - Expected exception message.
+   *
    * @return void
    *
-   * @dataProvider provideDataForTestCreateBlastJobBlastDB
+   * @dataProvider provideDataFortestCreateBlastJobBlastDb
    */
-  #[DataProvider('provideDataForTestCreateBlastJobBlastDB')]
-  public function testCreateBlastJobBlastDB(mixed $value, array $job_parameters, string $expected_exception) {
-    $job_service = $this->getMockBuilder(\Drupal\tripal_blast\Services\TripalBlastDatabaseService::class)
+  #[DataProvider('provideDataFortestCreateBlastJobBlastDb')]
+  public function testCreateBlastJobBlastDb(mixed $value, array $job_parameters, string $expected_exception) {
+    $job_service = $this->getMockBuilder(TripalBlastDatabaseService::class)
       ->disableOriginalConstructor()
       ->onlyMethods(['getDatabaseConfig'])
       ->getMock();
@@ -754,8 +766,9 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
     }
 
     try {
-      $blast_job = $this->blast_job_service->createBlastJob($job_parameters);
-    } catch (\Exception $e) {
+      $this->blast_job_service->createBlastJob($job_parameters);
+    }
+    catch (\Exception $e) {
       $exception_caught = TRUE;
       $exception_message = $e->getMessage();
     }
@@ -817,7 +830,7 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
         $job_parameters[$file_path] = $this->fixture_dir . '/' . $job_parameters[$file_path];
       }
     }
-    $job_service = $this->getMockBuilder(\Drupal\tripal_blast\Services\TripalBlastDatabaseService::class)
+    $job_service = $this->getMockBuilder(TripalBlastDatabaseService::class)
       ->disableOriginalConstructor()
       ->onlyMethods(['getDatabaseConfig'])
       ->getMock();
@@ -860,7 +873,8 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
    * Test the getBlastCommand() method with simple inputs.
    *
    * @param array $options
-   *   An array containing the options given to the getBlastCommand() method as a parameter.
+   *   An array containing the options given to the getBlastCommand() method
+   *   as a parameter.
    *
    * @dataProvider provideDataForTestGetBlastCommandSimple
    */
@@ -885,8 +899,8 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
 
     $this->assertNotNull($blast_cmd, "We expected a valid blast command but it was null.");
     $this->assertNotNull($blast_formatter_command, "We expected a valid blast formatter command but it was null.");
-    $this->assertStringContainsString("$blast_path" . "blastn", $blast_cmd, "The expected executable path is not in the blast command.");
-    $this->assertStringContainsString("$blast_path" . "blast_formatter", $blast_formatter_command, "The expected executable formatter path is not in the blast command.");
+    $this->assertStringContainsString("$blast_path blastn", $blast_cmd, "The expected executable path is not in the blast command.");
+    $this->assertStringContainsString("$blast_path blast_formatter", $blast_formatter_command, "The expected executable formatter path is not in the blast command.");
     $this->assertStringContainsString("-query", $blast_cmd, "The expected -query flag is not in the blast command.");
     $this->assertStringContainsString("-db", $blast_cmd, "The -db flag is not in the blast command.");
     $this->assertStringContainsString("-out", $blast_cmd, "The expected -out flag is not in the blast command.");
@@ -909,9 +923,6 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
       ->set('tripal_blast_config_general.threads', 1)
       ->save();
 
-    $blast_path = \Drupal::config('tripal_blast.settings')
-      ->get('tripal_blast_config_general.path');
-
     $output_file = $this->prepareOutputFile();
     $options = ['evalue' => '1e-5'];
 
@@ -920,7 +931,8 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
 
     try {
       $this->blast_job_service->getBlastCommand('blastn', $query_file, $database_prefix, $output_file, $options);
-    } catch (\Exception $e) {
+    }
+    catch (\Exception $e) {
       $exception_caught = TRUE;
       $exception_message = $e->getMessage();
     }
@@ -949,7 +961,8 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
 
     try {
       $this->blast_job_service->getBlastCommand('bin/blastn', $query_file, $database_prefix, $output_file, $options);
-    } catch (\Exception $e) {
+    }
+    catch (\Exception $e) {
       $exception_caught = TRUE;
       $exception_message = $e->getMessage();
     }
@@ -978,14 +991,15 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
       ],
       'file with more than one header' => [
         'file' => 'Chlamydomonas_gene_multiple_headers.fasta',
-        'expected_result' => '2 queries including "Cre08.g358567.t1.1 pacid=30773354 polypeptide=Cre08.g358567.t1.1 locus=Cre08.g358567 ID=Cre08.g358567.t1.1.v5.5 annot-version=v5.5"'
+        'expected_result' => '2 queries including "Cre08.g358567.t1.1 pacid=30773354 polypeptide=Cre08.g358567.t1.1 locus=Cre08.g358567 ID=Cre08.g358567.t1.1.v5.5 annot-version=v5.5"',
       ],
     ];
   }
 
   /**
-   * Tests the jobsFormatQueryHeaders() method with the FASTA files with
-   * different number of headers.
+   * Tests the jobsFormatQueryHeaders() method.
+   *
+   * This uses FASTA files with different numbers of headers.
    *
    * @param string $file
    *   A string containing the input file name.
