@@ -183,6 +183,7 @@ class TripalBlastForm extends FormBase {
     // CHOOSE RECENT BLAST RESULTS
     // ---------------------------
     $jobs = $this->jobService->jobsCountRecentJobs();
+
     if ($jobs) {
       $form['A'] = [
         '#type' => 'details',
@@ -476,7 +477,6 @@ class TripalBlastForm extends FormBase {
     // Create a unique directory for this job's input and output.
     $timestamp = date('Ymd_His');
     $unique_dir = $this->jobService->createJobDirectory();
-#;;;    $unique_dir = $this->createOutputDirectory($timestamp);
     if (!$unique_dir) {
       return;
     }
@@ -608,53 +608,6 @@ class TripalBlastForm extends FormBase {
       $url = Url::fromUserInput($go);
       $form_state->setRedirectUrl($url);
     }
-  }
-
-  /**
-   * Generates a unique empty directory for blast input and output files.
-   *
-   * @param string $timestamp
-   *   A representation of the current time.
-   *
-   * @return string
-   *   System path of a new empty directory that is guaranteed to have a
-   *   unique name. We need the system path rather than a drupal public://
-   *   path because we need to pass it to the appropriate blast program.
-   *   Returns an empty string if a directory could not be created.
-   */
-  protected function createOutputDirectory(string $timestamp): string {
-    // @todo add injection to this class.
-    $messenger = \Drupal::messenger();
-    $fs = \Drupal::service('file_system');
-    $fs_flags = FileSystemInterface::CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS;
-
-    // Get the path to our module's directory in public://.
-    $public_dir = \Drupal::service('file_system')->realpath('public://');
-    $module_dir = $public_dir . '/tripal_blast';
-
-    // Make sure the module directory exists, create if it does not exist.
-    if (!file_exists($module_dir)) {
-      if (!$fs->prepareDirectory($module_dir, $fs_flags)) {
-        $messenger->addError($this->t('Could not create directory "@dir"', ['@dir' => $module_dir]));
-        return '';
-      }
-    }
-
-    // Create a unique directory. Check for uniqueness, and increment suffix
-    // if directory already exists. This will only be needed if two users
-    // submit blast jobs at almost the same time, within one second.
-    $suffix = 1;
-    $unique_dir = $module_dir . '/' . $timestamp;
-    while (file_exists($unique_dir)) {
-      $unique_dir = $module_dir . '/' . $timestamp . $suffix++;
-    }
-    if (!$fs->prepareDirectory($unique_dir, $fs_flags)) {
-      $messenger->addError($this->t('Could not create directory "@dir"', ['@dir' => $unique_dir]));
-      return '';
-    }
-    // Blast programs will need create and write permissions when run as a job.
-    chmod($unique_dir, 0777);
-    return $unique_dir;
   }
 
   /**
