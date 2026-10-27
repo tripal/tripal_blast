@@ -899,8 +899,8 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
 
     $this->assertNotNull($blast_cmd, "We expected a valid blast command but it was null.");
     $this->assertNotNull($blast_formatter_command, "We expected a valid blast formatter command but it was null.");
-    $this->assertStringContainsString("$blast_path blastn", $blast_cmd, "The expected executable path is not in the blast command.");
-    $this->assertStringContainsString("$blast_path blast_formatter", $blast_formatter_command, "The expected executable formatter path is not in the blast command.");
+    $this->assertStringContainsString($blast_path . '/blastn', $blast_cmd, "The expected executable path is not in the blast command.");
+    $this->assertStringContainsString($blast_path . '/blast_formatter', $blast_formatter_command, "The expected executable formatter path is not in the blast command.");
     $this->assertStringContainsString("-query", $blast_cmd, "The expected -query flag is not in the blast command.");
     $this->assertStringContainsString("-db", $blast_cmd, "The -db flag is not in the blast command.");
     $this->assertStringContainsString("-out", $blast_cmd, "The expected -out flag is not in the blast command.");
