@@ -6,15 +6,22 @@ use Drupal\Component\Utility\Environment;
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\InvokeCommand;
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\File\FileSystem;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Link;
+use Drupal\Core\Messenger\MessengerInterface;
+use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\Core\Url;
-use Drupal\file\Entity\File;
 use Drupal\tripal_blast\Services\TripalBlastDatabaseService;
 use Drupal\tripal_blast\Services\TripalBlastJobService;
 use Drupal\tripal_blast\Services\TripalBlastProgramHelper;
+use Drupal\tripal_blast\Services\TripalBlastProgramBlastn;
+use Drupal\tripal_blast\Services\TripalBlastProgramBlastp;
+use Drupal\tripal_blast\Services\TripalBlastProgramBlastx;
+use Drupal\tripal_blast\Services\TripalBlastProgramTblastn;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * Define Tripal BLAST form.
@@ -22,11 +29,18 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class TripalBlastForm extends FormBase {
 
   /**
-   * The config factory service.
+   * Current user.
    *
-   * @var Drupal\Core\Config\ConfigFactoryInterface
+   * @var Drupal\Core\Session\AccountProxyInterface
    */
-  protected ConfigFactoryInterface $configFactory;
+  protected AccountProxyInterface $currentUser;
+
+  /**
+   * The Drupal FileSystem service.
+   *
+   * @var Drupal\Core\File\FileSystem
+   */
+  protected FileSystem $fileSystem;
 
   /**
    * The blast database service which is part of this module.
@@ -43,18 +57,48 @@ class TripalBlastForm extends FormBase {
   protected TripalBlastJobService $jobService;
 
   /**
+   * Will hold the four blast program services as a keyed array.
+   *
+   * Keys will be: 'blastn', 'blastp', 'blastx', 'tblastn'.
+   * The classes of the values will be:
+   * - Drupal\tripal_blast\Services\TripalBlastProgramBlastn
+   * - Drupal\tripal_blast\Services\TripalBlastProgramBlastp
+   * - Drupal\tripal_blast\Services\TripalBlastProgramBlastx
+   * - Drupal\tripal_blast\Services\TripalBlastProgramTblastn.
+   *
+   * @var array
+   */
+  protected array $programServices;
+
+  /**
    * TripalBlastForm class constructor.
    *
    * Prepares injected services.
    */
   public function __construct(
     ConfigFactoryInterface $config_factory,
+    MessengerInterface $messenger,
+    RequestStack $request_stack,
+    AccountProxyInterface $current_user,
+    FileSystem $file_system,
     TripalBlastDatabaseService $database_service,
     TripalBlastJobService $job_service,
+    TripalBlastProgramBlastn $blastn_service,
+    TripalBlastProgramBlastp $blastp_service,
+    TripalBlastProgramBlastx $blastx_service,
+    TripalBlastProgramTblastn $tblastn_service,
   ) {
     $this->configFactory = $config_factory;
+    $this->messenger = $messenger;
+    $this->requestStack = $request_stack;
+    $this->currentUser = $current_user;
+    $this->fileSystem = $file_system;
     $this->databaseService = $database_service;
     $this->jobService = $job_service;
+    $this->programServices['blastn'] = $blastn_service;
+    $this->programServices['blastp'] = $blastp_service;
+    $this->programServices['blastx'] = $blastx_service;
+    $this->programServices['tblastn'] = $tblastn_service;
   }
 
   /**
@@ -63,8 +107,16 @@ class TripalBlastForm extends FormBase {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('config.factory'),
+      $container->get('messenger'),
+      $container->get('request_stack'),
+      $container->get('current_user'),
+      $container->get('file_system'),
       $container->get('tripal_blast.database_service'),
       $container->get('tripal_blast.job_service'),
+      $container->get('tripal_blast.program_blastn'),
+      $container->get('tripal_blast.program_blastp'),
+      $container->get('tripal_blast.program_blastx'),
+      $container->get('tripal_blast.program_tblastn'),
     );
   }
 
@@ -81,7 +133,7 @@ class TripalBlastForm extends FormBase {
   public function buildForm(array $form, FormStateInterface $form_state, $query = NULL, $db = NULL) {
     // Add a warning, if need be (to be used for temporary message
     // like down-for-maintenance).
-    $config_warning_text = this->configFactory->get('tripal_blast.settings')
+    $config_warning_text = $this->configFactory->get('tripal_blast.settings')
       ->get('tripal_blast_config_notification.warning_text');
 
     if ($config_warning_text) {
@@ -132,7 +184,10 @@ class TripalBlastForm extends FormBase {
     // @todo handle file uploads better; currently for the query we put the
     // file contents in the text area causing reupload and we simply do not
     // support re-using of an uploaded target.
-    $resubmit = \Drupal::request()->query->get('resubmit') ?? NULL;
+    $resubmit = $this->requestStack
+      ->getCurrentRequest()
+      ->query
+      ->get('resubmit');
     if ($resubmit) {
       $job_id = $this->jobService->jobsBlastRevealSecret($resubmit);
       $prev_blast = $this->jobService->jobsGetJobByJobId($job_id);
@@ -249,7 +304,7 @@ class TripalBlastForm extends FormBase {
     ];
 
     // We don't current support this well so disabling for now.
-    // $config_query_upload = this->configFactory->get('tripal_blast.settings')
+    // $config_query_upload = $this->configFactory->get('tripal_blast.settings')
     // ->get('tripal_blast_config_upload.allow_query');
     // $is_query_upload_true = $config_query_upload ?? TRUE;.
     if (FALSE) {
@@ -276,7 +331,7 @@ class TripalBlastForm extends FormBase {
 
     // BLAST DATABASE
     // ..............
-    $config_target_upload = this->configFactory->get('tripal_blast.settings')
+    $config_target_upload = $this->configFactory->get('tripal_blast.settings')
       ->get('tripal_blast_config_upload.allow_target');
 
     $is_target_upload_true = $config_target_upload ?? FALSE;
@@ -332,8 +387,7 @@ class TripalBlastForm extends FormBase {
     // Therefore, allow for program-specific callbacks to populate these
     // options.
     // Load program specific service that creates advanced option fields.
-    $service_key = 'tripal_blast.program_' . $blast_program;
-    $programs_service = \Drupal::service($service_key);
+    $programs_service = $this->programServices[$blast_program];
 
     $form_alter = $programs_service->formOptions([]);
     array_push($form['B'], $form_alter);
@@ -366,7 +420,7 @@ class TripalBlastForm extends FormBase {
     $fld_file_query_value = $form_state->getValue('UPLOAD');
 
     if ($fld_file_query_value) {
-      $file = File::load($fld_file_query_value);
+      $file = $this->fileSystem->load($fld_file_query_value);
     }
 
     $fld_fasta_value = $form_state->getValue('FASTA');
@@ -411,7 +465,7 @@ class TripalBlastForm extends FormBase {
     $fld_select_db_value = $form_state->getValue('SELECT_DB');
 
     if ($fld_file_db_value) {
-      $file = File::load($fld_file_db_value);
+      $file = $this->fileSystem->load($fld_file_db_value);
 
       if (is_object($file)) {
         // If the $file is populated then this is a newly uploaded,
@@ -448,8 +502,7 @@ class TripalBlastForm extends FormBase {
 
     // VALIDATE ADVANCED OPTIONS
     // -------------------------.
-    $service_key = 'tripal_blast.program_' . $blast_program;
-    $programs_service = \Drupal::service($service_key);
+    $programs_service = $this->programServices[$blast_program];
     $validate_fields = $programs_service->formFieldNames();
 
     foreach ($validate_fields as $field_name => $field_validators) {
@@ -525,7 +578,7 @@ class TripalBlastForm extends FormBase {
       // same BLAST.
       $blastdb_with_path = $form_state->getValue('upDB_path');
 
-      $config_blast_path = this->configFactory->get('tripal_blast.settings')
+      $config_blast_path = $this->configFactory->get('tripal_blast.settings')
         ->get('tripal_blast_config_general.path');
 
       $makeblast_db = $config_blast_path . 'makeblastdb';
@@ -535,7 +588,7 @@ class TripalBlastForm extends FormBase {
       // Check that the BLAST database was made correctly.
       $result = implode('<br />', $result);
       if (preg_match('/Error/', $result)) {
-        \Drupal::messenger()->addError($this->t('Unable to generate a BLAST database from your uploaded FASTA sequence.
+        $this->messenger->addError($this->t('Unable to generate a BLAST database from your uploaded FASTA sequence.
           Please check that your file is a valid FASTA file and that if your sequence headers include pipes (i.e.: | )
           they adhere to <a href="@ncbi_standard" target="_blank">NCBI Standard</a>.', ['@ncbi_standard' => 'http://www.ncbi.nlm.nih.gov/books/NBK21097/table/A632/?report=objectonly']));
 
@@ -545,7 +598,7 @@ class TripalBlastForm extends FormBase {
     else {
       // Otherwise, the user didn't select a database and didn't upload
       // one either.
-      \Drupal::messenger()->addError($this->t('No BLAST database selected. Either choose a database
+      $this->messenger->addError($this->t('No BLAST database selected. Either choose a database
         from the list or upload one of your own.'));
 
       $error = TRUE;
@@ -554,8 +607,7 @@ class TripalBlastForm extends FormBase {
     // ADVANCED OPTIONS
     // ----------------
     // Now let each program process its own advanced options.
-    $service_key = 'tripal_blast.program_' . $blast_program;
-    $programs_service = \Drupal::service($service_key);
+    $programs_service = $this->programServices[$blast_program];
     $advanced_field_names = $programs_service->formFieldNames();
     $advanced_field_values = [];
 
@@ -587,7 +639,6 @@ class TripalBlastForm extends FormBase {
 
       // Actually submit the job.
       try {
-        $this->jobService = \Drupal::service('tripal_blast.job_service');
         $job_parameters = $this->jobService->createBlastJob($blast_submission);
         if ($job_parameters) {
           $job_id = $job_parameters['job_id'] ?? NULL;
@@ -595,7 +646,7 @@ class TripalBlastForm extends FormBase {
         }
       }
       catch (\Exception $e) {
-        \Drupal::messenger()->addError($this->t('Unable to submit the BLAST job. The error was: @error', ['@error' => $e->getMessage()]));
+        $this->messenger->addError($this->t('Unable to submit the BLAST job. The error was: @error', ['@error' => $e->getMessage()]));
       }
     }
 
@@ -640,7 +691,7 @@ class TripalBlastForm extends FormBase {
     $query_type = $form_state->getValue('query_type');
 
     // Fetch FASTA example sequence from configruation.
-    $sequence_example = this->configFactory->get('tripal_blast.settings')
+    $sequence_example = $this->configFactory->get('tripal_blast.settings')
       ->get('tripal_blast_config_sequence.' . $query_type);
 
     // CHECKBOX:
@@ -660,8 +711,7 @@ class TripalBlastForm extends FormBase {
       // Add a note to user, default example may be replaced through
       // the admin interface.
       $l = Link::fromTextAndUrl('administrative interface', Url::fromRoute('tripal_blast.configuration'))->toString();
-      $current_user = \Drupal::currentUser();
-      if ($current_user->hasRole('administrator') || $current_user->hasRole('administer tripal')) {
+      if ($this->currentUser->hasRole('administrator') || $this->currentUser->hasPermission('administer tripal')) {
         $fld_note = '<div class="tripal-blast-tip">'
           . $this->t('You can set the example sequence through the @note.', ['@note' => $l])
           . '</div>';
