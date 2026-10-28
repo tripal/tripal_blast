@@ -6,7 +6,6 @@ use Drupal\Component\Utility\Environment;
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\InvokeCommand;
 use Drupal\Core\Config\ConfigFactoryInterface;
-#use Drupal\Core\File\FileSystem;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Link;
@@ -14,7 +13,6 @@ use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\Core\Url;
 use Drupal\file\FileRepositoryInterface;
-#use Drupal\file\FileUsage\FileUsageInterface;
 use Drupal\tripal_blast\Services\TripalBlastDatabaseService;
 use Drupal\tripal_blast\Services\TripalBlastJobService;
 use Drupal\tripal_blast\Services\TripalBlastProgramHelper;
@@ -50,13 +48,6 @@ class TripalBlastForm extends FormBase {
    * @var \Drupal\file\FileRepositoryInterface
    */
   protected FileRepositoryInterface $fileRepository;
-
-  /**
-   * The file usage service.
-   *
-   * @var \Drupal\file\FileUsage\FileUsageInterface
-   */
-#  protected FileUsageInterface $fileUsage;
 
   /**
    * The blast database service which is part of this module.
@@ -96,9 +87,7 @@ class TripalBlastForm extends FormBase {
     MessengerInterface $messenger,
     RequestStack $request_stack,
     AccountProxyInterface $current_user,
-#    FileSystem $file_system,
     FileRepositoryInterface $file_repository,
-#    FileUsageInterface $file_usage,
     TripalBlastDatabaseService $database_service,
     TripalBlastJobService $job_service,
     TripalBlastProgramBlastn $blastn_service,
@@ -110,9 +99,7 @@ class TripalBlastForm extends FormBase {
     $this->messenger = $messenger;
     $this->requestStack = $request_stack;
     $this->currentUser = $current_user;
-#    $this->fileSystem = $file_system;
     $this->fileRepository = $file_repository;
-#    $this->fileUsage = $file_usage;
     $this->databaseService = $database_service;
     $this->jobService = $job_service;
     $this->programServices['blastn'] = $blastn_service;
@@ -130,9 +117,7 @@ class TripalBlastForm extends FormBase {
       $container->get('messenger'),
       $container->get('request_stack'),
       $container->get('current_user'),
-#      $container->get('file_system'),
       $container->get('file.repository'),
-#      $container->get('file.usage'),
       $container->get('tripal_blast.database_service'),
       $container->get('tripal_blast.job_service'),
       $container->get('tripal_blast.program_blastn'),
