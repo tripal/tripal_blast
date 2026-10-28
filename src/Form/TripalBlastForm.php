@@ -5,6 +5,7 @@ namespace Drupal\tripal_blast\Form;
 use Drupal\Component\Utility\Environment;
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\InvokeCommand;
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Link;
@@ -19,6 +20,13 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * Define Tripal BLAST form.
  */
 class TripalBlastForm extends FormBase {
+
+  /**
+   * The config factory service.
+   *
+   * @var Drupal\Core\Config\ConfigFactoryInterface
+   */
+  protected ConfigFactoryInterface $configFactory;
 
   /**
    * The blast database service which is part of this module.
@@ -40,9 +48,11 @@ class TripalBlastForm extends FormBase {
    * Prepares injected services.
    */
   public function __construct(
+    ConfigFactoryInterface $config_factory,
     TripalBlastDatabaseService $database_service,
     TripalBlastJobService $job_service,
   ) {
+    $this->configFactory = $config_factory;
     $this->databaseService = $database_service;
     $this->jobService = $job_service;
   }
@@ -52,6 +62,7 @@ class TripalBlastForm extends FormBase {
    */
   public static function create(ContainerInterface $container) {
     return new static(
+      $container->get('config.factory'),
       $container->get('tripal_blast.database_service'),
       $container->get('tripal_blast.job_service'),
     );
@@ -70,7 +81,7 @@ class TripalBlastForm extends FormBase {
   public function buildForm(array $form, FormStateInterface $form_state, $query = NULL, $db = NULL) {
     // Add a warning, if need be (to be used for temporary message
     // like down-for-maintenance).
-    $config_warning_text = \Drupal::config('tripal_blast.settings')
+    $config_warning_text = this->configFactory->get('tripal_blast.settings')
       ->get('tripal_blast_config_notification.warning_text');
 
     if ($config_warning_text) {
@@ -238,7 +249,7 @@ class TripalBlastForm extends FormBase {
     ];
 
     // We don't current support this well so disabling for now.
-    // $config_query_upload = \Drupal::config('tripal_blast.settings')
+    // $config_query_upload = this->configFactory->get('tripal_blast.settings')
     // ->get('tripal_blast_config_upload.allow_query');
     // $is_query_upload_true = $config_query_upload ?? TRUE;.
     if (FALSE) {
@@ -265,7 +276,7 @@ class TripalBlastForm extends FormBase {
 
     // BLAST DATABASE
     // ..............
-    $config_target_upload = \Drupal::config('tripal_blast.settings')
+    $config_target_upload = this->configFactory->get('tripal_blast.settings')
       ->get('tripal_blast_config_upload.allow_target');
 
     $is_target_upload_true = $config_target_upload ?? FALSE;
@@ -514,7 +525,7 @@ class TripalBlastForm extends FormBase {
       // same BLAST.
       $blastdb_with_path = $form_state->getValue('upDB_path');
 
-      $config_blast_path = \Drupal::config('tripal_blast.settings')
+      $config_blast_path = this->configFactory->get('tripal_blast.settings')
         ->get('tripal_blast_config_general.path');
 
       $makeblast_db = $config_blast_path . 'makeblastdb';
@@ -629,7 +640,7 @@ class TripalBlastForm extends FormBase {
     $query_type = $form_state->getValue('query_type');
 
     // Fetch FASTA example sequence from configruation.
-    $sequence_example = \Drupal::config('tripal_blast.settings')
+    $sequence_example = this->configFactory->get('tripal_blast.settings')
       ->get('tripal_blast_config_sequence.' . $query_type);
 
     // CHECKBOX:
