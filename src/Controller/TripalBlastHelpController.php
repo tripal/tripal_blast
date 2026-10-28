@@ -15,7 +15,8 @@ class TripalBlastHelpController extends ControllerBase {
    * A list of variables (context links presented in the interface) is used
    * and is defined in the hook_theme implementation of this module.
    *
-   * @see hook_theme in tripal_blast.module.
+   * @see hook_theme
+   * in tripal_blast.module.
    */
   public function help() {
     return [
