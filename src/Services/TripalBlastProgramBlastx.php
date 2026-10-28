@@ -32,14 +32,6 @@ class TripalBlastProgramBlastx {
    *   Additional form field definitions.
    */
   public function formOptions(array $blast_cache): array {
-    $blast = self::BLASTX;
-
-    // Edit and Resubmit functionality.
-    // We want to pull up the details from a previous blast and fill them in
-    // as defaults for this blast.
-    $options = (isset($blast_cache)) ? $blast_cache : [];
-    $defaults = TripalBlastProgramHelper::programGetDefaultValues($options, $blast);
-
     $form_alter = [];
     return $form_alter;
   }
