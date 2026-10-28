@@ -6,13 +6,13 @@ use Drupal\Component\Utility\Environment;
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\InvokeCommand;
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Link;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\Core\Url;
-use Drupal\file\FileRepositoryInterface;
 use Drupal\tripal_blast\Services\TripalBlastDatabaseService;
 use Drupal\tripal_blast\Services\TripalBlastJobService;
 use Drupal\tripal_blast\Services\TripalBlastProgramHelper;
@@ -36,11 +36,11 @@ class TripalBlastForm extends FormBase {
   protected AccountProxyInterface $currentUser;
 
   /**
-   * The Drupal FileSystem service.
+   * The entity type manager.
    *
-   * @var Drupal\Core\File\FileSystem
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
    */
-  protected FileSystem $fileSystem;
+  protected EntityTypeManagerInterface $entityTypeManager;
 
   /**
    * The file repository service.
@@ -87,7 +87,7 @@ class TripalBlastForm extends FormBase {
     MessengerInterface $messenger,
     RequestStack $request_stack,
     AccountProxyInterface $current_user,
-    FileRepositoryInterface $file_repository,
+    EntityTypeManagerInterface $entity_type_manager,
     TripalBlastDatabaseService $database_service,
     TripalBlastJobService $job_service,
     TripalBlastProgramBlastn $blastn_service,
@@ -99,7 +99,7 @@ class TripalBlastForm extends FormBase {
     $this->messenger = $messenger;
     $this->requestStack = $request_stack;
     $this->currentUser = $current_user;
-    $this->fileRepository = $file_repository;
+    $this->entityTypeManager = $entity_type_manager;
     $this->databaseService = $database_service;
     $this->jobService = $job_service;
     $this->programServices['blastn'] = $blastn_service;
@@ -117,7 +117,7 @@ class TripalBlastForm extends FormBase {
       $container->get('messenger'),
       $container->get('request_stack'),
       $container->get('current_user'),
-      $container->get('file.repository'),
+      $container->get('entity_type.manager'),
       $container->get('tripal_blast.database_service'),
       $container->get('tripal_blast.job_service'),
       $container->get('tripal_blast.program_blastn'),
@@ -427,7 +427,7 @@ class TripalBlastForm extends FormBase {
     $fld_file_query_value = $form_state->getValue('UPLOAD');
 
     if ($fld_file_query_value) {
-      $file = $this->fileRepository->load($fld_file_query_value);
+      $file = $this->entityTypeManager->getStorage('file')->load($fld_file_query_value);
     }
 
     $fld_fasta_value = $form_state->getValue('FASTA');
@@ -472,7 +472,7 @@ class TripalBlastForm extends FormBase {
     $fld_select_db_value = $form_state->getValue('SELECT_DB');
 
     if ($fld_file_db_value) {
-      $file = $this->fileRepository->load($fld_file_db_value);
+      $file = $this->entityTypeManager->getStorage('file')->load($fld_file_db_value);
 
       if (is_object($file)) {
         // If the $file is populated then this is a newly uploaded,
