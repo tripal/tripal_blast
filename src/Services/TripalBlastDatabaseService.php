@@ -113,6 +113,7 @@ class TripalBlastDatabaseService {
         ];
       }
     }
+    return NULL;
   }
 
   /**
