@@ -320,14 +320,14 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
    *   A string or an integer containing the secret.
    * @param string $expected_error
    *   A string containing the expected error.
-   * @param string|null $expected_return
-   *   If not null, contains text that we expect in the output messages.
-   *   If null, we expect no output messages.
+   * @param string|bool $expected_return
+   *   If FALSE, we expect no output messages.
+   *   If a string, contains text that we expect in the output messages.
    *
    * @dataProvider provideDataForTestJobsBlastRevealSecretInvalid
    */
   #[DataProvider('provideDataForTestJobsBlastRevealSecretInvalid')]
-  public function testJobsBlastRevealSecretInvalid(mixed $secret, string $expected_error, ?string $expected_return): void {
+  public function testJobsBlastRevealSecretInvalid(mixed $secret, string $expected_error, string|bool $expected_return): void {
     ob_start();
     $revealed = $this->blast_job_service->jobsBlastRevealSecret($secret);
     $printed_output = ob_get_contents();
