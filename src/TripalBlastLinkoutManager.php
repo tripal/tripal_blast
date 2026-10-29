@@ -1,6 +1,5 @@
 <?php
 
-# https://www.berramou.com/blog/drupal-create-custom-plugin-type
 namespace Drupal\tripal_blast;
 
 use Drupal\Core\Plugin\DefaultPluginManager;

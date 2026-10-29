@@ -1,8 +1,4 @@
 <?php
-/**
- * @file 
- * This is the the form to handle BLAST database deletion. 
- */
 
 namespace Drupal\tripal_blast\Form;
 
@@ -14,12 +10,13 @@ use Drupal\Core\Form\FormStateInterface;
  * Construct for to delete BLAST database.
  */
 class TripalBlastDatabaseDeleteForm extends EntityConfirmFormBase {
+
   /**
    * {@inheritdoc}
    */
   public function getQuestion() {
     return $this->t('Are you sure you want to delete %name?', ['%name' => $this->entity->getName()]);
-  }  
+  }
 
   /**
    * {@inheritdoc}
@@ -44,4 +41,5 @@ class TripalBlastDatabaseDeleteForm extends EntityConfirmFormBase {
 
     $form_state->setRedirectUrl($this->getCancelUrl());
   }
+
 }

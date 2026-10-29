@@ -2,15 +2,68 @@
 
 namespace Drupal\tripal_blast\Controller;
 
+use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Controller\ControllerBase;
+use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\Link;
 use Drupal\Core\Url;
-use Drupal\Core\Controller\ControllerBase;
 use Drupal\tripal\Services\TripalJob;
+use Drupal\tripal_blast\TripalBlastLinkoutManager;
+use Drupal\tripal_blast\Services\TripalBlastJobService;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Defines TripalBlastReportController class.
  */
 class TripalBlastReportController extends ControllerBase {
+
+  /**
+   * The date formatter service.
+   *
+   * @var \Drupal\Core\Datetime\DateFormatterInterface
+   */
+  protected DateFormatterInterface $dateFormatter;
+
+  /**
+   * The blast job service which is part of this module.
+   *
+   * @var Drupal\tripal_blast\Services\TripalBlastJobService
+   */
+  protected TripalBlastJobService $jobService;
+
+  /**
+   * Tripal blast linkout service.
+   *
+   * @var Drupal\tripal_blast\TripalBlastLinkoutManager
+   */
+  protected TripalBlastLinkoutManager $linkoutManager;
+
+  /**
+   * Provides injected services.
+   */
+  public function __construct(
+    ConfigFactoryInterface $config_factory,
+    DateFormatterInterface $date_formatter,
+    TripalBlastJobService $job_service,
+    TripalBlastLinkoutManager $linkout_manager,
+  ) {
+    $this->configFactory = $config_factory;
+    $this->dateFormatter = $date_formatter;
+    $this->jobService = $job_service;
+    $this->linkoutManager = $linkout_manager;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('config.factory'),
+      $container->get('date.formatter'),
+      $container->get('tripal_blast.job_service'),
+      $container->get('plugin.manager.tripal_blast_linkout'),
+    );
+  }
 
   /**
    * Checks on job status and generates appropriate twig values.
@@ -24,8 +77,7 @@ class TripalBlastReportController extends ControllerBase {
     // the current BLAST is in the queue, running, or complete in order to
     // determine what to show the user.
     // Decode the alphanumeric job_id.
-    $job_service = \Drupal::service('tripal_blast.job_service');
-    $blastjob_id = $job_service->jobsBlastRevealSecret($job_id);
+    $blastjob_id = $this->jobService->jobsBlastRevealSecret($job_id);
 
     // If the job has expired and been removed, provide a message.
     if (!$blastjob_id) {
@@ -48,7 +100,7 @@ class TripalBlastReportController extends ControllerBase {
     $job = $tripaljob->getJob();
 
     // How long to wait in seconds for the job runner to start a job.
-    $start_timeout = \Drupal::config('tripal_blast.settings')
+    $start_timeout = $this->configFactory->get('tripal_blast.settings')
       ->get('tripal_blast_config_jobs.start_timeout');
 
     if (strtolower($job->status) == 'cancelled') {
@@ -152,22 +204,18 @@ class TripalBlastReportController extends ControllerBase {
    *   Blast job object.
    */
   public function prepareReport(int $blastjob_id) {
-    $logger = \Drupal::logger('tripal_blast');
-
     // Get job profile.
-    $job_service = \Drupal::service('tripal_blast.job_service');
     /** @var stdClass */
-    $blast_job = $job_service->jobsGetJobByJobId($blastjob_id, ['skip_file_check' => TRUE]);
+    $blast_job = $this->jobService->jobsGetJobByJobId($blastjob_id, ['skip_file_check' => TRUE]);
 
     // Get report settings.
-    $blast_job->wrap_length = \Drupal::config('tripal_blast.settings')
+    $blast_job->wrap_length = $this->configFactory->get('tripal_blast.settings')
       ->get('tripal_blast_config_report.wrap_length');
 
     // Add to markup.
     $output_files = array_map(fn($item) => $item['absolute_path'], $blast_job->files->result);
     try {
-      $job_service = \Drupal::service('tripal_blast.job_service');
-      $blast_job->blast_cmd = $job_service->getBlastCommand(
+      $blast_job->blast_cmd = $this->jobService->getBlastCommand(
         $blast_job->program,
         $blast_job->files->query,
         $blast_job->files->target,
@@ -177,7 +225,7 @@ class TripalBlastReportController extends ControllerBase {
     }
     catch (\Exception $e) {
       $this->messenger()->addError($this->t('Unable to generate the BLAST command for execution. Please contact the site administrator.'));
-      $logger->error('Unable to generate the BLAST command for execution for job ID @blastjob_id. The error was: @error',
+      $this->logger->error('Unable to generate the BLAST command for execution for job ID @blastjob_id. The error was: @error',
         ['@blastjob_id' => $blastjob_id, '@error' => $e->getMessage()]);
     }
 
@@ -218,7 +266,7 @@ class TripalBlastReportController extends ControllerBase {
       // cause memory issues if a massive number of hits exist.
       $blast_job->num_results = shell_exec('grep -c "<Hit>" ' . escapeshellarg($full_path_xml));
 
-      $max_results = \Drupal::config('tripal_blast.settings')
+      $max_results = $this->configFactory->get('tripal_blast.settings')
         ->get('tripal_blast_config_jobs.max_result');
 
       if ($blast_job->num_results <= $max_results) {
@@ -238,8 +286,7 @@ class TripalBlastReportController extends ControllerBase {
 
     $blast_job->num_results_formatted = number_format(floatval($blast_job->num_results));
 
-    $blast_job->submission_date = \Drupal::service('date.formatter')
-      ->format($blast_job->date_submitted, 'medium');
+    $blast_job->submission_date = $this->dateFormatter->format($blast_job->date_submitted, 'medium');
 
     // Handle no hits. This following array will hold the names of all query
     // sequences which didn't have any hits.
@@ -409,8 +456,7 @@ class TripalBlastReportController extends ControllerBase {
                   $hit->evalue = $evalue;
 
                   // Call the appropriate linkout plugin.
-                  $linkout_manager = \Drupal::service('plugin.manager.tripal_blast_linkout');
-                  $plugin = $linkout_manager->createInstance($linkout_obj->type);
+                  $plugin = $this->linkoutManager->createInstance($linkout_obj->type);
                   if (!$plugin) {
                     throw new \Exception('TripalBlastReportController failed getting plugin ' . $linkout_obj->type);
                   }
