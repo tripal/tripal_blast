@@ -697,12 +697,19 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
 
     $job_service = $this->getMockBuilder(TripalBlastJobService::class)
       ->disableOriginalConstructor()
-      ->onlyMethods(['createBlastJob'])
+      ->onlyMethods(['createBlastJob', 'createJobDirectory'])
       ->getMock();
     $job_service->expects($this->once())
       ->method('createBlastJob')
       ->willReturn(['job_id' => 2024, 'uuid' => '1234b567-c85e-12f5-c325-718327814391']);
+    $job_service->expects($this->once())
+      ->method('createJobDirectory')
+      ->willReturn($temp_dir);
     $this->container->set('tripal_blast.job_service', $job_service);
+
+    // Re-create the blast form that was created in setup() because
+    // we need the mock job service included.
+    $this->blast_form = TripalBlastForm::create($this->container);
 
     $form = [];
     $form_state = new FormState();
