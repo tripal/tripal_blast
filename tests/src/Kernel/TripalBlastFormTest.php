@@ -46,18 +46,20 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
   ];
 
   /**
-   * Class instance of the Tripal Blast Form.
-   *
-   * @var \Drupal\tripal_blast\Form\TripalBlastForm
-   */
-  protected $blast_form;
-
-  /**
    * The path to tripal_blast module.
    *
    * @var string
    */
   private $module_path;
+
+  /**
+   * Path to a temporary directory for tests.
+   *
+   * This directory will be emptied and removed by tearDown().
+   *
+   * @var string
+   */
+  protected string $tempDir;
 
   /**
    * A Database query interface for querying Chado using Tripal DBX.
@@ -86,10 +88,14 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
     $this->installSchema('file', ['file_usage']);
     $this->installEntitySchema('user');
 
+    // Create a temporary directory.
+    $this->tempDir = $this->container->get('file_system')->getTempDirectory() . '/tripal_blast_testdir';
+    if (!is_dir($this->tempDir)) {
+      mkdir($this->tempDir, 0777, TRUE);
+    }
+
     // Create and log-in a user.
     $this->setUpCurrentUser();
-
-    $this->blast_form = TripalBlastForm::create($this->container);
 
     $this->module_path = $this->container->get('module_handler')
       ->getModule('tripal_blast')
@@ -97,10 +103,60 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
   }
 
   /**
+   * {@inheritdoc}
+   */
+  protected function tearDown(): void {
+    // Remove our temporary directory and any files inside it.
+    if (is_dir($this->tempDir)) {
+      $iterator = new \RecursiveIteratorIterator(
+        new \RecursiveDirectoryIterator(
+          $this->tempDir,
+          \RecursiveDirectoryIterator::SKIP_DOTS,
+        ),
+        \RecursiveIteratorIterator::CHILD_FIRST,
+      );
+      foreach ($iterator as $item) {
+        if ($item->isDir()) {
+          rmdir($item->getPathname());
+        }
+        else {
+          unlink($item->getPathname());
+        }
+      }
+      rmdir($this->tempDir);
+    }
+    parent::tearDown();
+  }
+
+  /**
+   * Helper function to create a temporary file.
+   *
+   * @param string $file_name
+   *   The name of the file without a path. File will be
+   *   created in the $this->tempDir directory.
+   * @param string $contents
+   *   Data to save in this file.
+   *
+   * @return string
+   *   The drupal file name with temporary:// path included.
+   */
+  protected function createTempFile(string $file_name, string $contents): string {
+    $drupal_file_name = 'temporary://tripal_blast_testdir/' . $file_name;
+    $system_file_name = \Drupal::service('file_system')->realpath($drupal_file_name);
+    // Verify that the two names represent the same directory.
+    $this->assertEquals($this->tempDir . '/' . $file_name, $system_file_name, 'Bug in temporary file name processing');
+    file_put_contents($system_file_name, $contents);
+    // Register the temporary file with Drupal.
+    File::create(['uri' => $drupal_file_name])->save();
+    return $drupal_file_name;
+  }
+
+  /**
    * Tests that the form id is the expected value.
    */
   public function testGetFormId(): void {
-    $this->assertSame('tripalblastform', $this->blast_form->getFormId());
+    $blast_form = TripalBlastForm::create($this->container);
+    $this->assertSame('tripalblastform', $blast_form->getFormId());
   }
 
   /**
@@ -167,7 +223,8 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
     $form = [];
     $form_state = new FormState();
 
-    $build = $this->blast_form->buildForm($form, $form_state, $scenario['query_type'], $scenario['db_type']);
+    $blast_form = TripalBlastForm::create($this->container);
+    $build = $blast_form->buildForm($form, $form_state, $scenario['query_type'], $scenario['db_type']);
 
     // Test if the correct title is created.
     $page_title = [
@@ -401,33 +458,17 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
   #[DataProvider('provideDataForTestValidateForm')]
   public function testValidateForm(array $values, array $expected): void {
     $query = ">seq\nACGT";
-    $query_file_uri = 'temporary://tripal-blast-query.fasta';
-
-    file_put_contents(
-      \Drupal::service('file_system')->realpath($query_file_uri),
-      $query
-    );
-    $query_file = File::create([
-      'uri' => $query_file_uri,
-    ]);
-    $query_file->save();
+    $this->createTempFile('tripal_blast_query.fasta', $query);
 
     $db_data = ">db\nACGT";
-    $db_file_uri = 'temporary://tripal-blast-db.fasta';
+    $this->createTempFile('tripal_blast_db.fasta', $db_data);
 
-    file_put_contents(
-      \Drupal::service('file_system')->realpath($db_file_uri),
-      $db_data
-    );
-    $db_file = File::create([
-      'uri' => $db_file_uri,
-    ]);
-    $db_file->save();
     $form = [];
     $form_state = new FormState();
     $form_state->setValues($values);
 
-    $this->blast_form->validateForm($form, $form_state);
+    $blast_form = TripalBlastForm::create($this->container);
+    $blast_form->validateForm($form, $form_state);
 
     $errors = $form_state->getErrors();
     foreach ($expected['expected_error_keys'] as $key) {
@@ -519,28 +560,10 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
     $editable_config->save();
 
     $query = ">seq\nACGT";
-    $query_file_uri = 'temporary://tripal-blast-query.fasta';
-
-    file_put_contents(
-      \Drupal::service('file_system')->realpath($query_file_uri),
-      $query
-    );
-    $query_file = File::create([
-      'uri' => $query_file_uri,
-    ]);
-    $query_file->save();
+    $this->createTempFile('tripal_blast_query.fasta', $query);
 
     $db_data = ">db\nACGT";
-    $db_file_uri = 'temporary://tripal-blast-db.fasta';
-
-    file_put_contents(
-      \Drupal::service('file_system')->realpath($db_file_uri),
-      $db_data
-    );
-    $db_file = File::create([
-      'uri' => $db_file_uri,
-    ]);
-    $db_file->save();
+    $this->createTempFile('tripal_blast_db.fasta', $db_data);
 
     $fixture_dir = $this->module_path . '/tests/fixtures/Chlamydomonas_reinhardtii_v5.6';
     // A nucleotide_db.
@@ -561,7 +584,8 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
     $form_state = new FormState();
     $form_state->setValues($values);
 
-    $this->blast_form->validateForm($form, $form_state);
+    $blast_form = TripalBlastForm::create($this->container);
+    $blast_form->validateForm($form, $form_state);
 
     $before = (int) $this->chado_connection->select('blastjob')
       ->condition('blast_program', $values['blast_program'])
@@ -569,7 +593,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
       ->execute()
       ->fetchField();
 
-    $this->blast_form->submitForm($form, $form_state);
+    $blast_form->submitForm($form, $form_state);
 
     $after = (int) $this->chado_connection->select('blastjob')
       ->condition('blast_program', $values['blast_program'])
@@ -594,7 +618,8 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
       )
       ->save();
 
-    $build = $this->blast_form->buildForm([], new FormState(), 'nucleotide', 'nucleotide');
+    $blast_form = TripalBlastForm::create($this->container);
+    $build = $blast_form->buildForm([], new FormState(), 'nucleotide', 'nucleotide');
 
     $this->assertArrayHasKey('config_warning', $build, 'Expected a warning message in the form build but it was not found.');
   }
@@ -610,13 +635,12 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
 
     $job_service->method('jobsCountRecentJobs')->willReturn(1);
     $job_service->method('jobsCreateTable')->willReturn(['#type' => 'table']);
-
     $this->container->set('tripal_blast.job_service', $job_service);
-    // Re-create the blast form that was created in setup() because
-    // we need the mock job service included.
-    $this->blast_form = TripalBlastForm::create($this->container);
 
-    $build = $this->blast_form->buildForm([], new FormState(), 'nucleotide', 'nucleotide');
+    // Create the blast form which will include the mock job service.
+    $blast_form = TripalBlastForm::create($this->container);
+
+    $build = $blast_form->buildForm([], new FormState(), 'nucleotide', 'nucleotide');
 
     $this->assertArrayHasKey('A', $build, 'Expected a recent job container in the form build but it was not found.');
     $this->assertSame('table', $build['A']['recent_job']['#type'], 'Expected the recent job container to be a table but it is not.');
@@ -626,8 +650,8 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
    * Tests if the buildForm resubmits correct defaults.
    */
   public function testBuildFormResubmitPopulatesDefaultValues(): void {
-    $query_file = $this->container->get('file_system')->getTempDirectory() . '/resubmit_query.fasta';
-    file_put_contents($query_file, ">query\nACGT");
+    $query = ">query\nACGT";
+    $query_file_uri = $this->createTempFile('resubmit_query.fasta', $query);
 
     $job_service = $this->getMockBuilder(TripalBlastJobService::class)
       ->disableOriginalConstructor()
@@ -637,16 +661,16 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
     $job_service->method('jobsBlastRevealSecret')->willReturn(42);
     $job_service->method('jobsGetJobByJobId')->willReturn((object) [
       'blastdb' => (object) ['nid' => 99],
-      'files' => (object) ['query' => $query_file],
+      'files' => (object) ['query' => $query_file_uri],
     ]);
     $this->container->set('tripal_blast.job_service', $job_service);
-    // Re-create the blast form that was created in setup() because
-    // we need the mock job service included.
-    $this->blast_form = TripalBlastForm::create($this->container);
+
+    // Create the blast form which will include the mock job service.
+    $blast_form = TripalBlastForm::create($this->container);
 
     \Drupal::request()->query->set('resubmit', 'secret-id');
 
-    $build = $this->blast_form->buildForm([], new FormState(), 'nucleotide', 'nucleotide');
+    $build = $blast_form->buildForm([], new FormState(), 'nucleotide', 'nucleotide');
 
     $this->assertSame(99, $build['B']['db']['SELECT_DB']['#default_value'], 'Expected the default database value to be 99 but it is not.');
     $this->assertSame(">query\nACGT", $build['B']['query']['FASTA']['#default_value'], 'Expected the default query value to be the correct sequence but it is not.');
@@ -671,7 +695,8 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
       'gapCost' => '5,2',
     ]);
 
-    $this->blast_form->submitForm($form, $form_state);
+    $blast_form = TripalBlastForm::create($this->container);
+    $blast_form->submitForm($form, $form_state);
 
     $messages = \Drupal::messenger()->all();
     $this->assertNotEmpty($messages['error'], 'Expected an error message but none were found.');
@@ -682,19 +707,16 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
    * Tests submitForm uses an uploaded database and creates a job submission.
    */
   public function testSubmitFormUsesUploadedDatabaseAndCreatesJob(): void {
-    $temp_dir = $this->container->get('file_system')->getTempDirectory() . '/tripal-blast-makeblastdb';
-    if (!is_dir($temp_dir)) {
-      mkdir($temp_dir, 0777, TRUE);
-    }
-
-    $makeblastdb_path = $temp_dir . '/makeblastdb';
+    // Create a mock binary.
+    $makeblastdb_path = $this->tempDir . '/makeblastdb';
     file_put_contents($makeblastdb_path, "#!/bin/sh\nexit 0\n");
     chmod($makeblastdb_path, 0755);
 
     $editable_config = \Drupal::service('config.factory')->getEditable('tripal_blast.settings');
-    $editable_config->set('tripal_blast_config_general.path', $temp_dir . '/');
+    $editable_config->set('tripal_blast_config_general.path', $this->tempDir . '/');
     $editable_config->save();
 
+    // Set up a mock job service.
     $job_service = $this->getMockBuilder(TripalBlastJobService::class)
       ->disableOriginalConstructor()
       ->onlyMethods(['createBlastJob', 'createJobDirectory'])
@@ -704,12 +726,11 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
       ->willReturn(['job_id' => 2024, 'uuid' => '1234b567-c85e-12f5-c325-718327814391']);
     $job_service->expects($this->once())
       ->method('createJobDirectory')
-      ->willReturn($temp_dir);
+      ->willReturn($this->tempDir);
     $this->container->set('tripal_blast.job_service', $job_service);
 
-    // Re-create the blast form that was created in setup() because
-    // we need the mock job service included.
-    $this->blast_form = TripalBlastForm::create($this->container);
+    // Create the blast form which will include the mock job service.
+    $blast_form = TripalBlastForm::create($this->container);
 
     $form = [];
     $form_state = new FormState();
@@ -720,14 +741,14 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
       'qFlag' => 'seqQuery',
       'FASTA' => ">seq\nACGT",
       'dbFlag' => 'upDB',
-      'upDB_path' => $temp_dir . '/uploaded.fasta',
+      'upDB_path' => $this->tempDir . '/uploaded.fasta',
       'maxTarget' => '500',
       'eVal' => '1e-5',
       'wordSize' => '11',
       'M&MScores' => 0,
       'gapCost' => '5,2',
     ]);
-    $this->blast_form->submitForm($form, $form_state);
+    $blast_form->submitForm($form, $form_state);
     $this->assertNotNull($form_state->getRedirect(), "Expeccted a redirect object, but it was NULL.");
     $redirect_path = $form_state->getRedirect()->getInternalPath();
     $this->assertSame(
@@ -743,12 +764,18 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
   public function testSubmitFormCatchesJobCreationErrors(): void {
     $job_service = $this->getMockBuilder(TripalBlastJobService::class)
       ->disableOriginalConstructor()
-      ->onlyMethods(['createBlastJob'])
+      ->onlyMethods(['createBlastJob', 'createJobDirectory'])
       ->getMock();
     $job_service->expects($this->once())
       ->method('createBlastJob')
       ->willThrowException(new \RuntimeException('Unable to create tripal job'));
+    $job_service->expects($this->once())
+      ->method('createJobDirectory')
+      ->willReturn($this->tempDir);
     $this->container->set('tripal_blast.job_service', $job_service);
+
+    // Create the blast form which will include the mock job service.
+    $blast_form = TripalBlastForm::create($this->container);
 
     $form = [];
     $form_state = new FormState();
@@ -766,7 +793,7 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
       'gapCost' => '5,2',
     ]);
 
-    $this->blast_form->submitForm($form, $form_state);
+    $blast_form->submitForm($form, $form_state);
 
     $messages = \Drupal::messenger()->all();
     $this->assertNotEmpty($messages['error'], 'Expected an error message but none were found.');
@@ -796,11 +823,12 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
       'M&MScores' => 0,
     ]);
 
-    $this->blast_form->ajaxShowExampleSequenceCallback($form, $form_state);
+    $blast_form = TripalBlastForm::create($this->container);
+    $blast_form->ajaxShowExampleSequenceCallback($form, $form_state);
     $this->assertSame('>example\nACGT', $form['B']['query']['FASTA']['#value'], 'Expected the FASTA field to be updated with the example sequence but it was not.');
     $this->assertStringContainsString('Enter query sequence(s) in the text area', $form['B']['query']['FASTA']['#description'], 'Expected the FASTA field to have a description but it does not.');
 
-    $response = $this->blast_form->ajaxFieldUpdateCallback($form, $form_state);
+    $response = $blast_form->ajaxFieldUpdateCallback($form, $form_state);
     $this->assertInstanceOf(AjaxResponse::class, $response);
     $this->assertNotEmpty($response->getCommands(), 'Expected the AJAX response to contain commands but it does not.');
   }
@@ -900,7 +928,8 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
     $form_state = new FormState();
     $form_state->setValues($data);
 
-    $response = $this->blast_form->ajaxFieldUpdateCallback($form, $form_state);
+    $blast_form = TripalBlastForm::create($this->container);
+    $response = $blast_form->ajaxFieldUpdateCallback($form, $form_state);
 
     $this->assertInstanceOf(AjaxResponse::class, $response);
     $this->assertNotEmpty($response->getCommands(), 'Expected the AJAX response to contain commands but it does not.');
@@ -1038,23 +1067,27 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
 
     $job_service = $this->getMockBuilder(TripalBlastJobService::class)
       ->disableOriginalConstructor()
-      ->onlyMethods(['createBlastJob'])
+      ->onlyMethods(['createBlastJob', 'createJobDirectory'])
       ->getMock();
-
     $job_service->expects($this->once())
       ->method('createBlastJob')
       ->willReturnCallback(function (array $submission) use (&$captured_submission): ?array {
         $captured_submission = $submission;
         return ['job_id' => 2024, 'uuid' => '1234b567-c85e-12f5-c325-718327814391'];
       });
-
+    $job_service->expects($this->once())
+      ->method('createJobDirectory')
+      ->willReturn($this->tempDir);
     $this->container->set('tripal_blast.job_service', $job_service);
+
+    // Create the blast form which will include the mock job service.
+    $blast_form = TripalBlastForm::create($this->container);
 
     $form = [];
     $form_state = new FormState();
     $form_state->setValues($data);
 
-    $this->blast_form->submitForm($form, $form_state);
+    $blast_form->submitForm($form, $form_state);
 
     $this->assertIsArray($captured_submission['options']);
     $this->assertSame($result['match_miss'][1], $captured_submission['options']['penalty'], "The penalty should be {$result['match_miss'][1]} but it was {$captured_submission['options']['penalty']}");
@@ -1111,21 +1144,14 @@ class TripalBlastFormTest extends ChadoTestKernelBase {
   #[DataProvider('provideDataForTestProgramValidateFastaSequence')]
   public function testProgramValidateFastaSequence(array $values): void {
     $db_data = ">db\nACGT";
-    $db_file_uri = 'temporary://tripal-blast-db.fasta';
+    $this->createTempFile('tripal_blast_db.fasta', $db_data);
 
-    file_put_contents(
-      \Drupal::service('file_system')->realpath($db_file_uri),
-      $db_data
-    );
-    $db_file = File::create([
-      'uri' => $db_file_uri,
-    ]);
-    $db_file->save();
     $form = [];
     $form_state = new FormState();
     $form_state->setValues($values);
 
-    $this->blast_form->validateForm($form, $form_state);
+    $blast_form = TripalBlastForm::create($this->container);
+    $blast_form->validateForm($form, $form_state);
 
     $errors = $form_state->getErrors();
     $this->assertNotEmpty($errors, 'Expected an error message but none were found.');
