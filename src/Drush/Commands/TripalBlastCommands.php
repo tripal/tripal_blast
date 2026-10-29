@@ -104,12 +104,12 @@ class TripalBlastCommands extends DrushCommands {
       foreach ($results as $result) {
         $job_ids[] = $result->job_id;
 
-        // Query files may disappear after a reboot as they may be in /tmp/.
+        // Add the query file if it exists.
         if ($result->query_file && file_exists($result->query_file)) {
           $files[] = $result->query_file;
         }
 
-        // Find existing output files matching the filestub.
+        // Find all existing output files matching the filestub.
         // As a safety precaution, the filestub should always include
         // "tripal_blast". If we previously deleted the blastjob entry
         // but not the tripal_jobs entry, the join could have left it
