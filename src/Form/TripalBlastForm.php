@@ -8,17 +8,60 @@ namespace Drupal\tripal_blast\Form;
 
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\InvokeCommand;
+use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Link;
+use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Url;
 use Drupal\file\Entity\File;
+use Drupal\tripal_blast\Services\TripalBlastDatabaseService;
+use Drupal\tripal_blast\Services\TripalBlastJobService;
 use Drupal\tripal_blast\Services\TripalBlastProgramHelper;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Define Tripal BLAST form.
  */
 class TripalBlastForm extends FormBase {
+
+  /**
+   * The blast database service which is part of this module.
+   *
+   * @var Drupal\tripal_blast\Services\TripalBlastDatabaseService
+   */
+  protected TripalBlastDatabaseService $databaseService;
+
+  /**
+   * The blast job service which is part of this module.
+   *
+   * @var Drupal\tripal_blast\Services\TripalBlastJobService
+   */
+  protected TripalBlastJobService $jobService;
+
+  /**
+   * TripalBlastForm class constructor.
+   *
+   * Prepares injected services.
+   */
+  public function __construct(
+    TripalBlastDatabaseService $database_service,
+    TripalBlastJobService $job_service,
+  ) {
+    $this->databaseService = $database_service;
+    $this->jobService = $job_service;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('tripal_blast.database_service'),
+      $container->get('tripal_blast.job_service'),
+    );
+  }
+
   /**
    * {@inheritdoc}
    */
@@ -50,13 +93,11 @@ class TripalBlastForm extends FormBase {
 
     // Attach library - service, style and JS.
     $form['#attached']['library'][] = 'tripal_blast/tripal-blast-programs';
-    $db_service = \Drupal::service('tripal_blast.database_service');
-    $job_service = \Drupal::service('tripal_blast.job_service');
 
     // Set the BLAST variables.
     $query_type = $query;
     $db_type = $db;
-    $blast_program = $db_service->getProgramName($query, $db);
+    $blast_program = $this->databaseService->getProgramName($query, $db);
 
     $form['query_type'] = [
       '#type' => 'hidden',
@@ -88,8 +129,8 @@ class TripalBlastForm extends FormBase {
     // in the text area causing reupload and we simply do not support re-using of an uploaded target.
     $resubmit = \Drupal::request()->query->get('resubmit') ?? NULL;
     if ($resubmit) {
-      $job_id = $job_service->jobsBlastRevealSecret($resubmit);
-      $prev_blast = $job_service->jobsGetJobByJobId($job_id);
+      $job_id = $this->jobService->jobsBlastRevealSecret($resubmit);
+      $prev_blast = $this->jobService->jobsGetJobByJobId($job_id);
 
       if (!isset($prev_blast->blastdb->nid)) {
         // First of all warn if the uploaded their search target last time
@@ -141,7 +182,8 @@ class TripalBlastForm extends FormBase {
 
     // CHOOSE RECENT BLAST RESULTS
     // ---------------------------
-    $jobs = $job_service->jobsCountRecentJobs();
+    $jobs = $this->jobService->jobsCountRecentJobs();
+
     if ($jobs) {
       $form['A'] = [
         '#type' => 'details',
@@ -149,7 +191,7 @@ class TripalBlastForm extends FormBase {
         '#open' => FALSE
       ];
 
-      $form['A']['recent_job'] = $job_service->jobsCreateTable([$blast_program]);
+      $form['A']['recent_job'] = $this->jobService->jobsCreateTable([$blast_program]);
     }
 
     // NEW BLAST
@@ -246,7 +288,7 @@ class TripalBlastForm extends FormBase {
 
           //
           // # FIELD: SELECT DATABASE.
-          $blast_db = $db_service->getDatabaseByType($db_type);
+          $blast_db = $this->databaseService->getDatabaseByType($db_type);
           $form['B']['db']['SELECT_DB'] = [
             '#type' => 'select',
             '#title' => $this->t('%type BLAST Databases:', ['%type' => ucfirst($query)]),
@@ -432,6 +474,14 @@ class TripalBlastForm extends FormBase {
     $blast_submission = [];
     $blast_submission['blast_program'] = $blast_program = $form_state->getValue('blast_program');
 
+    // Create a unique directory for this job's input and output.
+    $timestamp = date('Ymd_His');
+    $unique_dir = $this->jobService->createJobDirectory();
+    if (!$unique_dir) {
+      return;
+    }
+    $blast_submission['result_filestub'] = $unique_dir . '/' . $timestamp . '.blast';
+
     // QUERY
     // -----
     // BLAST can only take the query as a file;
@@ -441,10 +491,8 @@ class TripalBlastForm extends FormBase {
     if ($var_qflag_value) {
       if ($var_qflag_value == 'seqQuery') {
         $seq_content = $form_state->getValue('FASTA');
-
-        $query_file = \Drupal::service('file_system')->getTempDirectory() . '/' . date('YMd_His') . '_query.fasta';
+        $query_file = $unique_dir . '/' . $timestamp . '.query.fasta';
         $blast_submission['query_file'] = $query_file;
-
         file_put_contents($blast_submission['query_file'], trim($seq_content));
       }
       elseif ($var_qflag_value == 'upQuery') {
@@ -512,16 +560,30 @@ class TripalBlastForm extends FormBase {
     $blast_submission['options'] = $advanced_options;
 
     $job_id = NULL;
+    $uuid = NULL;
 
     // SUBMIT JOB TO TRIPAL
     //---------------------
-    // If there is a blast target...
-    if (!$error) {
+    if ($error) {
+      // Delete the output directory created for this job.
+      // If query sequence was entered into the form field, delete the
+      // temporary query file also.
+      $query_file = $unique_dir . '/' . $timestamp . '.query.fasta';
+      if (file_exists($query_file)) {
+        unlink($query_file);
+      }
+      rmdir($unique_dir);
+    }
+    else {
 
       // Actually submit the job.
       try {
-        $job_service = \Drupal::service('tripal_blast.job_service');
-        $job_id = $job_service->createBlastJob($blast_submission);
+        $this->jobService = \Drupal::service('tripal_blast.job_service');
+        $job_parameters = $this->jobService->createBlastJob($blast_submission);
+        if ($job_parameters) {
+          $job_id = $job_parameters['job_id'] ?? NULL;
+          $uuid = $job_parameters['uuid'] ?? NULL;
+        }
       }
       catch (\Exception $e) {
         \Drupal::messenger()->addError($this->t('Unable to submit the BLAST job. The error was: @error', ['@error' => $e->getMessage()]));
@@ -529,14 +591,11 @@ class TripalBlastForm extends FormBase {
     }
 
     if ($job_id) {
-      //Encode the job_id.
-      $job_encode_id = $job_service->jobsBlastMakeSecret($job_id);
-
       // Add it to the recent jobs list.
       if (!isset($_SESSION['blast_jobs'])) {
         $_SESSION['blast_jobs'] = [];
       }
-      $_SESSION['blast_jobs'][] = $job_encode_id;
+      $_SESSION['blast_jobs'][] = $uuid;
 
       // NOTE: Originally there was a call to tripal_launch_jobs() here.
       // That should NEVER be done since it runs possibly long jobs in the page
@@ -545,7 +604,7 @@ class TripalBlastForm extends FormBase {
       // on a specified schedule.
 
       // Redirect to the BLAST results page using form redirection (no direct send).
-      $go = '/blast/report/' . $job_encode_id;
+      $go = '/blast/report/' . $uuid;
       $url = Url::fromUserInput($go);
       $form_state->setRedirectUrl($url);
     }
@@ -607,3 +666,4 @@ class TripalBlastForm extends FormBase {
     return $form['B']['query']['FASTA'];
   }
 }
+
