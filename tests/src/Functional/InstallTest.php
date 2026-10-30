@@ -15,6 +15,11 @@ use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 #[RunTestsInSeparateProcesses]
 class InstallTest extends ChadoTestBrowserBase {
 
+  /**
+   * The theme to use when rendering content in the test environment.
+   *
+   * @var string
+   */
   protected $defaultTheme = 'stark';
 
   /**
@@ -22,7 +27,7 @@ class InstallTest extends ChadoTestBrowserBase {
    *
    * @var array
    */
-  protected static $modules = ['tripal','tripal_blast'];
+  protected static $modules = ['tripal', 'tripal_blast'];
 
   /**
    * Tests that a specific set of pages load with a 200 response.
@@ -45,7 +50,8 @@ class InstallTest extends ChadoTestBrowserBase {
     $this->drupalGet('admin/modules');
     $status_code = $session->getStatusCode();
     $this->assertEquals(200, $status_code, "The module install page should be able to load $context.");
-    $this->assertSession()->pageTextContains( 'Tripal BLAST' );
+    $this->assertSession()->pageTextContains('Tripal BLAST');
 
   }
+
 }
