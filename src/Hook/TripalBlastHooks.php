@@ -50,7 +50,14 @@ class TripalBlastHooks {
     ];
 
     // Recent jobs table: Note this is not BLAST program specific.
-    $recent_jobs = \Drupal::service('tripal_blast.job_service')->jobsCreateTable();
+    // Use lazy_builder so that this element is not cached.
+    $recent_jobs = [
+      '#lazy_builder' => [
+        'tripal_blast.job_service:jobsCreateTable',
+        [],
+      ],
+      '#create_placeholder' => TRUE,
+    ];
 
     return [
       'theme-tripal-blast-ui' => [
