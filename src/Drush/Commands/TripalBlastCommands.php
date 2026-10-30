@@ -100,6 +100,7 @@ class TripalBlastCommands extends DrushCommands {
     $count = count($results);
     if ($count) {
       $files = [];
+      $file_count = 0;
       $job_ids = [];
       foreach ($results as $result) {
         $job_ids[] = $result->job_id;
@@ -107,6 +108,7 @@ class TripalBlastCommands extends DrushCommands {
         // Add the query file if it exists.
         if ($result->query_file && file_exists($result->query_file)) {
           $files[] = $result->query_file;
+          $file_count++;
         }
 
         // Find all existing output files matching the filestub.
@@ -120,6 +122,7 @@ class TripalBlastCommands extends DrushCommands {
             $outfiles = $this->file_system->scanDirectory($path_parts['dirname'], '/' . $path_parts['filename'] . '/');
             foreach ($outfiles as $file) {
               $files[] = $file->uri;
+              $file_count++;
             }
             // As the last item, add the directory itself.
             $files[] = $path_parts['dirname'];
@@ -130,7 +133,7 @@ class TripalBlastCommands extends DrushCommands {
       // Status message for what was found.
       if (!($options['silent'] ?? FALSE)) {
         $this->logger->notice($this->t('There are @count_jobs blast jobs older than @age days, having @count_files output files.',
-          ['@count_jobs' => $count, '@age' => $option_age, '@count_files' => count($files)]));
+          ['@count_jobs' => $count, '@age' => $option_age, '@count_files' => $file_count]));
       }
 
       // Delete the blast input and output files.
