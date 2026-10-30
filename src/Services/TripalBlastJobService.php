@@ -393,6 +393,8 @@ class TripalBlastJobService {
         $this->logger->error('Could not create directory "@dir"', ['@dir' => $module_dir]);
         return '';
       }
+      // Drush will need access for cleanup of old directories.
+      chmod($module_dir, 0777);
     }
 
     // Get a uuid and store it.
