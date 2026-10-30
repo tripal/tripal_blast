@@ -278,13 +278,14 @@ class TripalBlastDrushCommandsTest extends KernelTestBase {
     $messages = $this->getLogOutput();
     $expectations = [
       'There are 2 blast jobs older than 0.01 days, having 7 output files',
-      'Removing file /tmp/tripalblastphpunittest_2.fna',
-      'Removing file public://tripal_blast/tripalblastphpunittest_2.xml',
-      'Removing file public://tripal_blast/tripalblastphpunittest_2.asn',
-      'Removing file public://tripal_blast/tripalblastphpunittest_2.tsv',
-      'Removing file public://tripal_blast/tripalblastphpunittest_2.gff',
-      'Removing file public://tripal_blast/tripalblastphpunittest_2.html',
-      'Removing file /tmp/tripalblastphpunittest_3.fna',
+      'Removing file "/tmp/tripalblastphpunittest_2.fna"',
+      'Removing file "public://tripal_blast/tripalblastphpunittest_2.xml"',
+      'Removing file "public://tripal_blast/tripalblastphpunittest_2.asn"',
+      'Removing file "public://tripal_blast/tripalblastphpunittest_2.tsv"',
+      'Removing file "public://tripal_blast/tripalblastphpunittest_2.gff"',
+      'Removing file "public://tripal_blast/tripalblastphpunittest_2.html"',
+      'Removing file "/tmp/tripalblastphpunittest_3.fna"',
+      'Removing directory "public://tripal_blast"',
       'Removing 2 blastjob table entries',
       'Removing 2 tripal_jobs table entries',
     ];
