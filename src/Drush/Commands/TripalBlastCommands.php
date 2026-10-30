@@ -121,6 +121,8 @@ class TripalBlastCommands extends DrushCommands {
             foreach ($outfiles as $file) {
               $files[] = $file->uri;
             }
+            // As the last item, add the directory itself.
+            $files[] = $path_parts['dirname'];
           }
         }
       }
@@ -135,16 +137,22 @@ class TripalBlastCommands extends DrushCommands {
       if ($files) {
         if ($option_files) {
           foreach ($files as $file) {
+            $label = is_dir($file) ? 'directory' : 'file';
             if ($options['verbose'] ?? FALSE) {
-              $this->logger->notice($this->t('Removing file @file.',
-                ['@file' => $file]));
+              $this->logger->notice($this->t('Removing @label "@file".',
+                ['@label' => $label, '@file' => $file]));
             }
             try {
-              $this->file_system->delete($file);
+              if ($label === 'file') {
+                $this->file_system->delete($file);
+              }
+              else {
+                $this->file_system->rmdir($file);
+              }
             }
             catch (\Exception $e) {
-              $this->logger->error($this->t('Failed to delete file @file: @message',
-                ['@file' => $file, '@message' => $e->getMessage()]));
+              $this->logger->error($this->t('Failed to delete @label "@file": @message',
+                ['@label' => $label, '@file' => $file, '@message' => $e->getMessage()]));
             }
           }
         }
