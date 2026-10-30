@@ -1,0 +1,10 @@
+/*
+ * @file
+ * Style Tripal BLAST Configuration page:
+ */
+ 
+.tripal-blast-configuration-sequence textarea {
+  font-family: monospace, monospace;
+  font-size: 12px;
+  line-height: 1.1;
+}
