@@ -250,14 +250,6 @@ class TripalBlastReportController extends ControllerBase {
     // "No Results" message.
     $blast_job->no_hits = TRUE;
 
-    // If we configured a url for this blast database, then we can
-    // make the blast database name into a clickable link to a
-    // descriptive page, internal or external.
-    if ($blast_job->blastdb->db_url) {
-      $link = Url::fromUri($blast_job->blastdb->db_url);
-      $blast_job->blastdb->db_name = Link::fromTextAndUrl($blast_job->blastdb->db_name, $link);
-    }
-
     return $blast_job;
   }
 

@@ -77,17 +77,6 @@ class TripalBlastDatabaseForm extends EntityForm {
     ];
 
     //
-    // # BLAST DATABASE ENTITY:
-    $form['fld_text_db_url'] = [
-      '#type' => 'textfield',
-      '#maxlength' => 1000,
-      '#title' => $this->t('Database Description URL'),
-      '#description' => $this->t('An optional URL, internal or external, that points to a page describing this database. You can use "base://bio_data/123" format for entity pages on this site.'),
-      '#required' => FALSE,
-      '#default_value' => $blast_db->getDbUrl(),
-    ];
-
-    //
     // # BLAST DATABASE PATH:
     $form['fld_text_path'] = [
       '#type' => 'textfield',
@@ -172,10 +161,6 @@ class TripalBlastDatabaseForm extends EntityForm {
     $dbname = $form_state->getValue('fld_text_name');
     $dbname = trim($dbname);
     $blast_db->set('name', $dbname);
-    // Database description URL.
-    $db_url = $form_state->getValue('fld_text_db_url');
-    $db_url = trim($db_url);
-    $blast_db->set('db_url', $db_url);
     // Database Path.
     $dbpath = $form_state->getValue('fld_text_path');
     $dbpath = trim($dbpath);

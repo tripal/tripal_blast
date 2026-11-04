@@ -11,9 +11,6 @@ tripal_blast.database.*:
     name:
       type: 'string'
       label: 'Name'
-    db_url:
-      type: 'string'
-      label: 'Database description URL'
     path:
       type: 'string'
       label: 'Path'
