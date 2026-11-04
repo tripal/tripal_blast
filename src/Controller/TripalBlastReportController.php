@@ -74,8 +74,6 @@ class TripalBlastReportController extends ControllerBase {
       // Job pending (code 0) or has taken too long to start (code 2).
       if ($start_timeout && $start_delay > $start_timeout) {
         // Job has taken too long to start (code 2).
-        // Cancel the job so that stalled jobs don't pile up.
-        $tripaljob->cancel();
         $theme = 'theme-tripal-blast-report-pending';
         $job_param = [
           'job_id' => '',
