@@ -1,0 +1,7 @@
+A couple of additional edge cases worth testing:
+
+TripalBlastLinkoutLink::createLink() with {db} replacement.
+Invalid URI causing Url::fromUri() to throw and verifying TripalLogger::error() is called.
+TripalBlastLinkoutJbrowse with negative strand HSP coordinates (Hsp_hit-from > Hsp_hit-to).
+TripalBlastLinkoutJbrowse with mixed strands, verifying the top-level feature does not contain a strand attribute.
+TripalBlastLinkoutLink::create() and TripalBlastLinkoutJbrowse::create() factory methods using a mocked ContainerInterface.
