@@ -31,10 +31,8 @@ jobs:
       url: ${{ steps.zensical.outputs.page_url }}
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v7
-
       - name: Zensical Action
+        id: zensical
         uses: cssnr/zensical-action@v1
         with:
           upload: artifact # Automatically uploads your 'site/' folder as an artifact
