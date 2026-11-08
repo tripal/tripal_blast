@@ -36,3 +36,6 @@ jobs:
         uses: cssnr/zensical-action@v1
         with:
           upload: artifact # Automatically uploads your 'site/' folder as an artifact
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v5
