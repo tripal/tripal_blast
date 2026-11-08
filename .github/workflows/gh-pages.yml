@@ -3,8 +3,6 @@ name: Deploy Documentation using Zensical (Marketplace Action)
 on:
   push:
     branches: ["2.x"]
-  pull_request:
-    branches: ["issue104-docs-zensical"]
   workflow_dispatch:
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
@@ -33,9 +31,6 @@ jobs:
       url: ${{ steps.zensical.outputs.page_url }}
 
     steps:
-#      - name: Checkout repository
-#        uses: actions/checkout@v7
-
       - name: Zensical Action
         uses: cssnr/zensical-action@v1
         with:
