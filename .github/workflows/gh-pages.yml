@@ -2,7 +2,7 @@ name: Deploy Documentation using Zensical (Marketplace Action)
 
 on:
   push:
-    branches: ["2.x"]
+    branches: ["2.x", "issue104-docs-zensical"]
   workflow_dispatch:
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
