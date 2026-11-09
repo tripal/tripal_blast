@@ -440,19 +440,24 @@ class TripalBlastReportController extends ControllerBase {
    *    09/20/26  senalik Port to tripal 4.
    *
    * @param string $acc
-   *   Target name.
+   *   Target name. This should not include HTML or links.
    * @param string $scores
-   *   Score for each hit.
+   *   The score(s) for each hit encoded in $hits where each score is separated
+   *   by a semicolon and the order must match $hits.
    * @param string $hits
-   *   Each hit represented in URL as: targetstart_targetend_hspstart_hspend.
+   *   The hit(s) to be visualized where hits is separated by a semicolon.
+   *   Each hit is encoded as its coordinates on both the target and query:
+   *   TargetStart_TargetEnd_QueryStart_QueryEnd.
    * @param SimpleXMLElement $tsize
-   *   Target size.
+   *   Target size. The Hit_len of the hit in the BLAST XML.
    * @param SimpleXMLElement $qsize
-   *   Query size.
+   *   Query size. The BlastOutput_query-len of the query in the BLAST XML.
    * @param string|bool $name
-   *   Query name, FALSE if none.
+   *   Query name (BlastOutput_query-def), FALSE if none. This should not
+   *   include HTML or links.
    * @param string $hit_name
-   *   Hit name.
+   *   Hit name. This is either the hit_id or hit_def and has been processed to
+   *   ensure it will not be truncated in the image.
    *
    * @return string
    *   A base64 encoded image representing the hit information.
@@ -655,7 +660,15 @@ class TripalBlastReportController extends ControllerBase {
    * Wraps the sequence alignment at the specified length.
    *
    * @param array $hsp
-   *   The HSP in array format.
+   *   A single HSP alignment to be wrapped with the following keys:
+   *   - Hsp_qseq: The query sequence.
+   *   - Hsp_midline: the string describing the match/mismatch between the
+   *     query and hit sequences.
+   *   - Hsp_hseq: The hit sequence.
+   *   - Hsp_query-from: The query start coordinate.
+   *   - Hsp_query-to: The query stop coordinate.
+   *   - Hsp_hit-from: The hit start coordinate.
+   *   - Hsp_hit-to: The hit stop coordinate.
    * @param int|null $wrap
    *   The line length to wrap to, defaults to 60.
    *

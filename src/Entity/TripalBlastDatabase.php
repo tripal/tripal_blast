@@ -118,13 +118,15 @@ class TripalBlastDatabase extends ConfigEntityBase implements TripalBlastDatabas
   protected $db_regexp;
 
   /**
-   * The Database records from this BLAST Database reference.
+   * The ID of the chado db this BLAST Database references.
    * @var integer
    */
   protected $db_id;
 
   /**
-   * Type of linkout to be used for this database reference.
+   * Type of linkout for this BLAST database. It should be 'none' if no linkout 
+   * is supported or it should be the plugin_id of the linkout plugin to use 
+   * for this BLAST database.
    * @var string
    */
   protected $db_linkout_type;
