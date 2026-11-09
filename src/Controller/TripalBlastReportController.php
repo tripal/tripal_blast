@@ -275,10 +275,12 @@ class TripalBlastReportController extends ControllerBase {
 
       $count = 0;
 
-      // Parse the BLAST XML to generate the rows of the table
-      // where each hit results in two rows in the table:
-      // 1) A summary of the query/hit and significance, and
-      // 2) additional information including the alignment.
+      // Parse the BLAST XML to generate the rows of the table.
+      // Each array element returned by this function is later used
+      // to generate two rows in the HTML table presented to the
+      // site user:
+      //   - A summary of the query/hit and significance.
+      //   - additional information including the alignment.
       foreach ($blast_job->xml->{'BlastOutput_iterations'}->children() as $iteration) {
         $children_count = $iteration->{'Iteration_hits'}->children()->count();
 
