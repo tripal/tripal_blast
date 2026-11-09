@@ -25,7 +25,7 @@ interface TripalBlastLinkoutInterface {
    *       ordered by statistical relevance. Starts at 1.
    *     - Hit_id: The comprehensive string database identifier of the
    *       matching reference sequence.
-   *     - Hit_def: he text definition or descriptive name of the matching
+   *     - Hit_def: The text definition or descriptive name of the matching
    *       database sequence.
    *     - Hit_accession: The distinct alphanumeric accession string of the
    *       matched database sequence.
