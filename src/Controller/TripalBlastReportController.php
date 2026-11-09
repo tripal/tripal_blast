@@ -281,7 +281,7 @@ class TripalBlastReportController extends ControllerBase {
    *     - Hsp_query-to: Query end coordinate.
    *     - Hsp_hit-from: Subject hit sequence start coordinate.
    *     - Hsp_hit-to: Subject hit sequence end coordinate.
-   *     - Hsp_alignment: the plain-text sequence alignment, passed to the
+   *     - Hsp_alignment: The plain-text sequence alignment, passed to the
    *       twig template in raw mode.
    */
   protected function generateBlastTableRows(\stdClass $blast_job): array {
