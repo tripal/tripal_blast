@@ -123,6 +123,7 @@ class TripalBlastDatabaseForm extends EntityForm {
     $form['regular_expression']['fld_text_db_id'] = [
       '#type' => 'select',
       '#options' => $this->getDatabases(),
+      '#empty_option' => $this->t('- Select -'),
       '#title' => $this->t('BLAST database reference'),
       '#description' => $this->t('The external Database reference for this BLAST database. Only databases with a defined urlprefix are shown.'),
       '#required' => FALSE,
@@ -141,6 +142,7 @@ class TripalBlastDatabaseForm extends EntityForm {
       '#description' => $this->t('Type of linkout to be used for this database reference. The module defining the linkout type is shown in parentheses.'),
       '#required' => FALSE,
       '#options' => $linkout_list,
+      '#empty_option' => $this->t('- Select -'),
       '#default_value' => $default_linkout,
     ];
 
@@ -194,7 +196,7 @@ class TripalBlastDatabaseForm extends EntityForm {
    */
   protected function getLinkoutTypes(): array {
     // Retrieve the list of available linkout types as a select list.
-    $linkout_list = ['' => '- Select -'];
+    $linkout_list = [];
     $presort = [];
     foreach ($this->linkout_manager->getDefinitions() as $definition) {
       // Provider is the module providing the plugin.
@@ -225,7 +227,7 @@ class TripalBlastDatabaseForm extends EntityForm {
     $query->isNotNull('[db].urlprefix');
     $query->orderBy('db.name');
     $results = $query->execute();
-    $select_arr = ['' => '- Select -'];
+    $select_arr = [];
     foreach ($results as $result) {
       $name_with_id = $result->name . ' (' . $result->db_id . ')';
       $select_arr[$name_with_id] = $name_with_id;
