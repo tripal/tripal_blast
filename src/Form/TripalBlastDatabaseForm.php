@@ -124,8 +124,8 @@ class TripalBlastDatabaseForm extends EntityForm {
       '#type' => 'select',
       '#options' => $this->getDatabases(),
       '#empty_option' => $this->t('- Select -'),
-      '#title' => $this->t('BLAST database reference'),
-      '#description' => $this->t('The external Database reference for this BLAST database. Only databases with a defined urlprefix are shown.'),
+      '#title' => $this->t('Chado DB'),
+      '#description' => $this->t('The chado.db this BLAST Database represents. Only chado db with a defined urlprefix are shown.'),
       '#required' => FALSE,
       '#default_value' => $blast_db->getDbId(),
     ];
@@ -138,8 +138,8 @@ class TripalBlastDatabaseForm extends EntityForm {
     }
     $form['regular_expression']['fld_text_db_linkout_type'] = [
       '#type' => 'select',
-      '#title' => $this->t('BLAST database reference linkout type'),
-      '#description' => $this->t('Type of linkout to be used for this database reference. The module defining the linkout type is shown in parentheses.'),
+      '#title' => $this->t('Linkout Type'),
+      '#description' => $this->t('The approach to use when transforming hit names in your BLAST results to links. These are provided by the TripalBlastLinkout plugin and the module defining each option is shown in parenthesis.'),
       '#required' => FALSE,
       '#options' => $linkout_list,
       '#empty_option' => $this->t('- Select -'),
