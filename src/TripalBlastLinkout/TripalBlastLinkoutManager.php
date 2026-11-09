@@ -1,13 +1,12 @@
 <?php
 
-# https://www.berramou.com/blog/drupal-create-custom-plugin-type
-namespace Drupal\tripal_blast;
+namespace Drupal\tripal_blast\TripalBlastLinkout;
 
 use Drupal\Core\Plugin\DefaultPluginManager;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\tripal_blast\Attribute\TripalBlastLinkout;
-use Drupal\tripal_blast\Plugin\TripalBlastLinkout\TripalBlastLinkoutInterface;
+use Drupal\tripal_blast\TripalBlastLinkout\TripalBlastLinkoutInterface;
 
 /**
  * Manages Tripal Blast Linkout plugins.

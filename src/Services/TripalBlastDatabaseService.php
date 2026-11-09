@@ -106,7 +106,6 @@ class TripalBlastDatabaseService {
         return [
           'id'  => $config->getId(),
           'name' => $config->getName(),
-          'db_url' => $config->getDbUrl(),
           'path'  => $config->getPath(),
           'dbtype' => $config->getDbType(),
           'db_regexp' => $config->getDbRegExp(),

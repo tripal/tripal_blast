@@ -26,7 +26,6 @@ use Drupal\tripal_blast\TripalBlastDatabaseInterface;
   entity_keys: [
     'id' => 'id',
     'label' => 'name',
-    'db_url' => 'db_url',
     'path' => 'path',
     'dbtype' => 'dbtype',
     'db_regexp' => 'db_regexp',
@@ -36,7 +35,6 @@ use Drupal\tripal_blast\TripalBlastDatabaseInterface;
   config_export: [
     'id',
     'name',
-    'db_url',
     'path',
     'dbtype',
     'db_regexp',
@@ -67,7 +65,6 @@ use Drupal\tripal_blast\TripalBlastDatabaseInterface;
  *   entity_keys = {
  *     "id" = "id",
  *     "label" = "name",
- *     "db_url" = "db_url",
  *     "path" = "path",
  *     "dbtype" = "dbtype",
  *     "db_regexp" = "db_regexp",
@@ -77,7 +74,6 @@ use Drupal\tripal_blast\TripalBlastDatabaseInterface;
  *   config_export = {
  *     "id",
  *     "name",
- *     "db_url",
  *     "path",
  *     "dbtype",
  *     "db_regexp",
@@ -104,12 +100,6 @@ class TripalBlastDatabase extends ConfigEntityBase implements TripalBlastDatabas
   protected $name;
 
   /**
-   * A URL pointing to a descriptive page for the blast database.
-   * @var string
-   */
-  protected $db_url;
-
-  /**
    * The full path and filename prefix of the blast database.
    * @var string
    */
@@ -128,13 +118,15 @@ class TripalBlastDatabase extends ConfigEntityBase implements TripalBlastDatabas
   protected $db_regexp;
 
   /**
-   * The Database records from this BLAST Database reference.
+   * The ID of the chado db this BLAST Database references.
    * @var integer
    */
   protected $db_id;
 
   /**
-   * Type of linkout to be used for this database reference.
+   * Type of linkout for this BLAST database. It should be 'none' if no linkout 
+   * is supported or it should be the plugin_id of the linkout plugin to use 
+   * for this BLAST database.
    * @var string
    */
   protected $db_linkout_type;
@@ -151,13 +143,6 @@ class TripalBlastDatabase extends ConfigEntityBase implements TripalBlastDatabas
    */
   public function getName() {
     return $this->name;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getDbUrl() {
-    return $this->db_url;
   }
 
   /**
