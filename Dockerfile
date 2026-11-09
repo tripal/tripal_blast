@@ -13,12 +13,11 @@ COPY . /var/www/drupal/web/modules/contrib/tripal_blast
 RUN rm -f ./phpunit.xml
 RUN bash /var/www/drupal/web/modules/contrib/tripal/set_phpunit_config.sh
 
-## Install latest version of NCBI Blast+.
+## Install NCBI Blast+.
 RUN cd / \
-  && version=$(wget -qO- https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/VERSION) \
-  && wget --no-verbose https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/ncbi-blast-${version}+-x64-linux.tar.gz \
-  && tar xzf ncbi-blast-${version}+-x64-linux.tar.gz \
-  && cp ncbi-blast-${version}+/bin/* /usr/local/bin
+  && wget https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/2.2.30/ncbi-blast-2.2.30+-x64-linux.tar.gz \
+  && tar xzf ncbi-blast-2.2.30+-x64-linux.tar.gz \
+  && cp ncbi-blast-2.2.30+/bin/* /usr/local/bin
 
 ## Enable module
 WORKDIR /var/www/drupal/web/modules/contrib/tripal_blast

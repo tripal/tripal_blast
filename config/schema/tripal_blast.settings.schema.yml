@@ -53,7 +53,7 @@ tripal_blast.settings:
           label: 'Max Results to Display'
         start_timeout:
           type: integer
-          label: 'Timeout in seconds for starting a blast job'
+          label: 'Timeout in seconds after which the user should be warned that there may be an issue with the job service'
 
     # NOTIFICATION CONFIGURATIONS
     tripal_blast_config_notification:
