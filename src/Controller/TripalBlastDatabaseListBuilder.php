@@ -22,7 +22,6 @@ class TripalBlastDatabaseListBuilder extends ConfigEntityListBuilder {
   public function buildHeader() {
     $header['id'] = $this->t('Database ID');
     $header['name'] = $this->t('Name');
-    $header['db_url'] = $this->t('Description URL');
     $header['path'] = $this->t('Path');
     $header['type'] = $this->t('Type');
     $header['db_regexp'] = $this->t('REGEXP Key');
@@ -38,7 +37,6 @@ class TripalBlastDatabaseListBuilder extends ConfigEntityListBuilder {
   public function buildRow(EntityInterface $entity) {
     $row['id'] = $entity->getId();
     $row['name'] = $entity->getName();
-    $row['db_url'] = $this->entityLink($entity->getDbUrl());
     $row['path'] = $entity->getPath();
 
     $dbtype = $entity->getDbType() == 'n' ? 'Nucleotide (n)' : 'Protein (p)';

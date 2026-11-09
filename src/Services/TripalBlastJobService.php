@@ -264,7 +264,6 @@ class TripalBlastJobService {
 
       if ($config) {
         $job->blastdb->db_name = $config['name'];
-        $job->blastdb->db_url = $config['db_url'];
         $job->blastdb->db_path = $config['path'];
         $job->blastdb->db_dbtype = $config['dbtype'];
         $job->blastdb->linkout = new \stdClass();
@@ -284,7 +283,6 @@ class TripalBlastJobService {
       // Otherwise the user uploaded their own database so provide what
       // information we can.
       $job->blastdb->db_name = 'User Uploaded';
-      $job->blastdb->db_url = '';
       $job->blastdb->db_path = $blastjob->target_file;
       $job->blastdb->linkout = new \stdClass();
       $job->blastdb->linkout->none = TRUE;
