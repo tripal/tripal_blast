@@ -20,7 +20,7 @@ services:
   tripal_blast.hook_service:
     class: 'Drupal\tripal_blast\Hook\TripalBlastHooks'
   plugin.manager.tripal_blast_linkout:
-    class: 'Drupal\tripal_blast\TripalBlastLinkoutManager'
+    class: 'Drupal\tripal_blast\TripalBlastLinkout\TripalBlastLinkoutManager'
     arguments:
       - '@container.namespaces'
       - '@cache.discovery'
