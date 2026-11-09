@@ -6,7 +6,7 @@ use Drupal\Core\Plugin\DefaultPluginManager;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\tripal_blast\Attribute\TripalBlastLinkout;
-use Drupal\tripal_blast\Plugin\TripalBlastLinkout\TripalBlastLinkoutInterface;
+use Drupal\tripal_blast\TripalBlastLinkout\TripalBlastLinkoutInterface;
 
 /**
  * Manages Tripal Blast Linkout plugins.
