@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\tripal_blast;
+namespace Drupal\tripal_blast\TripalBlastLinkout;
 
 use Drupal\Core\Plugin\DefaultPluginManager;
 use Drupal\Core\Cache\CacheBackendInterface;

@@ -9,6 +9,7 @@ use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\Url;
 use Drupal\tripal\Services\TripalLogger;
 use Drupal\tripal_blast\Attribute\TripalBlastLinkout;
+use Drupal\tripal_blast\TripalBlastLinkout\TripalBlastLinkoutInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**

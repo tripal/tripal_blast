@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\tripal_blast\Plugin\TripalBlastLinkout;
+namespace Drupal\tripal_blast\TripalBlastLinkout;
 
 use Drupal\Core\Link;
 
