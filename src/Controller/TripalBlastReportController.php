@@ -655,7 +655,15 @@ class TripalBlastReportController extends ControllerBase {
    * Wraps the sequence alignment at the specified length.
    *
    * @param array $hsp
-   *   The HSP in array format.
+   *   A single HSP alignment to be wrapped with the following keys:
+   *   - Hsp_qseq: The query sequence.
+   *   - Hsp_midline: the string describing the match/mismatch between the
+   *     query and hit sequences.
+   *   - Hsp_hseq: The hit sequence.
+   *   - Hsp_query-from: The query start coordinate.
+   *   - Hsp_query-to: The query stop coordinate.
+   *   - Hsp_hit-from: The hit start coordinate.
+   *   - Hsp_hit-to: The hit stop coordinate.
    * @param int|null $wrap
    *   The line length to wrap to, defaults to 60.
    *
