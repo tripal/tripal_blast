@@ -279,12 +279,13 @@ class TripalBlastReportController extends ControllerBase {
       // Each array element returned by this function is later used
       // to generate two rows in the HTML table presented to the
       // site user:
-      //   - A summary of the query/hit and significance.
-      //   - additional information including the alignment.
+      // - A summary of the query/hit and significance.
+      // - additional information including the alignment.
       foreach ($blast_job->xml->{'BlastOutput_iterations'}->children() as $iteration) {
         $children_count = $iteration->{'Iteration_hits'}->children()->count();
 
         // Save some information needed for the hit visualization.
+        // @todo this variable is never set. Need to see if it is needed.
         $target_name = '';
         $q_name = $blast_job->xml->{'BlastOutput_query-def'};
         $query_size = $blast_job->xml->{'BlastOutput_query-len'};
