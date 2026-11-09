@@ -1,4 +1,4 @@
- /**
+/**
  * @file
  * Handles CSS Themeing of the BLAST Results
  */
@@ -16,28 +16,44 @@ p.blast-no-results {
 }
 
 /* -- Theme the table of results */
-table#blast_report th {
+#blast_report {
+  border-collapse: collapse;
+}
+
+table#blast_report thead th {
+  background-color: #ddd;
+  border-bottom: 2px solid #ddd;
+  vertical-align: bottom;
   text-align: left;
+  padding: 8px;
+  margin: 0;
+  line-height: 1.43;
 }
 
-table#blast_report tr td {
-  vertical-align : top;
+table#blast_report tbody tr td {
+  background-color: #f9f9f9;
+  text-align: left;
+  padding: 8px;
+  margin: 0;
+  line-height: 1.43;
+  vertical-align: top;
+  border-top: 1px solid #ddd;
 }
 
-table#blast_report tr.odd td {
-  cursor:pointer;
-  vertical-align : top;
+table#blast_report tbody tr.odd td {
+  cursor: pointer;
+  vertical-align: top;
 }
 
 table#blast_report .arrow {
-  background:transparent url('../images/arrows.png') no-repeat scroll 0px -16px;
-  width:16px;
-  height:16px;
-  display:block;
+  background: transparent url('../images/arrows.png') no-repeat scroll 0px -16px;
+  width: 16px;
+  height: 16px;
+  display: block;
 }
 
 table#blast_report div.up {
-  background-position:0px 0px;
+  background-position: 0px 0px;
 }
 
 table#blast_report td.number, #blast_report th.number {
@@ -56,33 +72,33 @@ table#blast_report td.arrow-col, #blast_report th.arrow-col {
 
 
 /* -- Alignment */
-table#blast_report tr.alignment-row .title{
+table#blast_report tr.alignment-row .title {
   font-weight: bold;
 }
 
-table#blast_report tr.alignment-row .hsp-title{
+table#blast_report tr.alignment-row .hsp-title {
   padding-top: 15px;
   font-weight: bold;
 }
 
-table#blast_report tr.alignment-row{
+table#blast_report tr.alignment-row {
   width: 100%;
 }
 
 table#blast_report .alignment {
-  width: 625px;
+  width: 100%;
 }
 
 table#blast_report .alignment-title {
   font-weight: bold;
 }
 
-table#blast_report div.alignment-row{
+table#blast_report div.alignment-row {
   padding: 10px 30px;
   font-family: monospace;
   white-space: nowrap;
 }
 
-table#blast_report div.alignment-subrow{
+table#blast_report div.alignment-subrow {
   padding-bottom: 15px;
 }
