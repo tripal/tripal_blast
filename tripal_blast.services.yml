@@ -13,7 +13,11 @@ services:
       - '@tripal_chado.database'
       - '@file_system'
       - '@uuid'
+      - '@date.formatter'
+      - '@config.factory'
+      - '@current_user'
       - '@tripal.logger'
+      - '@tripal_blast.database_service'
   tripal_blast.program_blastn:
     class: Drupal\tripal_blast\Services\TripalBlastProgramBlastn
   tripal_blast.program_blastx:
@@ -24,6 +28,8 @@ services:
     class: Drupal\tripal_blast\Services\TripalBlastProgramBlastp
   tripal_blast.hook_service:
     class: 'Drupal\tripal_blast\Hook\TripalBlastHooks'
+    arguments:
+      - '@tripal_blast.job_service'
   plugin.manager.tripal_blast_linkout:
     class: 'Drupal\tripal_blast\TripalBlastLinkout\TripalBlastLinkoutManager'
     arguments:
