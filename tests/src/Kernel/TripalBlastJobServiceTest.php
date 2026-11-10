@@ -684,7 +684,7 @@ class TripalBlastJobServiceTest extends ChadoTestKernelBase {
     $this->assertSame(
       $results['expected_exception'],
       $exception_message,
-      "We expected the excpetion to be {$results['expected_exception']}, but it was $exception_message."
+      "We expected the exception to be {$results['expected_exception']}, but it was $exception_message."
     );
   }
 
