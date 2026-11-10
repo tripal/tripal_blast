@@ -20,11 +20,6 @@ interface TripalBlastDatabaseInterface extends ConfigEntityInterface {
   public function getName();
 
   /**
-   * Return a URL pointing to a descriptive page for the blast database.
-   */
-  public function getDbUrl();
-
-  /**
    * Return the full path and filename prefix of the blast database.
    */
   public function getPath();
