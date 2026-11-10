@@ -18,6 +18,8 @@ services:
       - '@current_user'
       - '@tripal.logger'
       - '@tripal_blast.database_service'
+  Drupal\tripal_blast\Services\TripalBlastJobService:
+    alias: tripal_blast.job_service
   tripal_blast.program_blastn:
     class: Drupal\tripal_blast\Services\TripalBlastProgramBlastn
   tripal_blast.program_blastx:
