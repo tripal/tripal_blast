@@ -2,11 +2,31 @@
 
 namespace Drupal\tripal_blast\Services;
 
+use Drupal\Core\Entity\EntityStorageInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
+
 /**
  * This service handles tripal blast databases.
  */
 class TripalBlastDatabaseService {
   const CONFIG_ENTITY_NAME = 'tripalblastdatabase';
+
+  /**
+   * Storage handler for blast database config entities.
+   *
+   * @var \Drupal\Core\Entity\EntityStorageInterface
+   */
+  protected EntityStorageInterface $storage;
+
+  /**
+   * Constructs the service.
+   */
+  public function __construct(
+    protected EntityTypeManagerInterface $entityTypeManager,
+  ) {
+    $this->storage = $this->entityTypeManager
+      ->getStorage(static::CONFIG_ENTITY_NAME);
+  }
 
   /**
    * Get a specific BlastDB.
@@ -32,15 +52,14 @@ class TripalBlastDatabaseService {
       $condition['value'] = $identifiers['path'];
     }
 
-    $storage = \Drupal::entityTypeManager()->getStorage(static::CONFIG_ENTITY_NAME);
-    $entity_query = $storage->getQuery();
+    $entity_query = $this->storage->getQuery();
 
     $blast_db = $entity_query->condition($condition['field'], $condition['value'])
       ->sort('name', 'ASC')
       ->execute();
 
     // Load multiples or single item load($id)
-    $db = $storage->loadMultiple($blast_db);
+    $db = $this->storage->loadMultiple($blast_db);
     return ($db) ? $db : NULL;
   }
 
@@ -63,15 +82,14 @@ class TripalBlastDatabaseService {
     // protein, respectively.
     $type = $this->translateType($type);
 
-    $storage = \Drupal::entityTypeManager()->getStorage(static::CONFIG_ENTITY_NAME);
-    $entity_query = $storage->getQuery();
+    $entity_query = $this->storage->getQuery();
 
     $blast_db = $entity_query->condition('dbtype', $type)
       ->sort('name', 'ASC')
       ->execute();
 
     // Load multiples or single item load($id)
-    $all = $storage->loadMultiple($blast_db);
+    $all = $this->storage->loadMultiple($blast_db);
     $db = [];
     foreach ($all as $db_obj) {
       $db_id = $db_obj->getId();
@@ -95,16 +113,13 @@ class TripalBlastDatabaseService {
    */
   public function getDatabaseConfig($id): ?array {
     if ($id) {
-      $config = \Drupal::entityTypeManager()
-        ->getStorage(static::CONFIG_ENTITY_NAME)
-        ->load($id);
+      $config = $this->storage->load($id);
 
       // If a database was removed, and has no config, return NULL.
       if ($config) {
         return [
           'id'  => $config->getId(),
           'name' => $config->getName(),
-          'db_url' => $config->getDbUrl(),
           'path'  => $config->getPath(),
           'dbtype' => $config->getDbType(),
           'db_regexp' => $config->getDbRegExp(),

@@ -23,7 +23,6 @@ use Drupal\tripal_blast\TripalBlastDatabaseInterface;
   entity_keys: [
     'id' => 'id',
     'label' => 'name',
-    'db_url' => 'db_url',
     'path' => 'path',
     'dbtype' => 'dbtype',
     'db_regexp' => 'db_regexp',
@@ -33,7 +32,6 @@ use Drupal\tripal_blast\TripalBlastDatabaseInterface;
   config_export: [
     'id',
     'name',
-    'db_url',
     'path',
     'dbtype',
     'db_regexp',
@@ -64,7 +62,6 @@ use Drupal\tripal_blast\TripalBlastDatabaseInterface;
  *   entity_keys = {
  *     "id" = "id",
  *     "label" = "name",
- *     "db_url" = "db_url",
  *     "path" = "path",
  *     "dbtype" = "dbtype",
  *     "db_regexp" = "db_regexp",
@@ -74,7 +71,6 @@ use Drupal\tripal_blast\TripalBlastDatabaseInterface;
  *   config_export = {
  *     "id",
  *     "name",
- *     "db_url",
  *     "path",
  *     "dbtype",
  *     "db_regexp",
@@ -101,13 +97,6 @@ class TripalBlastDatabase extends ConfigEntityBase implements TripalBlastDatabas
    * @var string
    */
   protected $name;
-
-  /**
-   * A URL pointing to a descriptive page for the blast database.
-   *
-   * @var string
-   */
-  protected $db_url;
 
   /**
    * The full path and filename prefix of the blast database.
@@ -156,13 +145,6 @@ class TripalBlastDatabase extends ConfigEntityBase implements TripalBlastDatabas
    */
   public function getName() {
     return $this->name;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getDbUrl() {
-    return $this->db_url;
   }
 
   /**

@@ -3,10 +3,13 @@
 namespace Drupal\tripal_blast\Services;
 
 use Drupal\Component\Uuid\UuidInterface;
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Database\Connection;
+use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Render\Markup;
 use Drupal\Core\Security\TrustedCallbackInterface;
+use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\tripal\Services\TripalJob;
 use Drupal\tripal\Services\TripalLogger;
 use Drupal\tripal_chado\Database\ChadoConnection;
@@ -55,11 +58,32 @@ class TripalBlastJobService implements TrustedCallbackInterface {
   protected FileSystemInterface $fileSystem;
 
   /**
-   * UUID generator.
+   * UUID generator service.
    *
    * @var Drupal\Component\Uuid\UuidInterface
    */
   protected UuidInterface $uuidService;
+
+  /**
+   * Drupal date formatter service.
+   *
+   * @var \Drupal\Core\Datetime\DateFormatterInterface
+   */
+  protected DateFormatterInterface $dateFormatter;
+
+  /**
+   * Configuration factory service.
+   *
+   * @var \Drupal\Core\Config\ConfigFactoryInterface
+   */
+  protected ConfigFactoryInterface $configFactory;
+
+  /**
+   * The current user account.
+   *
+   * @var \Drupal\Core\Session\AccountProxyInterface
+   */
+  protected AccountProxyInterface $currentUser;
 
   /**
    * The Tripal logger service.
@@ -67,6 +91,13 @@ class TripalBlastJobService implements TrustedCallbackInterface {
    * @var Drupal\tripal\Services\TripalLogger
    */
   protected TripalLogger $logger;
+
+  /**
+   * Service for BLAST database configuration entities.
+   *
+   * @var \Drupal\tripal_blast\Services\TripalBlastDatabaseService
+   */
+  protected TripalBlastDatabaseService $databaseService;
 
   /**
    * A UUID for the current job. This is set by createJobDirectory().
@@ -86,21 +117,37 @@ class TripalBlastJobService implements TrustedCallbackInterface {
    *   The drupal file system service.
    * @param Drupal\Component\Uuid\UuidInterface $uuidService
    *   Service to generate unique identifiers.
+   * @param Drupal\Core\Datetime\DateFormatterInterface $dateFormatter
+   *   The Drupal date formatter service.
+   * @param Drupal\Core\Config\ConfigFactoryInterface $configFactory
+   *   The Drupal configuration factory service.
+   * @param Drupal\Core\Session\AccountProxyInterface $currentUser
+   *   The current user service.
    * @param Drupal\tripal\Services\TripalLogger $logger
    *   The Tripal logger service.
+   * @param Drupal\tripal_blast\Services\TripalBlastDatabaseService $databaseService
+   *   Service for accessing BLAST database configuration entities.
    */
   public function __construct(
     Connection $drupal_connection,
     ChadoConnection $chado_connection,
     FileSystemInterface $fileSystem,
     UuidInterface $uuidService,
+    DateFormatterInterface $dateFormatter,
+    ConfigFactoryInterface $configFactory,
+    AccountProxyInterface $currentUser,
     TripalLogger $logger,
+    TripalBlastDatabaseService $databaseService,
   ) {
     $this->drupal_connection = $drupal_connection;
     $this->chado_connection = $chado_connection;
     $this->fileSystem = $fileSystem;
     $this->uuidService = $uuidService;
+    $this->dateFormatter = $dateFormatter;
+    $this->configFactory = $configFactory;
+    $this->currentUser = $currentUser;
     $this->logger = $logger;
+    $this->databaseService = $databaseService;
   }
 
   /**
@@ -193,7 +240,7 @@ class TripalBlastJobService implements TrustedCallbackInterface {
       $rows[] = [
         $job->query_summary,
         $job->blastdb->db_name,
-        \Drupal::service('date.formatter')->format($job->date_submitted, 'medium'),
+        $this->dateFormatter->format($job->date_submitted, 'medium'),
         Markup::create('<a href="' . $result_link . '">See Results</a>'),
       ];
     }
@@ -280,12 +327,10 @@ class TripalBlastJobService implements TrustedCallbackInterface {
     $job->blastdb = new \stdClass();
     if ($blastjob->target_blastdb) {
       // If a provided blast database was used then load details.
-      $config = \Drupal::service('tripal_blast.database_service')
-        ->getDatabaseConfig($blastjob->target_blastdb);
+      $config = $this->databaseService->getDatabaseConfig($blastjob->target_blastdb);
 
       if ($config) {
         $job->blastdb->db_name = $config['name'];
-        $job->blastdb->db_url = $config['db_url'];
         $job->blastdb->db_path = $config['path'];
         $job->blastdb->db_dbtype = $config['dbtype'];
         $job->blastdb->linkout = new \stdClass();
@@ -305,7 +350,6 @@ class TripalBlastJobService implements TrustedCallbackInterface {
       // Otherwise the user uploaded their own database so provide what
       // information we can.
       $job->blastdb->db_name = 'User Uploaded';
-      $job->blastdb->db_url = '';
       $job->blastdb->db_path = $blastjob->target_file;
       $job->blastdb->linkout = new \stdClass();
       $job->blastdb->linkout->none = TRUE;
@@ -329,7 +373,7 @@ class TripalBlastJobService implements TrustedCallbackInterface {
     // Note: the result_filestub is the absolute path to the files without the
     // file type suffix (i.e.: .xml, .tsv, .html, .gff, .asn). To determine the
     // URI we need to strip the DRUPAL_ROOT from the absolute path.
-    $public_path = \Drupal::service('file_system')->realpath('public://');
+    $public_path = $this->fileSystem->realpath('public://');
     $absolute_path = $blastjob->result_filestub;
     // If the absolute path is within the public:// directory then we can use
     // the public:// stream wrapper to create the URI.
@@ -479,7 +523,7 @@ class TripalBlastJobService implements TrustedCallbackInterface {
     elseif (array_key_exists('target_blastdb', $job_parameters)) {
       if (is_numeric($job_parameters['target_blastdb'])) {
         // If the target_blastdb is set then we need to make sure it exists.
-        $database_config = \Drupal::service('tripal_blast.database_service')
+        $database_config = $this->databaseService
           ->getDatabaseConfig($job_parameters['target_blastdb']);
 
         if (!$database_config) {
@@ -563,7 +607,7 @@ class TripalBlastJobService implements TrustedCallbackInterface {
       'blast_job',
       ['Drupal\tripal_blast\Services\TripalBlastJobService', 'runJob'],
       $trpjob_args,
-      \Drupal::currentUser()->id()
+      $this->currentUser->id()
     );
 
     // Now save the tripal job_id into the params.
@@ -647,11 +691,10 @@ class TripalBlastJobService implements TrustedCallbackInterface {
 
     // Allow administrators to use an absolute path for these commands.
     // Defaults to using $PATH.
-    $blast_path = \Drupal::config('tripal_blast.settings')
-      ->get('tripal_blast_config_general.path');
+    $config = $this->configFactory->get('tripal_blast.settings');
+    $blast_path = $config->get('tripal_blast_config_general.path');
 
-    $blast_threads = \Drupal::config('tripal_blast.settings')
-      ->get('tripal_blast_config_general.threads');
+    $blast_threads = $config->get('tripal_blast_config_general.threads');
 
     // Strip the extension off the BLAST target.
     $suffix = [

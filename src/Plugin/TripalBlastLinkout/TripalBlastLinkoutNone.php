@@ -6,6 +6,7 @@ use Drupal\Component\Plugin\PluginBase;
 use Drupal\Core\Link;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\tripal_blast\Attribute\TripalBlastLinkout;
+use Drupal\tripal_blast\TripalBlastLinkout\TripalBlastLinkoutInterface;
 
 /**
  * This linkout type simply returns the hit name unchanged.
