@@ -1,38 +1,34 @@
 <?php
-/**
- * @file
- * Contains methods to assist advanced field elements in a program
- * fetch options, configuration and default values.
- */
 
 namespace Drupal\tripal_blast\Services;
 
- /**
-  * BLAST program heloer class.
-  */
+/**
+ * Tripal blast program helper class.
+ */
 class TripalBlastProgramHelper {
+
   /**
    * Get a list of options for the max_target_seq blast option.
    *
    * The options are the same for all programs
    * and describe the maximum number of aligned sequences to keep.
    *
-   * @param $program_name
-   *   String, established program name - blastn, blastx, blastp and tblastn.
+   * @param string $program_name
+   *   Established program name - blastn, blastx, blastp, or tblastn.
    *
-   * @param array
+   * @return array
    *   Number range.
    */
-  public static function programGetMaxTarget($program_name) {
+  public static function programGetMaxTarget(string $program_name): array {
     $max_target = 0;
 
-    switch($program_name) {
-      case 'blastn' :
-      case 'blastx' :
-      case 'blastp' :
+    switch ($program_name) {
+      case 'blastn':
+      case 'blastx':
+      case 'blastp':
       case 'tblastn':
         $max_target = [
-          0     => t(' '),
+          0     => ' ',
           10    => t('10'),
           50    => t('50'),
           100   => t('100'),
@@ -51,13 +47,13 @@ class TripalBlastProgramHelper {
   /**
    * Create options for word size per program.
    *
-   * @param $program_name
-   *   String, established program name - blastn, blastx, blastp and tblastn.
+   * @param string $program_name
+   *   Established program name - blastn, blastx, blastp, or tblastn.
    *
-   * @param array
+   * @return array
    *   Number range.
    */
-  public static function programGetWordSize($program_name) {
+  public static function programGetWordSize(string $program_name): array {
     $word_size = 0;
 
     switch ($program_name) {
@@ -83,7 +79,7 @@ class TripalBlastProgramHelper {
       case 'blastp':
       case 'tblastn':
         $word_size = [
-          //  2 => t('2'),
+          // 2 => t('2'),
           3 => t('3'),
           6 => t('6'),
         ];
@@ -95,42 +91,44 @@ class TripalBlastProgramHelper {
   /**
    * Create options for matrix per program.
    *
-   * @param $program_name
-   *   String, established program name - blastn, blastx, blastp and tblastn.
+   * @param string $program_name
+   *   Established program name - blastn, blastx, blastp, or tblastn.
    *
-   * @param array
+   * @return array
    *   Matrix ids/keys.
    */
-  public static function programGetScoringMatrix($program_name) {
+  public static function programGetScoringMatrix(string $program_name): array {
     $scoring_matrix = [
-      t('PAM30'),
-      t('PAM70'),
-      t('PAM250'),
-      t('BLOSUM80'),
-      t('BLOSUM62'),
-      t('BLOSUM45'),
-      t('BLOSUM50'),
-      t('BLOSUM90')
+      'PAM30',
+      'PAM70',
+      'PAM250',
+      'BLOSUM80',
+      'BLOSUM62',
+      'BLOSUM45',
+      'BLOSUM50',
+      'BLOSUM90',
     ];
 
     return array_combine($scoring_matrix, $scoring_matrix);
   }
 
   /**
-   * Fill the gap penalty dropdown list with appropriate options given a selected matrix.
+   * Fill the gap penalty dropdown list with appropriate options.
    *
-   * @param $key
+   * Options depend on the provided matrix key.
+   *
+   * @param string $key
    *   String, matrix id or key defined in programGetScoringMatrix().
    *
-   * @return
+   * @return array
    *   An array containing open and extension gap values for the chosen matrix
-   *   (to fill the second dropdown list)
+   *   (to fill the second dropdown list).
    *
    * @dependencies
    *   programGetScoringMatrix() and programMakeGaps().
    */
-  public static function programGetGapForMatrix($key = '') {
-    $matrix_gap = '';
+  public static function programGetGapForMatrix(string $key = ''): array {
+    $matrix_gap = [];
 
     switch ($key) {
       case 'PAM30':
@@ -172,21 +170,20 @@ class TripalBlastProgramHelper {
   /**
    * Expand matrix gap per matrix key gap array (value 1 _ value 2).
    *
-   * @param $gap_array
+   * @param array $gap_array
    *   Array of gap abbreviations base on the matrix key.
    *
    * @return array
    *   Deconstructed gap (value 1 and value 2).
    *
-   * @see
-   *   programGetGapForMatrix().
+   * @see programGetGapForMatrix()
    */
-  public static function programMakeGap($gap_array) {
+  public static function programMakeGap(array $gap_array): array {
     $gap = [];
 
-    foreach($gap_array as $value) {
-      list($value1, $value2) = explode('_', $value);
-      $gap[ $value ] = t('Existence: @value1 Extension: @value2', ['@value1' => $value1, '@value2' => $value2]);
+    foreach ($gap_array as $value) {
+      [$value1, $value2] = explode('_', $value);
+      $gap[$value] = t('Existence: @value1 Extension: @value2', ['@value1' => $value1, '@value2' => $value2]);
     }
 
     return $gap;
@@ -194,10 +191,11 @@ class TripalBlastProgramHelper {
 
   /**
    * Translate gap abbreviation into blast gap open and extend costs.
-   * @param $gap_key
-   *   A gap open/extend abbreviation
+   *
+   * @param string $gap_key
+   *   A gap open/extend abbreviation.
    */
-  public static function programSetGap($gap_key) {
+  public static function programSetGap(string $gap_key) {
     $parts = explode('_', (string) $gap_key);
 
     return [
@@ -209,10 +207,10 @@ class TripalBlastProgramHelper {
   /**
    * Translate mismatch/match ratio option into blast penalty/reward options.
    *
-   * @param $mm_score
+   * @param int $mm_score
    *   Match and mismatch value.
    */
-  public static function programSetMatchMismatch($mm_score) {
+  public static function programSetMatchMismatch(int $mm_score) {
     // Defaults in case an unexpected value is passed.
     $penalty = '';
     $reward = '';
@@ -255,61 +253,68 @@ class TripalBlastProgramHelper {
   /**
    * Reward and penalty for matching and mismatching bases.
    *
-   * @param $program_name
-   *   String, established program name - blastn, blastx, blastp and tblastn.
+   * @param string $program_name
+   *   Established program name - blastn, blastx, blastp, or tblastn.
    *
-   * @return array
+   * @return string|array
+   *   Mismatch array if blastn, empty string for other programs.
    */
-  public static function programGetMatchMismatch($program_name) {
+  public static function programGetMatchMismatch(string $program_name): string|array {
     $mm = [
       'blastn' => [
-        0 => t('1,-2'),
-        1 => t('1,-3'),
-        2 => t('1,-4'),
-        3 => t('2,-3'),
-        4 => t('4,-5'),
-        5 => t('1,-1')
-      ]
+        0 => '1,-2',
+        1 => '1,-3',
+        2 => '1,-4',
+        3 => '2,-3',
+        4 => '4,-5',
+        5 => '1,-1',
+      ],
     ];
 
-    return $mm[ $program_name ] ?? '';
+    return $mm[$program_name] ?? '';
   }
 
   /**
    * Cost to create and extend a gap in an alignment.
    *
-   * @param $program_name
-   *   String, established program name - blastn, blastx, blastp and tblastn.
-   * @param $mm_set
+   * @param string $program_name
+   *   Established program name - blastn, blastx, blastp, or tblastn.
+   * @param int $mm_set
    *   Value selected in Match/Mismatch field (as default).
    */
-  public static function programGetGapCost($program_name, $mm_set) {
+  public static function programGetGapCost(string $program_name, int $mm_set) {
     $gap = [];
 
     switch ($program_name) {
       case 'blastn':
         switch ($mm_set) {
-          case 0: //1, -2
+          // 1, -2
+          case 0:
             $gap = ['5_2', '2_2', '1_2', '0_2', '3_1', '2_1', '1_1'];
             break;
 
-          case 1: //1, -3
+          // 1, -3
+          case 1:
             $gap = ['5_2', '2_2', '1_2', '1_2', '0_2', '2_1', '1_1'];
             break;
 
-          case 2: // 1, -4
+          // 1, -4
+          case 2:
             $gap = ['5_2', '1_2', '0_2', '2_1', '1_1'];
             break;
 
-          case 3: //2, -3
+          // 2, -3
+          case 3:
             $gap = ['4_4', '2_4', '0_4', '3_3', '6_2', '5_2', '4_2', '2_2'];
             break;
 
-          case 4: //4, -5
+          // 4, -5
+          case 4:
             $gap = ['12_8', '6_5', '5_5', '4_5', '3_5'];
             break;
 
-          case 5: //1, -1
+          // 1, -1
+          case 5:
             $gap = ['5_2', '3_2', '2_2', '1_2', '0_2', '4_1', '3_1', '2_1'];
         }
     }
@@ -318,7 +323,7 @@ class TripalBlastProgramHelper {
   }
 
   /**
-   * FASTA validating parser
+   * FASTA validating parser.
    *
    * A sequence in FASTA format begins with a single-line description, followed
    * by lines of sequence data.The description line is distinguished from the
@@ -329,21 +334,23 @@ class TripalBlastProgramHelper {
    * if another line starting with a ">" appears which indicates the start of
    * another sequence.
    *
-   * @param $query
-   *   The type of sequence to be validated (ie: either nucleotide or protein).
-   * @param $fasta_sequence
-   *  A string of characters to be validated.
+   * @param string $query
+   *   The type of sequence to be validated, i.e. either
+   *   'nucleotide' or 'protein'.
+   * @param string $fasta_sequence
+   *   A string of characters to be validated.
    *
-   * @return
-   *  Return a boolean. 1 if the sequence does not pass the format valifation stage and 0 otherwise.
+   * @return bool
+   *   Return TRUE if the sequence passes the format valifation
+   *   and FALSE if not valid.
    */
-  public static function programValidateFastaSequence($query, $fasta_sequence) {
+  public static function programValidateFastaSequence(string $query, string $fasta_sequence) {
     // Includes IUPAC codes.
     $fastaSeqRegEx = ($query == 'nucleotide')
       ? '/^[ATCGNUKMBVSWDYRHatcgnukmbvswdyrh\[\/\]\s\n\r]*$/'
       : '/^[acdefghiklmnpqrstvwyACDEFGHIKLMNPQRSTVWY\*\-\s\n\r]*$/';
 
-      $defRegEx      = '/^>\S.*/';
+    $defRegEx = '/^>\S.*/';
 
     // For each line of the sequence.
     foreach (explode("\n", $fasta_sequence) as $line) {
@@ -354,7 +361,7 @@ class TripalBlastProgramHelper {
         }
       }
       else {
-        // Otherwise it's a sequence line
+        // Otherwise it's a sequence line.
         if (!preg_match($fastaSeqRegEx, $line)) {
           return FALSE;
         }
@@ -365,20 +372,22 @@ class TripalBlastProgramHelper {
   }
 
   /**
-   * Validate field callback.
+   * Validate field callback. Used for the e-value field.
    *
-   * @param $value
+   * @param string $value
    *   Value to validate to match the type.
-   * @param $type
-   *   Value type to test a given value.
+   * @param string $type
+   *   Value type to test a given value, only 'number' is supported.
    *
-   * @return boolean
-   *   True if value and type match, false otherwise.
+   * @return array
+   *   Array specifying validity. Keys are:
+   *   - result: boolean, TRUE if valid, FALSE if not valid.
+   *   - message: A message if not valid, empty string if valid.
    */
-  public static function programValidateValue($value, $type) {
+  public static function programValidateValue(string $value, string $type) {
     $is_valid = [
       'result' => TRUE,
-      'message' => ''
+      'message' => '',
     ];
 
     switch ($type) {
@@ -396,14 +405,29 @@ class TripalBlastProgramHelper {
   }
 
   /**
-   * Get default form values; may come from saved job data if user is re-running
+   * Get default form values.
+   *
+   * The values may come from saved job data if user is re-running
    * a previous job.
    *
-   * @param $options
-   * @param $program
+   * @param array $options
+   *   Various blast query options, and if not set, assign an
+   *   appropriate default value. Array keys are:
+   *     - max_target_seqs
+   *     - short_queries
+   *     - word_size
+   *     - evalue
+   *     - matchmiss
+   *     - gap
+   *     - matrix.
+   * @param string $program
+   *   Established program name - blastn, blastx, blastp, or tblastn.
+   *
+   * @return array
+   *   The $options array with all keys having passed or default values.
    */
   public static function programGetDefaultValues($options, $program) {
-    // restore previous values or set to default
+    // Restore previous values or set to default.
     $max_target = (isset($options['max_target_seqs']))
       ? $options['max_target_seqs'] : 500;
 
@@ -418,7 +442,7 @@ class TripalBlastProgramHelper {
     $word_size = (isset($options['word_size']))
       ? $options['word_size'] : 11;
 
-    // match/mismatch
+    // match/mismatch.
     $matchmiss = 0;
     $reward = (isset($options['reward']))
       ? $options['reward'] : 1;
@@ -461,7 +485,7 @@ class TripalBlastProgramHelper {
       }
     }
 
-    // gap
+    // Gap.
     if (isset($options['gapopen']) && isset($options['gapextend'])) {
       $gapopen = $options['gapopen'];
       $gapextend = $options['gapextend'];
@@ -481,13 +505,13 @@ class TripalBlastProgramHelper {
           break;
       }
     }
-    $gap = $gapopen.'_'.$gapextend;
+    $gap = $gapopen . '_' . $gapextend;
 
-    // matrix
+    // Matrix.
     $matrix = (isset($options['matrix']))
       ? $options['matrix'] : 'BLOSUM62';
 
-    // all done
+    // All done.
     return [
       'max_target_seqs' => $max_target,
       'short_queries' => $short_queries,
@@ -498,4 +522,5 @@ class TripalBlastProgramHelper {
       'matrix' => $matrix,
     ];
   }
+
 }
