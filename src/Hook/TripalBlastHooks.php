@@ -5,6 +5,7 @@ namespace Drupal\tripal_blast\Hook;
 use Drupal\Core\Hook\Attribute\Hook;
 use Drupal\Core\Link;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\tripal_blast\Services\TripalBlastJobService;
 
 /**
  * Class-based hook implementations for Tripal BLAST.
@@ -12,6 +13,20 @@ use Drupal\Core\StringTranslation\StringTranslationTrait;
 class TripalBlastHooks {
 
   use StringTranslationTrait;
+
+  /**
+   * The BLAST job service.
+   *
+   * @var \Drupal\tripal_blast\Services\TripalBlastJobService
+   */
+  protected TripalBlastJobService $jobService;
+
+  /**
+   * Constructs the hook handler.
+   */
+  public function __construct(TripalBlastJobService $jobService) {
+    $this->jobService = $jobService;
+  }
 
   /**
    * Implements hook_theme().
