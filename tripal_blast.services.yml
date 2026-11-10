@@ -4,6 +4,8 @@
 services:
   tripal_blast.database_service:
     class: Drupal\tripal_blast\Services\TripalBlastDatabaseService
+    arguments:
+      - '@entity_type.manager'
   tripal_blast.job_service:
     class: Drupal\tripal_blast\Services\TripalBlastJobService
     arguments:
