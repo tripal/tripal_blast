@@ -5,13 +5,34 @@ namespace Drupal\tripal_blast\Hook;
 use Drupal\Core\Hook\Attribute\Hook;
 use Drupal\Core\Link;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\tripal_blast\Services\TripalBlastJobService;
 
 /**
  * Class-based hook implementations for Tripal BLAST.
  */
 class TripalBlastHooks {
+
   use StringTranslationTrait;
 
+  /**
+   * The BLAST job service.
+   *
+   * @var \Drupal\tripal_blast\Services\TripalBlastJobService
+   */
+  protected TripalBlastJobService $jobService;
+
+  /**
+   * Constructs the hook handler.
+   */
+  public function __construct(TripalBlastJobService $jobService) {
+    $this->jobService = $jobService;
+  }
+
+  /**
+   * Implements hook_theme().
+   *
+   * Used by Tripal BLAST UI page.
+   */
   #[Hook('theme')]
   public function theme(array $existing, $type, $theme, $path) {
     // Links rendered as a markup for the template file.
@@ -28,7 +49,7 @@ class TripalBlastHooks {
     foreach ($blast_programs as $name => $param) {
       [$query, $db] = $param;
       $links_ui['link_' . $name] = Link::createFromRoute(
-        $this->t($name),
+        $name,
         $route_ui,
         ['query' => $query, 'db' => $db]
       );
@@ -44,7 +65,14 @@ class TripalBlastHooks {
     ];
 
     // Recent jobs table: Note this is not BLAST program specific.
-    $recent_jobs = \Drupal::service('tripal_blast.job_service')->jobsCreateTable();
+    // Use lazy_builder so that this element is not cached.
+    $recent_jobs = [
+      '#lazy_builder' => [
+        'tripal_blast.job_service:jobsCreateTable',
+        [],
+      ],
+      '#create_placeholder' => TRUE,
+    ];
 
     return [
       'theme-tripal-blast-ui' => [
@@ -72,4 +100,5 @@ class TripalBlastHooks {
       ],
     ];
   }
+
 }
