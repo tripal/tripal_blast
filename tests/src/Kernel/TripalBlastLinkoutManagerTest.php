@@ -3,7 +3,7 @@
 namespace Drupal\Tests\tripal_blast\Kernel;
 
 use Drupal\KernelTests\KernelTestBase;
-use Drupal\tripal_blast\TripalBlastLinkoutManager;
+use Drupal\tripal_blast\TripalBlastLinkout\TripalBlastLinkoutManager;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 
@@ -31,7 +31,7 @@ class TripalBlastLinkoutManagerTest extends KernelTestBase {
    */
   public function testPluginDiscovery(): void {
 
-    /** @var \Drupal\tripal_blast\TripalBlastLinkoutManager $manager */
+    /** @var \Drupal\tripal_blast\TripalBlastLinkout\TripalBlastLinkoutManager $manager */
     $manager = $this->container->get(
       'plugin.manager.tripal_blast_linkout'
     );
@@ -52,7 +52,7 @@ class TripalBlastLinkoutManagerTest extends KernelTestBase {
    */
   public function testCreateInstance(): void {
 
-    /** @var \Drupal\tripal_blast\TripalBlastLinkoutManager $manager */
+    /** @var \Drupal\tripal_blast\TripalBlastLinkout\TripalBlastLinkoutManager $manager */
     $manager = $this->container->get(
       'plugin.manager.tripal_blast_linkout'
     );
