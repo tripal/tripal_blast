@@ -17,9 +17,9 @@ trait TripalBlastTestTrait {
    *    - name: The human-readable name of the blast database.
    *    - path: The file path to the blast database.
    *    - dbtype: The type of the blast database.
-   *    - dbxref_id_regexp: The regular expression for extracting database IDs.
-   *    - dbxref_db_id: The ID of the database reference.
-   *    - dbxref_linkout_type: The type of linkout for the database reference.
+   *    - db_regexp: The regular expression for extracting database IDs.
+   *    - db_id: The ID of the database reference.
+   *    - db_linkout_type: The type of linkout for the database reference.
    *
    * @return \Drupal\tripal_blast\Entity\TripalBlastDatabase
    *   The created Tripal BLAST database config entity.
@@ -32,9 +32,9 @@ trait TripalBlastTestTrait {
     $values['name'] ??= $random->sentences(4, TRUE);
     $values['path'] ??= '/var/www/drupal/web/modules/contrib/tripal_blast/tests/fixtures/Chlamydomonas_reinhardtii_v5.6/Chlamydomonas_reinhardtii_v5.6.nsq';
     $values['dbtype'] ??= 'n';
-    $values['dbxref_id_regexp'] ??= '^>.*$';
-    $values['dbxref_db_id'] ??= 1;
-    $values['dbxref_linkout_type'] ??= 'none';
+    $values['db_regexp'] ??= '^>.*$';
+    $values['db_id'] ??= 1;
+    $values['db_linkout_type'] ??= 'tripal_blast.linkout_service:none';
 
     // Now create it.
     $database = TripalBlastDatabase::create($values);
