@@ -16,12 +16,12 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * This linkout type creates a link to JBrowse showing HSPs.
  */
 #[TripalBlastLinkout(
-  id: 'JBrowse',
-  label: new TranslatableMarkup('JBrowse Link'),
-  description: new TranslatableMarkup('Provides a link to a JBrowse instance to visualize HSPs'),
+  id: 'JBrowse1',
+  label: new TranslatableMarkup('JBrowse1 Link'),
+  description: new TranslatableMarkup('Provides a link to a JBrowse1 instance to visualize HSPs'),
   weight: -70,
 )]
-class TripalBlastLinkoutJbrowse extends PluginBase implements TripalBlastLinkoutInterface, ContainerFactoryPluginInterface {
+class TripalBlastLinkoutJbrowse1 extends PluginBase implements TripalBlastLinkoutInterface, ContainerFactoryPluginInterface {
 
   /**
    * The Tripal logger service.
