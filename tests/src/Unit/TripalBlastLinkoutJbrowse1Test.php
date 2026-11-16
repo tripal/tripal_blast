@@ -8,12 +8,12 @@ use Drupal\Core\Link;
 use Drupal\Core\Routing\UrlGeneratorInterface;
 use Drupal\Tests\UnitTestCase;
 use Drupal\tripal\Services\TripalLogger;
-use Drupal\tripal_blast\Plugin\TripalBlastLinkout\TripalBlastLinkoutJbrowse;
+use Drupal\tripal_blast\Plugin\TripalBlastLinkout\TripalBlastLinkoutJbrowse1;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 
 /**
- * @coversDefaultClass \Drupal\tripal_blast\Plugin\TripalBlastLinkout\TripalBlastLinkoutJbrowse
+ * @coversDefaultClass \Drupal\tripal_blast\Plugin\TripalBlastLinkout\TripalBlastLinkoutJbrowse1
  *
  * @group TripalBlast
  * @group TripalBlastLinkout
@@ -21,7 +21,7 @@ use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 #[Group('tripal-blast')]
 #[Group('tripal-blast-linkout')]
 #[RunTestsInSeparateProcesses]
-class TripalBlastLinkoutJbrowseTest extends UnitTestCase {
+class TripalBlastLinkoutJbrowse1Test extends UnitTestCase {
 
   /**
    * Setup test environment.
@@ -57,7 +57,7 @@ class TripalBlastLinkoutJbrowseTest extends UnitTestCase {
       }
     );
 
-    $plugin = new TripalBlastLinkoutJbrowse(
+    $plugin = new TripalBlastLinkoutJbrowse1(
       [],
       'JBrowse',
       [],
