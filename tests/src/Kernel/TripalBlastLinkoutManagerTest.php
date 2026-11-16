@@ -40,11 +40,11 @@ class TripalBlastLinkoutManagerTest extends KernelTestBase {
 
     $this->assertArrayHasKey('None', $definitions, 'Failed to discover "None" plugin');
     $this->assertArrayHasKey('Link', $definitions, 'Failed to discover "Link" plugin');
-    $this->assertArrayHasKey('JBrowse', $definitions, 'Failed to discover "JBrowse" plugin');
+    $this->assertArrayHasKey('JBrowse1', $definitions, 'Failed to discover "JBrowse1" plugin');
 
     $this->assertEquals(-90, $definitions['None']['weight'], 'Correct weight not returned for plugin "None"');
     $this->assertEquals(-80, $definitions['Link']['weight'], 'Correct weight not returned for plugin "Link"');
-    $this->assertEquals(-70, $definitions['JBrowse']['weight'], 'Correct weight not returned for plugin "JBrowse"');
+    $this->assertEquals(-70, $definitions['JBrowse1']['weight'], 'Correct weight not returned for plugin "JBrowse1"');
   }
 
   /**

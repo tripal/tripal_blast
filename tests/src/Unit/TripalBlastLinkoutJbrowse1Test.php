@@ -59,7 +59,7 @@ class TripalBlastLinkoutJbrowse1Test extends UnitTestCase {
 
     $plugin = new TripalBlastLinkoutJbrowse1(
       [],
-      'JBrowse',
+      'JBrowse1',
       [],
       $logger,
     );
