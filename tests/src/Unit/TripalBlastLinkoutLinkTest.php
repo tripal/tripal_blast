@@ -41,7 +41,7 @@ class TripalBlastLinkoutLinkTest extends UnitTestCase {
   }
 
   /**
-   * Tests creation of a JBrowse link.
+   * Tests creation of a generic link.
    */
   public function testCreateLink(): void {
 
