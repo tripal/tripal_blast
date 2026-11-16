@@ -3,7 +3,7 @@
 namespace Drupal\Tests\tripal_blast\Kernel;
 
 use Drupal\KernelTests\KernelTestBase;
-use Drupal\tripal_blast\TripalBlastLinkoutManager;
+use Drupal\tripal_blast\TripalBlastLinkout\TripalBlastLinkoutManager;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 
@@ -31,7 +31,7 @@ class TripalBlastLinkoutManagerTest extends KernelTestBase {
    */
   public function testPluginDiscovery(): void {
 
-    /** @var \Drupal\tripal_blast\TripalBlastLinkoutManager $manager */
+    /** @var \Drupal\tripal_blast\TripalBlastLinkout\TripalBlastLinkoutManager $manager */
     $manager = $this->container->get(
       'plugin.manager.tripal_blast_linkout'
     );
@@ -40,11 +40,11 @@ class TripalBlastLinkoutManagerTest extends KernelTestBase {
 
     $this->assertArrayHasKey('None', $definitions, 'Failed to discover "None" plugin');
     $this->assertArrayHasKey('Link', $definitions, 'Failed to discover "Link" plugin');
-    $this->assertArrayHasKey('JBrowse', $definitions, 'Failed to discover "JBrowse" plugin');
+    $this->assertArrayHasKey('JBrowse1', $definitions, 'Failed to discover "JBrowse1" plugin');
 
     $this->assertEquals(-90, $definitions['None']['weight'], 'Correct weight not returned for plugin "None"');
     $this->assertEquals(-80, $definitions['Link']['weight'], 'Correct weight not returned for plugin "Link"');
-    $this->assertEquals(-70, $definitions['JBrowse']['weight'], 'Correct weight not returned for plugin "JBrowse"');
+    $this->assertEquals(-70, $definitions['JBrowse1']['weight'], 'Correct weight not returned for plugin "JBrowse1"');
   }
 
   /**
@@ -52,7 +52,7 @@ class TripalBlastLinkoutManagerTest extends KernelTestBase {
    */
   public function testCreateInstance(): void {
 
-    /** @var \Drupal\tripal_blast\TripalBlastLinkoutManager $manager */
+    /** @var \Drupal\tripal_blast\TripalBlastLinkout\TripalBlastLinkoutManager $manager */
     $manager = $this->container->get(
       'plugin.manager.tripal_blast_linkout'
     );
