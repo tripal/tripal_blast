@@ -15,6 +15,14 @@ tripal-blast-ui:
     - core/jquery
     - core/once
 
+
+# Library used in BLAST configuration page.
+tripal-blast-configuration:
+  version: 1.x
+  css:
+    theme:
+      css/tripal-blast-configuration.css: {}
+
 # Library used in BLAST pages/programs.
 tripal-blast-programs:
   version: 1.x

@@ -35,6 +35,8 @@
     <p>Your BLAST search is currently running, elapsed time {{ job.run_time }}. The results will be listed here as soon as it completes. This page will automatically refresh.</p>
   {% elseif job.status_code === 2 %}
     <p>Your BLAST search could not be started. The job running service may be down. Please contact the site administrator.</p>
+  {% elseif job.status_code === 3 %}
+    <p>Your BLAST search has expired and no longer exists.</p>
   {% elseif job.status_code === 666 %}
     <p>Your BLAST search has encountered an error. Please contact an administrator for assistance.</p>
   {% elseif job.status_code === 999 %}
