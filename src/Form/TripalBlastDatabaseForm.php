@@ -4,7 +4,7 @@ namespace Drupal\tripal_blast\Form;
 
 use Drupal\Core\Entity\EntityForm;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\tripal_blast\TripalBlastLinkoutManager;
+use Drupal\tripal_blast\TripalBlastLinkout\TripalBlastLinkoutManager;
 use Drupal\tripal_chado\Database\ChadoConnection;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -25,7 +25,7 @@ class TripalBlastDatabaseForm extends EntityForm {
   /**
    * Manager for the linkout service for hit sequences.
    *
-   * @var Drupal\tripal_blast\TripalBlastLinkoutManager
+   * @var Drupal\tripal_blast\TripalBlastLinkout\TripalBlastLinkoutManager
    */
   protected TripalBlastLinkoutManager $linkout_manager;
 
@@ -34,7 +34,7 @@ class TripalBlastDatabaseForm extends EntityForm {
    *
    * @param Drupal\tripal_chado\Database\ChadoConnection $chado_connection
    *   The chado connection used to query chado.
-   * @param Drupal\tripal_blast\TripalBlastLinkoutManager $linkout_manager
+   * @param Drupal\tripal_blast\TripalBlastLinkout\TripalBlastLinkoutManager $linkout_manager
    *   The manager used to generate linkout URLs for blast hits.
    */
   public function __construct(

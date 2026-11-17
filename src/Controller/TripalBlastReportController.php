@@ -408,7 +408,7 @@ class TripalBlastReportController extends ControllerBase {
 
                 // First extract the linkout text using the regex provided
                 // through the Tripal blast database node.
-                if (preg_match($linkout_obj->regex, $hit_name, $linkout_match)) {
+                if ($linkout_obj->regex && preg_match($linkout_obj->regex, $hit_name, $linkout_match)) {
                   $hit->linkout_id = $linkout_match[1];
                   $hit->hit_name = $hit_name;
                   $hit->url_prefix = $linkout_obj->urlprefix;
