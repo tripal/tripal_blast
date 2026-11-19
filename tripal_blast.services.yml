@@ -9,6 +9,7 @@ services:
     arguments:
       - '@database'
       - '@tripal_chado.database'
+      - '@file_system'
       - '@uuid'
       - '@tripal.logger'
   tripal_blast.program_blastn:
