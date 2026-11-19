@@ -1,0 +1,27 @@
+[project]
+repo_name = "Tripal BLAST"
+repo_url = "https://github.com/tripal/tripal_blast"
+site_name = "Tripal BLAST Documentation"
+site_url = "https://tripal.github.io/tripal_blast"
+
+nav = [
+  { "Overview" = "index.md" },
+  { "Installation" = [
+    "install/composer-install.md",
+    "install/docker-demo.md",
+  ] },
+  { "Guiding your Users" = [
+    "users/submit-blast.md",
+    "users/previous-requests.md",
+    "users/result-page.md",
+  ] },
+  { "Site Administration" = [
+    "admin/config.md",
+    "admin/blast-databases.md",
+    "admin/running-jobs.md",
+  ] },
+]
+
+[project.theme]
+logo = "images/TripalLogo_only.png"
+favicon = "images/TripalLogo_only.png"
