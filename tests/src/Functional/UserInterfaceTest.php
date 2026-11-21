@@ -15,6 +15,11 @@ use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 #[RunTestsInSeparateProcesses]
 class UserInterfaceTest extends ChadoTestBrowserBase {
 
+  /**
+   * The theme to use when rendering content in the test environment.
+   *
+   * @var string
+   */
   protected $defaultTheme = 'stark';
 
   /**
@@ -22,26 +27,23 @@ class UserInterfaceTest extends ChadoTestBrowserBase {
    *
    * @var array
    */
-  protected static $modules = ['tripal','tripal_blast'];
+  protected static $modules = ['tripal', 'tripal_blast'];
 
   /**
    * Tests that a specific set of pages load with a 200 response.
    */
-  public function testLoadUI() {
+  public function testLoadUi() {
     $session = $this->getSession();
 
     // Ensure we have an admin user.
     $user = $this->drupalCreateUser(['access content']);
     $this->drupalLogin($user);
 
-    $context = '(modules installed: ' . implode(',', self::$modules) . ')';
-
-    // Blast UI
+    // Blast UI.
     $this->drupalGet(Url::fromRoute('tripal_blast.blast_ui'));
     $status_code = $session->getStatusCode();
     $this->assertEquals(200, $status_code, "The blast user interface listing the programs available should be able to load.");
 
-
-
   }
+
 }
