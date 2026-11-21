@@ -1,4 +1,5 @@
 <?php
+
 namespace Drupal\Tests\tripal_blast\Traits;
 
 use Drupal\tripal_blast\Entity\TripalBlastDatabase;

@@ -3,8 +3,12 @@
 namespace Drupal\tripal_blast\Services;
 
 use Drupal\Component\Uuid\UuidInterface;
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Database\Connection;
+use Drupal\Core\Datetime\DateFormatterInterface;
+use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Render\Markup;
+use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\tripal\Services\TripalJob;
 use Drupal\tripal\Services\TripalLogger;
 use Drupal\tripal_chado\Database\ChadoConnection;
@@ -32,30 +36,6 @@ class TripalBlastJobService {
   ];
 
   /**
-   * Constructs a new TripalBlastJobService object.
-   *
-   * @param Drupal\Core\Database\Connection $drupal_connection
-   *   A connection to the Drupal database.
-   * @param Drupal\tripal_chado\Database\ChadoConnection $chado_connection
-   *   A Database query interface for querying Chado using Tripal DBX.
-   * @param Drupal\Component\Uuid\UuidInterface $uuidService
-   *   Service to generate unique identifiers.
-   * @param Drupal\tripal\Services\TripalLogger $logger
-   *   The Tripal logger service.
-   */
-  public function __construct(
-    Connection $drupal_connection,
-    ChadoConnection $chado_connection,
-    UuidInterface $uuidService,
-    TripalLogger $logger,
-  ) {
-    $this->drupal_connection = $drupal_connection;
-    $this->chado_connection = $chado_connection;
-    $this->uuidService = $uuidService;
-    $this->logger = $logger;
-  }
-
-  /**
    * The drupal database connection.
    *
    * @var Drupal\Core\Database\Connection
@@ -70,11 +50,39 @@ class TripalBlastJobService {
   protected ChadoConnection $chado_connection;
 
   /**
-   * UUID generator.
+   * Drupal file system service.
    *
-   * @var Drupal\Component\Uuid\UuidInterface;
+   * @var Drupal\Core\File\FileSystemInterface
+   */
+  protected FileSystemInterface $fileSystem;
+
+  /**
+   * UUID generator service.
+   *
+   * @var Drupal\Component\Uuid\UuidInterface
    */
   protected UuidInterface $uuidService;
+
+  /**
+   * Drupal date formatter service.
+   *
+   * @var \Drupal\Core\Datetime\DateFormatterInterface
+   */
+  protected DateFormatterInterface $dateFormatter;
+
+  /**
+   * Configuration factory service.
+   *
+   * @var \Drupal\Core\Config\ConfigFactoryInterface
+   */
+  protected ConfigFactoryInterface $configFactory;
+
+  /**
+   * The current user account.
+   *
+   * @var \Drupal\Core\Session\AccountProxyInterface
+   */
+  protected AccountProxyInterface $currentUser;
 
   /**
    * The Tripal logger service.
@@ -82,6 +90,64 @@ class TripalBlastJobService {
    * @var Drupal\tripal\Services\TripalLogger
    */
   protected TripalLogger $logger;
+
+  /**
+   * Service for BLAST database configuration entities.
+   *
+   * @var \Drupal\tripal_blast\Services\TripalBlastDatabaseService
+   */
+  protected TripalBlastDatabaseService $databaseService;
+
+  /**
+   * A UUID for the current job. This is set by createJobDirectory().
+   *
+   * @var string
+   */
+  protected string $uuid;
+
+  /**
+   * Constructs a new TripalBlastJobService object.
+   *
+   * @param Drupal\Core\Database\Connection $drupal_connection
+   *   A connection to the Drupal database.
+   * @param Drupal\tripal_chado\Database\ChadoConnection $chado_connection
+   *   A Database query interface for querying Chado using Tripal DBX.
+   * @param Drupal\Core\File\FileSystemInterface $fileSystem
+   *   The drupal file system service.
+   * @param Drupal\Component\Uuid\UuidInterface $uuidService
+   *   Service to generate unique identifiers.
+   * @param Drupal\Core\Datetime\DateFormatterInterface $dateFormatter
+   *   The Drupal date formatter service.
+   * @param Drupal\Core\Config\ConfigFactoryInterface $configFactory
+   *   The Drupal configuration factory service.
+   * @param Drupal\Core\Session\AccountProxyInterface $currentUser
+   *   The current user service.
+   * @param Drupal\tripal\Services\TripalLogger $logger
+   *   The Tripal logger service.
+   * @param Drupal\tripal_blast\Services\TripalBlastDatabaseService $databaseService
+   *   Service for accessing BLAST database configuration entities.
+   */
+  public function __construct(
+    Connection $drupal_connection,
+    ChadoConnection $chado_connection,
+    FileSystemInterface $fileSystem,
+    UuidInterface $uuidService,
+    DateFormatterInterface $dateFormatter,
+    ConfigFactoryInterface $configFactory,
+    AccountProxyInterface $currentUser,
+    TripalLogger $logger,
+    TripalBlastDatabaseService $databaseService,
+  ) {
+    $this->drupal_connection = $drupal_connection;
+    $this->chado_connection = $chado_connection;
+    $this->fileSystem = $fileSystem;
+    $this->uuidService = $uuidService;
+    $this->dateFormatter = $dateFormatter;
+    $this->configFactory = $configFactory;
+    $this->currentUser = $currentUser;
+    $this->logger = $logger;
+    $this->databaseService = $databaseService;
+  }
 
   /**
    * Retrieve the number of recent jobs.
@@ -115,7 +181,6 @@ class TripalBlastJobService {
           // @todo Check that the results are still available.
           // This is meant to replace the arbitrary only show jobs executed
           // less than 48 hrs ago.
-
           // Remove jobs from the list that are not of the correct program.
           if ($filter_jobs and !in_array($job->program, $programs)) {
             $add = FALSE;
@@ -156,7 +221,7 @@ class TripalBlastJobService {
       $rows[] = [
         $job->query_summary,
         $job->blastdb->db_name,
-        \Drupal::service('date.formatter')->format($job->date_submitted, 'medium'),
+        $this->dateFormatter->format($job->date_submitted, 'medium'),
         Markup::create('<a href="' . $result_link . '">See Results</a>'),
       ];
     }
@@ -175,13 +240,13 @@ class TripalBlastJobService {
   /**
    * Reveals the true job_id for your secret blast result.
    *
-   * @param $secret
-   *    The uuid of the job.
+   * @param string $secret
+   *   The uuid of the job.
    *
    * @return int|bool
-   *    The revealed tripal job_id, or FALSE if secret does not exist.
+   *   The revealed tripal job_id, or FALSE if secret does not exist.
    */
-  public function jobsBlastRevealSecret($secret): int|bool {
+  public function jobsBlastRevealSecret(string $secret): int|bool {
     $query = $this->drupal_connection->select('blastjob', 'B');
     $query->condition('B.uuid', $secret, '=');
     $query->addField('B', 'job_id', 'job_id');
@@ -240,8 +305,7 @@ class TripalBlastJobService {
     $job->blastdb = new \stdClass();
     if ($blastjob->target_blastdb) {
       // If a provided blast database was used then load details.
-      $config = \Drupal::service('tripal_blast.database_service')
-        ->getDatabaseConfig($blastjob->target_blastdb);
+      $config = $this->databaseService->getDatabaseConfig($blastjob->target_blastdb);
 
       if ($config) {
         $job->blastdb->db_name = $config['name'];
@@ -287,7 +351,7 @@ class TripalBlastJobService {
     // Note: the result_filestub is the absolute path to the files without the
     // file type suffix (i.e.: .xml, .tsv, .html, .gff, .asn). To determine the
     // URI we need to strip the DRUPAL_ROOT from the absolute path.
-    $public_path = \Drupal::service('file_system')->realpath('public://');
+    $public_path = $this->fileSystem->realpath('public://');
     $absolute_path = $blastjob->result_filestub;
     // If the absolute path is within the public:// directory then we can use
     // the public:// stream wrapper to create the URI.
@@ -353,6 +417,51 @@ class TripalBlastJobService {
   }
 
   /**
+   * Set up a unique directory for blast job input and output files.
+   *
+   * This also initializes the class $uuid variable, which is also used in
+   * creating the results uri.
+   *
+   * @return string
+   *   The system path to the created directory.
+   */
+  public function createJobDirectory(): string {
+    // Get the path to our module's directory in public://.
+    $public_dir = $this->fileSystem->realpath('public://');
+    $module_dir = $public_dir . '/tripal_blast';
+
+    // Make sure the module directory exists, create if it does not exist.
+    $fs_flags = FileSystemInterface::CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS;
+    if (!file_exists($module_dir)) {
+      if (!$this->fileSystem->prepareDirectory($module_dir, $fs_flags)) {
+        $this->logger->error('Could not create directory "@dir"', ['@dir' => $module_dir]);
+        return '';
+      }
+      // Drush will need access for cleanup of old directories.
+      chmod($module_dir, 0777);
+    }
+
+    // Get a uuid and store it.
+    $this->uuid = $this->uuidService->generate();
+
+    // Create the unique directory.
+    $unique_dir = $module_dir . '/' . $this->uuid;
+    if (is_dir($unique_dir)) {
+      throw new \Exception("Duplicate UUID $unique_dir");
+    }
+    if (!$this->fileSystem->prepareDirectory($unique_dir, $fs_flags)) {
+      $this->logger->error('Could not create directory "@dir"', ['@dir' => $unique_dir]);
+      return '';
+    }
+
+    // Blast programs will need create and write permissions when run as a job.
+    chmod($unique_dir, 0777);
+
+    // Return the system path.
+    return $unique_dir;
+  }
+
+  /**
    * Create a new BLAST Tripal job.
    *
    * @param array $job_parameters
@@ -392,7 +501,7 @@ class TripalBlastJobService {
     elseif (array_key_exists('target_blastdb', $job_parameters)) {
       if (is_numeric($job_parameters['target_blastdb'])) {
         // If the target_blastdb is set then we need to make sure it exists.
-        $database_config = \Drupal::service('tripal_blast.database_service')
+        $database_config = $this->databaseService
           ->getDatabaseConfig($job_parameters['target_blastdb']);
 
         if (!$database_config) {
@@ -476,7 +585,7 @@ class TripalBlastJobService {
       'blast_job',
       ['Drupal\tripal_blast\Services\TripalBlastJobService', 'runJob'],
       $trpjob_args,
-      \Drupal::currentUser()->id()
+      $this->currentUser->id()
     );
 
     // Now save the tripal job_id into the params.
@@ -560,11 +669,10 @@ class TripalBlastJobService {
 
     // Allow administrators to use an absolute path for these commands.
     // Defaults to using $PATH.
-    $blast_path = \Drupal::config('tripal_blast.settings')
-      ->get('tripal_blast_config_general.path');
+    $config = $this->configFactory->get('tripal_blast.settings');
+    $blast_path = $config->get('tripal_blast_config_general.path');
 
-    $blast_threads = \Drupal::config('tripal_blast.settings')
-      ->get('tripal_blast_config_general.threads');
+    $blast_threads = $config->get('tripal_blast_config_general.threads');
 
     // Strip the extension off the BLAST target.
     $suffix = [

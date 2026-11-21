@@ -1,22 +1,22 @@
 <?php
-/**
- * @file
- * Form definition of BLASTn program.
- */
 
 namespace Drupal\tripal_blast\Services;
 
-use Drupal\tripal_blast\Services\TripalBlastProgramHelper;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 
 /**
- * BLASTn program class.
+ * Tripal blastn program class.
  */
 class TripalBlastProgramBlastn {
-  const BLASTn = 'blastn';
+  const BLASTN = 'blastn';
+
+  use StringTranslationTrait;
 
   /**
-   * Advanced field names used - refer to this value when
-   * validating and submitting fields under advanced options.
+   * Advanced field names used.
+   *
+   * Refer to this value when validating and submitting fields
+   * under advanced options.
    */
   public function formFieldNames() {
     // Keys match field names used in form definition below.
@@ -25,123 +25,124 @@ class TripalBlastProgramBlastn {
       'eVal' => ['number'],
       'wordSize' => [],
       'M&MScores' => [],
-      'gapCost' => []
+      'gapCost' => [],
     ];
 
     return $field_name_validator;
   }
 
   /**
-   * Adds the BLASTn Advanced Options to the passed in form.
+   * Adds the blastn Advanced Options to the passed in form.
+   *
    * This form function is meant to be called within another form definition.
    *
-   * @param $blast_cache
-   *   BLAST job history to reference information information contained.
+   * @param array $blast_cache
+   *   BLAST job history to reference information contained.
    *
    * @return array
    *   Additional form field definitions.
    */
-  public function formOptions($blast_cache) {
-    $blast = self::BLASTn;
+  public function formOptions(array $blast_cache): array {
+    $blast = self::BLASTN;
 
     // Edit and Resubmit functionality.
-    // We want to pull up the details from a previous blast and fill them in as defaults
-    // for this blast.
+    // We want to pull up the details from a previous blast and fill them in
+    // as defaults for this blast.
     $options = (isset($blast_cache)) ? $blast_cache : [];
     $defaults = TripalBlastProgramHelper::programGetDefaultValues($options, $blast);
 
     $form_alter = [];
-    $container = 'ALG' ;
+    $container = 'ALG';
 
-    $form_alter[ $container ] = [
+    $form_alter[$container] = [
       '#type' => 'details',
-      '#title' => t('Advanced Options'),
-      '#open' => FALSE
+      '#title' => $this->t('Advanced Options'),
+      '#open' => FALSE,
     ];
 
-    // @TODO: previous job details.
-    $form_alter[ $container ]['general'] = [
+    // @todo previous job details.
+    $form_alter[$container]['general'] = [
       '#type' => 'details',
-      '#title' => t('General Parameters'),
-      '#open' => TRUE
-    ];
-
-      //
-      // # FIELD: MAXIMUM TARGET.
-      $max_target_options = TripalBlastProgramHelper::programGetMaxTarget($blast);
-      $form_alter[ $container ]['general']['maxTarget'] = [
-        '#type' => 'select',
-        '#title' => t('Max target sequences:'),
-        '#options' => $max_target_options,
-        '#default_value' => $defaults['max_target_seqs'],
-        '#description' => t('Select the maximum number of unique target sequences per
-          query sequence to show results for. Results returned may not be the highest scoring hits.
-          <a href="https://academic.oup.com/bioinformatics/article/35/9/1613/5106166" target="_blank">More Information</a>'),
-      ];
-
-      //
-      // # FIELD: EVAL.
-      $form_alter[ $container ]['general']['eVal'] = [
-        '#type' => 'textfield',
-        '#title' => t('e-Value (Expected Threshold)'),
-        '#default_value' => $defaults['evalue'],
-        '#size' => 12,
-        '#maxlength' => 20,
-        '#description' => t('Expected number of chance matches in a random model. This number should be give in a decimal format.
-          <a href="https://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml#expect" target="_blank">More Information</a> |
-          <a href="https://www.youtube.com/watch?v=nO0wJgZRZJs" target="_blank">Expect value video tutorial</a>'),
-      ];
-
-      //
-      // # FIELD: WORDSIZE.
-      $word_size_options = TripalBlastProgramHelper::programGetWordSize($blast);
-      $form_alter[ $container ]['general']['wordSize'] = [
-        '#type' => 'select',
-        '#title' => t('Word size'),
-        '#options' => $word_size_options,
-        '#default_value' => $defaults['word_size'],
-        '#description' => t('The length of the seed that initiates an alignment'),
-      ];
-
-    $form_alter[ $container ]['scoring_param'] = [
-      '#type' => 'details',
-      '#title' => t('Scoring parameters'),
+      '#title' => $this->t('General Parameters'),
       '#open' => TRUE,
     ];
 
-      //
-      // # FIELD: MATCH AND MISMATCH.
-      $mm_options = TripalBlastProgramHelper::programGetMatchMismatch($blast);
-      $form_alter[ $container ]['scoring_param']['M&MScores'] = [
-        '#type' => 'select',
-        '#title' => t('Match/Mismatch Scores:'),
-        '#options' => $mm_options,
-        '#default_value' => $defaults['matchmiss'],
-        '#description' => t('Reward and penalty for matching and mismatching bases.'),
-        '#ajax' => [
-          'callback' => '::ajaxFieldUpdateCallback',
-          'wrapper'  => 'tripal-blast-wrapper-fld-select-gap-cost',
-          'method'   => 'replace',
-          'event'    => 'change',
-          'effect'   => 'fade',
-          'progress' => 'throbber',
-          'message'  => '',
-        ],
-      ];
+    //
+    // # FIELD: MAXIMUM TARGET.
+    $max_target_options = TripalBlastProgramHelper::programGetMaxTarget($blast);
+    $form_alter[$container]['general']['maxTarget'] = [
+      '#type' => 'select',
+      '#title' => $this->t('Max target sequences:'),
+      '#options' => $max_target_options,
+      '#default_value' => $defaults['max_target_seqs'],
+      '#description' => $this->t('Select the maximum number of unique target sequences per
+          query sequence to show results for. Results returned may not be the highest scoring hits.
+          <a href="https://academic.oup.com/bioinformatics/article/35/9/1613/5106166" target="_blank">More Information</a>'),
+    ];
 
-      //
-      // # FIELD: GAP COST.
-      $gap_cost_options = TripalBlastProgramHelper::programGetGapCost($blast, $defaults['matchmiss']);
-      $form_alter[ $container ]['scoring_param']['gapCost'] = [
-        '#type' => 'select',
-        '#title' => t('Gap Costs:'),
-        '#options' => $gap_cost_options,
-        '#default_value' => $defaults['gap'],
-        '#description' => t('Cost to create and extend a gap in an alignment.'),
-        '#id' => 'tripal-blast-fld-select-gap-cost',
-        '#prefix' => '<div id="tripal-blast-wrapper-fld-select-gap-cost">',
-        '#suffix' => '</div>',
-      ];
+    //
+    // # FIELD: EVAL.
+    $form_alter[$container]['general']['eVal'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('e-Value (Expected Threshold)'),
+      '#default_value' => $defaults['evalue'],
+      '#size' => 12,
+      '#maxlength' => 20,
+      '#description' => $this->t('Expected number of chance matches in a random model. This number should be give in a decimal format.
+          <a href="https://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml#expect" target="_blank">More Information</a> |
+          <a href="https://www.youtube.com/watch?v=nO0wJgZRZJs" target="_blank">Expect value video tutorial</a>'),
+    ];
+
+    //
+    // # FIELD: WORDSIZE.
+    $word_size_options = TripalBlastProgramHelper::programGetWordSize($blast);
+    $form_alter[$container]['general']['wordSize'] = [
+      '#type' => 'select',
+      '#title' => $this->t('Word size'),
+      '#options' => $word_size_options,
+      '#default_value' => $defaults['word_size'],
+      '#description' => $this->t('The length of the seed that initiates an alignment'),
+    ];
+
+    $form_alter[$container]['scoring_param'] = [
+      '#type' => 'details',
+      '#title' => $this->t('Scoring parameters'),
+      '#open' => TRUE,
+    ];
+
+    //
+    // # FIELD: MATCH AND MISMATCH.
+    $mm_options = TripalBlastProgramHelper::programGetMatchMismatch($blast);
+    $form_alter[$container]['scoring_param']['M&MScores'] = [
+      '#type' => 'select',
+      '#title' => $this->t('Match/Mismatch Scores:'),
+      '#options' => $mm_options,
+      '#default_value' => $defaults['matchmiss'],
+      '#description' => $this->t('Reward and penalty for matching and mismatching bases.'),
+      '#ajax' => [
+        'callback' => '::ajaxFieldUpdateCallback',
+        'wrapper'  => 'tripal-blast-wrapper-fld-select-gap-cost',
+        'method'   => 'replace',
+        'event'    => 'change',
+        'effect'   => 'fade',
+        'progress' => 'throbber',
+        'message'  => '',
+      ],
+    ];
+
+    //
+    // # FIELD: GAP COST.
+    $gap_cost_options = TripalBlastProgramHelper::programGetGapCost($blast, $defaults['matchmiss']);
+    $form_alter[$container]['scoring_param']['gapCost'] = [
+      '#type' => 'select',
+      '#title' => $this->t('Gap Costs:'),
+      '#options' => $gap_cost_options,
+      '#default_value' => $defaults['gap'],
+      '#description' => $this->t('Cost to create and extend a gap in an alignment.'),
+      '#id' => 'tripal-blast-fld-select-gap-cost',
+      '#prefix' => '<div id="tripal-blast-wrapper-fld-select-gap-cost">',
+      '#suffix' => '</div>',
+    ];
 
     return $form_alter;
   }
@@ -149,7 +150,7 @@ class TripalBlastProgramBlastn {
   /**
    * Map advanced options specific to this program to BLAST keywords.
    *
-   * @param $advanced_field_names
+   * @param array $advanced_field_values
    *   Values set from form ($form_state).
    *
    * @return array
@@ -179,4 +180,5 @@ class TripalBlastProgramBlastn {
       'reward' => $reward,
     ];
   }
+
 }
